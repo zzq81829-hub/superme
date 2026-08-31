@@ -1738,7 +1738,7 @@ async function loadHealth() {
     if (openBtn) {
       openBtn.disabled = !coo.available;
       openBtn.title = coo.available
-        ? "在本机打开 Hermes 终端界面"
+        ? "直接打开 Hermes 原生桌面客户端"
         : "Hermes 尚未安装或未通过本机探测";
     }
 
@@ -1869,7 +1869,7 @@ window.openHermesInterface = async () => {
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = "打开 Hermes 界面";
+      btn.textContent = "打开 Hermes Desktop";
     }
   }
 };

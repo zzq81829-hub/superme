@@ -45,7 +45,7 @@ Acceptance:
 - 小红书发布包显示图文与文案文件位置，并可直接在本机打开。
 - AI CEO 内置 `grilling` 决策树技能；Hermes 仍为 COO，职责口径见 `founder_os/projects/AI_CEO.md`。
 - 新增电脑只读安全入口，仅覆盖常用用户资料夹，阻止隐私/凭据/金融路径，并在读取文本时隐藏金额和常见个人标识。
-- Hermes 已通过官方更新器升级到最新主线 `e721b03f`，Windows Desktop 客户端已重建；控制台按钮直接打开 Desktop 客户端。
+- Hermes 已通过官方更新器升级到最新主线 `e721b03f`，Windows Desktop 客户端已重建；控制台按钮和 Windows 桌面快捷方式都直接打开原生 Desktop 客户端。
 
 ## Phase 1 — Shuzhai content loop
 Target loop:

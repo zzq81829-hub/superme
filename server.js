@@ -164,7 +164,7 @@ app.post("/api/hermes/open", (_req, res) => {
     const launched = openHermesUI(config);
     res.status(202).json({
       ...launched,
-      message: "Hermes terminal interface opened on this computer."
+      message: "Hermes Desktop client opened on this computer."
     });
   } catch (error) {
     res.status(503).json({ error: error.message });
