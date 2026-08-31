@@ -1341,6 +1341,185 @@ pre.rawLog {
   }
 }
 
+/* ==========================================================================
+   OS Executive Shell — quiet boardroom layout
+   ========================================================================== */
+:root {
+  --font-display: "Iowan Old Style", "Baskerville", "Times New Roman", serif;
+  --os-gold: #d7b477;
+  --os-gold-soft: rgba(215, 180, 119, 0.18);
+  --os-line: rgba(244, 239, 230, 0.1);
+}
+
+html { scroll-behavior: smooth; }
+body { overflow-x: hidden; }
+
+body {
+  background-image:
+    radial-gradient(circle at 72% -10%, rgba(215, 180, 119, 0.09) 0%, transparent 34%),
+    radial-gradient(circle at 12% 90%, rgba(197, 34, 47, 0.06) 0%, transparent 42%);
+}
+
+.shell {
+  width: min(1440px, calc(100% - 64px));
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  column-gap: 34px;
+  align-items: start;
+  padding-top: 32px;
+}
+
+.shell > header,
+.shell > section,
+.shell > #budgetAlertBanner {
+  grid-column: 2;
+  width: 100%;
+}
+
+.shell > .modalOverlay { grid-column: 1 / -1; }
+
+.shell > header { order: -7; margin-bottom: 8px; }
+#budgetAlertBanner { order: -6; }
+#approvalSection { order: -5; }
+#commandSection { order: -4; }
+#commandMonitor { order: -3; }
+
+.sideRail {
+  grid-column: 1;
+  grid-row: 1 / span 30;
+  position: sticky;
+  top: 32px;
+  height: calc(100vh - 64px);
+  min-height: 560px;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 0 20px;
+}
+
+.brandLockup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px 18px;
+}
+
+.brandMark {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--os-gold);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--ivory-pure);
+  font-family: var(--font-display);
+  font-size: 16px;
+  letter-spacing: -0.15em;
+  padding-right: 3px;
+  box-shadow: 0 0 0 5px rgba(215, 180, 119, 0.04);
+}
+
+.brandMark span { color: var(--os-gold); }
+.brandName { color: var(--ivory-pure); font-family: var(--font-display); font-size: 20px; letter-spacing: 0.08em; }
+.brandCaption { color: var(--os-gold); font-size: 9px; letter-spacing: 0.22em; margin-top: 2px; }
+.railRule { height: 1px; background: var(--os-line); margin: 0 12px 18px; }
+
+.primaryNav { display: grid; gap: 4px; }
+.navItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--ivory-muted);
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+.navItem:hover { color: var(--ivory-pure); background: rgba(244, 239, 230, 0.05); transform: translateX(2px); }
+.navItem.active { color: var(--ivory-pure); background: linear-gradient(90deg, rgba(215, 180, 119, 0.13), rgba(215, 180, 119, 0.02)); border-color: rgba(215, 180, 119, 0.18); }
+.navItem.active::before { content: ""; position: absolute; left: -1px; top: 8px; bottom: 8px; width: 2px; border-radius: 2px; background: var(--os-gold); }
+.navGlyph { width: 16px; color: var(--os-gold); text-align: center; font-size: 14px; }
+.navHint { margin-left: auto; color: var(--ivory-dim); font-size: 10px; }
+.railFooter { margin-top: auto; padding: 14px 12px 0; border-top: 1px solid var(--os-line); }
+.railStatus { display: flex; align-items: center; gap: 8px; color: var(--ivory-soft); font-size: 11px; }
+.railStatusDot { width: 6px; height: 6px; border-radius: 50%; background: #5fcf9a; box-shadow: 0 0 0 4px rgba(95, 207, 154, 0.1); }
+.railMeta { margin-top: 10px; color: var(--ivory-dim); font-size: 10px; line-height: 1.7; }
+
+header h1 { font-family: var(--font-display); font-size: clamp(42px, 6vw, 68px); font-weight: 500; letter-spacing: -0.06em; }
+header p { font-size: 13px; color: var(--ivory-muted); }
+.status { border-color: rgba(215, 180, 119, 0.25); color: var(--ivory-soft); background: rgba(215, 180, 119, 0.06); }
+.eyebrow { color: var(--os-gold); letter-spacing: 0.22em; }
+
+.panel { border-color: var(--os-line); border-radius: 18px; padding: 24px 26px; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32); }
+.panel:hover { border-color: rgba(244, 239, 230, 0.17); }
+.hero { padding: 32px; border-color: rgba(215, 180, 119, 0.24); background: linear-gradient(145deg, rgba(33, 30, 27, 0.92), rgba(15, 15, 18, 0.96) 72%); }
+.heroIntro h2 { font-family: var(--font-display); font-size: 27px; font-weight: 500; letter-spacing: 0.01em; }
+.heroIntro p { margin-top: 7px; font-size: 13px; }
+.hero > #title { margin-top: 22px; height: 52px; font-size: 16px; border-color: rgba(215, 180, 119, 0.28); background: rgba(9, 9, 12, 0.74); }
+.hero > #description { min-height: 96px; background: rgba(9, 9, 12, 0.62); }
+.heroActions { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 16px; }
+.heroActions button { min-width: 142px; background: linear-gradient(135deg, #d8b578, #9b6b34); color: #17120d; border-color: rgba(255, 236, 194, 0.55); box-shadow: 0 8px 24px rgba(184, 132, 62, 0.22); }
+.heroActions button:hover { background: linear-gradient(135deg, #e4c487, #b57d3a); color: #120e09; box-shadow: 0 10px 28px rgba(184, 132, 62, 0.3); }
+.buttonArrow { font-size: 17px; line-height: 1; }
+.heroHint { color: var(--ivory-muted); font-size: 11px; }
+.heroHintDot { display: inline-block; width: 5px; height: 5px; margin: 0 6px 1px 0; border-radius: 50%; background: var(--os-gold); }
+
+.advancedTaskOptions { margin-top: 14px; border-top: 1px solid var(--os-line); padding-top: 12px; }
+.advancedTaskOptions summary { cursor: pointer; color: var(--ivory-soft); font-size: 12px; list-style: none; display: flex; align-items: center; gap: 10px; }
+.advancedTaskOptions summary::-webkit-details-marker { display: none; }
+.advancedTaskOptions summary::before { content: "+"; color: var(--os-gold); font-size: 16px; }
+.advancedTaskOptions[open] summary::before { content: "−"; }
+.advancedTaskOptions summary span { color: var(--ivory-dim); font-size: 11px; }
+.advancedTaskGrid { display: grid; grid-template-columns: 0.8fr 1.4fr; gap: 10px; margin-top: 12px; }
+.advancedTaskGrid textarea { grid-column: 1 / -1; margin-top: 0; }
+
+#commandMonitor { padding: 20px 24px; border-top: 1px solid rgba(215, 180, 119, 0.28); }
+#commandMonitor .monitorTitle h2 { font-family: var(--font-display); font-size: 20px; font-weight: 500; }
+.monitorItem { border-color: var(--os-line); }
+.monitorIdentity { border-color: rgba(215, 180, 119, 0.2); background: linear-gradient(135deg, rgba(215, 180, 119, 0.08), rgba(10, 10, 14, 0.82)); }
+
+#approvalSection { border-color: rgba(215, 180, 119, 0.36) !important; background: linear-gradient(145deg, rgba(48, 35, 22, 0.38), rgba(22, 14, 15, 0.5)) !important; }
+#approvalSection h2 { color: var(--os-gold) !important; font-family: var(--font-display); font-size: 20px !important; font-weight: 500 !important; }
+#approvalSection .tabBadge { background: var(--couture-red) !important; }
+
+.sectionHeader h2 { font-family: var(--font-display); font-size: 21px !important; font-weight: 500; letter-spacing: 0.01em; }
+.sectionHeader { padding-bottom: 4px; border-bottom: 1px solid rgba(244, 239, 230, 0.05); }
+.taskTitle { font-size: 16px; }
+.workerCard, .task { background: rgba(14, 14, 18, 0.68); border-color: var(--os-line); }
+.workerCard:hover, .task:hover { border-color: rgba(215, 180, 119, 0.26); }
+
+@media (max-width: 900px) {
+  .shell { width: min(100% - 28px, 720px); min-width: 0; display: flex; flex-direction: column; padding-top: 16px; }
+  .shell > header, .shell > section, .shell > #budgetAlertBanner { width: 100%; }
+  .shell > header { order: -9; }
+  .sideRail { order: -10; }
+  #budgetAlertBanner { order: -8; }
+  #approvalSection { order: -7; }
+  #commandSection { order: -6; }
+  #commandMonitor { order: -5; }
+  .sideRail { position: sticky; z-index: 20; top: 0; width: 100%; min-width: 0; height: auto; min-height: 0; padding: 10px 0 12px; background: rgba(9, 9, 11, 0.94); backdrop-filter: blur(18px); border-bottom: 1px solid var(--os-line); }
+  .brandLockup { padding: 0 4px 10px; }
+  .brandMark { width: 32px; height: 32px; font-size: 13px; }
+  .brandName { font-size: 17px; }
+  .brandCaption, .railRule, .railFooter { display: none; }
+  .primaryNav { display: flex; width: 100%; min-width: 0; overflow-x: auto; gap: 4px; padding-bottom: 2px; }
+  .navItem { flex: 0 0 auto; padding: 8px 10px; font-size: 11px; }
+  .navItem.active::before { left: 8px; right: 8px; top: auto; bottom: 2px; width: auto; height: 2px; }
+  .navGlyph { display: none; }
+  .monitorGrid { grid-template-columns: 1fr; }
+  .monitorValue { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+  .workerBoard { grid-template-columns: minmax(0, 1fr); }
+  .workerCard, .workerCardRow, .tasks, .task, .taskTop, .taskHeaderInfo { min-width: 0; max-width: 100%; }
+  .workerCardRow, .taskTop { overflow-wrap: anywhere; }
+  .taskTopRight { flex-wrap: wrap; }
+  .hero { padding: 24px 20px; }
+  .advancedTaskGrid { grid-template-columns: 1fr; }
+  .heroActions { align-items: stretch; flex-direction: column; }
+  .heroActions button { width: 100%; }
+}
+
 /* Worker Board (谁在做 / 谁做完了 / 额度) */
 .badge-muted {
   background: rgba(120, 113, 108, 0.15);
@@ -1616,4 +1795,15 @@ pre.rawLog {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+@media (max-width: 900px) {
+  html, body { overflow-x: hidden; }
+  .workerBoard { grid-template-columns: minmax(0, 1fr); min-width: 0; overflow: hidden; }
+  .workerCard { min-width: 0; overflow: hidden; }
+  .workerCardRow { min-width: 0; }
+  .workerCard .badge { white-space: normal; overflow-wrap: anywhere; }
+  .workerCardActions { min-width: 0; }
+  .task, .tasks, .taskTop, .taskHeaderInfo { min-width: 0; max-width: 100%; }
+  .task { overflow: hidden; }
 }

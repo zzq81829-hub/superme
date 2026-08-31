@@ -3,17 +3,39 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AI Founder OS</title>
+  <title>OS · Founder Control</title>
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <div id="toastContainer" class="toastContainer"></div>
   <main class="shell">
+    <aside class="sideRail" aria-label="OS 主导航">
+      <div class="brandLockup">
+        <div class="brandMark" aria-hidden="true">O<span>S</span></div>
+        <div>
+          <div class="brandName">OS</div>
+          <div class="brandCaption">FOUNDER CONTROL</div>
+        </div>
+      </div>
+      <div class="railRule"></div>
+      <nav class="primaryNav">
+        <a class="navItem active" href="#commandMonitor"><span class="navGlyph">◈</span><span>驾驶舱</span></a>
+        <a class="navItem" href="#secretarySection"><span class="navGlyph">✳</span><span>秘书收件箱</span><span class="navHint">想法</span></a>
+        <a class="navItem" href="#contentPackagesSection"><span class="navGlyph">▱</span><span>内容工作台</span></a>
+        <a class="navItem" href="#taskSection"><span class="navGlyph">↗</span><span>任务与执行</span></a>
+        <a class="navItem" href="#workerBoardSection"><span class="navGlyph">·</span><span>执行团队</span></a>
+        <a class="navItem" href="#memorySection"><span class="navGlyph">⌁</span><span>创始人记忆</span></a>
+      </nav>
+      <div class="railFooter">
+        <div class="railStatus"><span class="railStatusDot"></span><span>控制中枢在线</span></div>
+        <div class="railMeta">CEO · 本机控制系统<br />Hermes · COO</div>
+      </div>
+    </aside>
     <header>
       <div>
-        <div class="eyebrow">AI COMPANY</div>
-        <h1>AI Founder OS</h1>
-        <p>本机控制系统掌权 · Grok Bot 秘书 · Hermes COO 调度执行</p>
+        <div class="eyebrow">FOUNDER CONTROL / 01</div>
+        <h1>OS</h1>
+        <p>你的创始人驾驶舱。CEO 理解方向，Hermes 推进执行。</p>
       </div>
       <div id="health" class="status">连接中…</div>
     </header>
@@ -103,25 +125,35 @@
       <div id="approvalList" class="tasks" style="margin-top: 10px;"></div>
     </section>
 
-    <section class="panel hero">
-      <h2>今天想让 AI 做什么？</h2>
+    <section class="panel hero" id="commandSection">
+      <div class="heroIntro">
+        <div class="eyebrow">TODAY'S BRIEF</div>
+        <h2>今天想推进什么？</h2>
+        <p>说出结果就好。OS 会理解目标、判断风险，再交给合适的人。</p>
+      </div>
       <input id="title" placeholder="例如：把书摘的小红书封面系统改得更高级" />
       <textarea id="description" rows="3" placeholder="把你的想法直接说出来，不需要写 PRD。"></textarea>
-      <textarea id="acceptance" rows="2" placeholder="可选机器验收，每行一条，例如：存在: output/report.md 或 运行: npm test"></textarea>
-      <div class="row">
-        <select id="agent">
-          <option value="auto">自动分配</option>
-          <option value="hermes">Hermes</option>
-          <option value="codex">Codex</option>
-          <option value="claude">Claude Code</option>
-          <option value="antigravity">Antigravity</option>
-          <option value="grok-build">Grok Build</option>
-          <option value="grok">Grok</option>
-          <option value="deepseek">DeepSeek</option>
-          <option value="grok-bot">Grok Bot (实验)</option>
-        </select>
-        <input id="projectPath" placeholder="项目路径，例如 D:\Projects\shuzhai" />
-        <button id="create">创建并执行</button>
+      <details class="advancedTaskOptions">
+        <summary>执行偏好 <span>自动分配 · 项目路径 · 验收标准</span></summary>
+        <div class="advancedTaskGrid">
+          <select id="agent">
+            <option value="auto">自动分配</option>
+            <option value="hermes">Hermes</option>
+            <option value="codex">Codex</option>
+            <option value="claude">Claude Code</option>
+            <option value="antigravity">Antigravity</option>
+            <option value="grok-build">Grok Build</option>
+            <option value="grok">Grok</option>
+            <option value="deepseek">DeepSeek</option>
+            <option value="grok-bot">Grok Bot (实验)</option>
+          </select>
+          <input id="projectPath" placeholder="项目路径（可选）例如 D:\Projects\shuzhai" />
+          <textarea id="acceptance" rows="2" placeholder="验收标准（可选），每行一条，例如：存在: output/report.md 或 运行: npm test"></textarea>
+        </div>
+      </details>
+      <div class="heroActions">
+        <span class="heroHint"><span class="heroHintDot"></span> CEO 会先理解，再决定是否需要你介入</span>
+        <button id="create">交给 CEO <span class="buttonArrow">↗</span></button>
       </div>
     </section>
 
@@ -144,7 +176,7 @@
       </div>
     </section>
 
-    <section class="panel">
+    <section class="panel" id="taskSection">
       <div class="sectionHeader">
         <h2>Workers</h2>
       </div>

@@ -1701,6 +1701,32 @@ window.previewContentPackage = async (id) => {
 // Health & Secretary State
 let cachedHealth = null;
 
+const WORKER_LABELS = {
+  hermes: "Hermes · COO",
+  codex: "Codex",
+  claude: "Claude",
+  antigravity: "Antigravity",
+  "grok-build": "Grok Build",
+  grok: "Grok",
+  "grok-bot": "Grok Bot · 秘书",
+  deepseek: "DeepSeek"
+};
+
+const WORKER_STATUS_LABELS = {
+  READY: "已就绪",
+  INSTALLED: "已安装",
+  ONLINE: "在线",
+  OFFLINE: "离线",
+  AUTH_REQUIRED: "需要登录",
+  ON_DEMAND: "按需启用",
+  PROVIDER_UNVERIFIED: "提供方待验证",
+  HEADLESS_PERMISSION_BLOCKED: "工具权限阻断",
+  UNKNOWN_CONTROL_INTERFACE: "控制接口未验证"
+};
+
+function workerLabel(id) { return WORKER_LABELS[id] || id; }
+function workerStatusLabel(status) { return WORKER_STATUS_LABELS[status] || status || "未知"; }
+
 async function loadHealth() {
   try {
     cachedHealth = await api("/api/health");
@@ -1715,7 +1741,7 @@ async function loadHealth() {
     const workersEl = $("workers");
     if (workersEl) {
       workersEl.innerHTML = (cachedHealth.workers || []).map((worker) =>
-        `<span class="badge" title="${esc(worker.detail || "")}">${esc(worker.id)} ${esc(worker.status)}${worker.securityRisk ? " ⚠" : ""}</span>`
+        `<span class="badge" title="${esc(worker.detail || "")}">${esc(workerLabel(worker.id))} · ${esc(workerStatusLabel(worker.status))}${worker.securityRisk ? " ⚠" : ""}</span>`
       ).join(" ");
     }
 
@@ -1819,8 +1845,8 @@ function renderWorkerBoard() {
     return `
       <article class="workerCard">
         <div class="workerCardTop">
-          <span class="workerName">${esc(w.id)}</span>
-          <span class="badge ${statusClass(w)}">${esc(w.status)}</span>
+          <span class="workerName">${esc(workerLabel(w.id))}</span>
+          <span class="badge ${statusClass(w)}">${esc(workerStatusLabel(w.status))}</span>
         </div>
         <div class="workerCardRow">
           <span class="boardLabel">额度</span>
@@ -2246,6 +2272,19 @@ function updateLocalClock() {
       el.textContent = `运行中 ${sec}s`;
     }
   });
+}
+
+const navItems = [...document.querySelectorAll(".navItem")];
+const navTargets = navItems
+  .map((item) => ({ item, target: document.querySelector(item.getAttribute("href")) }))
+  .filter(({ target }) => target);
+if (navTargets.length && "IntersectionObserver" in window) {
+  const navObserver = new IntersectionObserver((entries) => {
+    const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (!visible) return;
+    navTargets.forEach(({ item, target }) => item.classList.toggle("active", target === visible.target));
+  }, { rootMargin: "-12% 0px -70% 0px", threshold: [0.1, 0.35, 0.7] });
+  navTargets.forEach(({ target }) => navObserver.observe(target));
 }
 
 // Start unified polling controller
