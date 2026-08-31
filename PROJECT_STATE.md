@@ -1,14 +1,14 @@
 # PROJECT_STATE
 
-Current Phase: **D Environment Audit written; next E verify Hermes (already installed, do not reinstall)**  
-Current Status: Control Center V1 live. Codex + Antigravity real loops proven. Git checkpoint `59c5d51` (`phase-a-existing-system-audit`). Hermes already installed, not bridged.  
+Current Phase: **E Hermes verified installed; next F Hermes Bridge**  
+Current Status: Control Center V1 live. Codex + Antigravity real loops proven. Git: `59c5d51` audit, `075b484` env audit. Hermes 0.20.5 doctor ran; not bridged yet.  
 Last Successful Test: `npm test` 14/14 (2026-08-31)
 
 ## Worker status
 
 | Worker | Status | Evidence |
 |--------|--------|----------|
-| Hermes | ONLINE (CLI installed), not integrated | `hermes` 0.20.5; `hermes chat -q` exists; gateway stopped |
+| Hermes | ONLINE (CLI installed), not integrated | v0.20.5; `hermes chat -q` exists; `hermes doctor` ran (config v34 vs v38, Codex/xAI OAuth not in Hermes); gateway stopped. Did not reinstall or update. |
 | Codex | ONLINE via desktop CLI | E2E task `1788135955732-85104d` |
 | Claude Code | UNKNOWN (CLI present, login not verified this phase) | `claude -p` in `--help` |
 | Antigravity | ONLINE with non-Gemini model | task `1788138927817-7b78d3` |
