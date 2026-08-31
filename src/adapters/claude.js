@@ -19,7 +19,7 @@ export async function runClaude({ task, prompt, projectPath, config }) {
     displayArgs: ["-p", "<task prompt>", "--output-format", "text", "--model", agent.model || "sonnet"],
     cwd: path.resolve(cwd),
     dryRun: config.dryRun,
-    timeoutMs: agent.timeoutMs || config.execution?.timeoutMs,
+    timeoutMs: agent.timeoutMs || 45000,
     maxOutputBytes: config.execution?.maxOutputBytes,
     logPath: logs.wrapperLogPath,
     env: subscriptionEnv(),
