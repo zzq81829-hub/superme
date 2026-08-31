@@ -32,6 +32,22 @@ test("binary presence is reported as installed, not authenticated readiness", ()
   }
 });
 
+test("configured Antigravity is not advertised as dispatchable for headless tool work", () => {
+  const antigravity = workerHealthMap({
+    config: { agents: { antigravity: { permissionMode: "configured" } } }
+  }).antigravity;
+  assert.equal(antigravity.available, false);
+  assert.equal(antigravity.status, "HEADLESS_PERMISSION_BLOCKED");
+  assert.equal(antigravity.permissionMode, "configured");
+});
+
+test("explicit Antigravity dangerous mode remains dispatchable", () => {
+  const antigravity = workerHealthMap({
+    config: { agents: { antigravity: { permissionMode: "dangerous-bypass" } } }
+  }).antigravity;
+  assert.equal(antigravity.available, true);
+});
+
 test("read-only status output is classified without claiming more than it proves", () => {
   assert.equal(classifyCodexProbe("Logged in using ChatGPT", 0).status, "READY");
   assert.equal(classifyCodexProbe("Not logged in", 1).status, "AUTH_REQUIRED");

@@ -47,7 +47,7 @@ export async function dispatchTask(taskId, config) {
 
   const requested = chooseAgent(task);
   const projectPath = task.projectPath || config.workspaceRoot || process.cwd();
-  const guard = applyCostGuard(requested);
+  const guard = applyCostGuard(requested, undefined, { config });
   if (!guard.ok) {
     return updateTask(taskId, {
       status: "blocked",
@@ -147,7 +147,7 @@ export async function dispatchTask(taskId, config) {
     const unavailable = isWorkerUnavailable(result);
     if (result.ok || !unavailable) break;
     skip.push(agent);
-    const fallback = applyCostGuard("auto", undefined, { skip });
+    const fallback = applyCostGuard("auto", undefined, { config, skip });
     if (!fallback.ok || skip.includes(fallback.worker)) break;
     agent = fallback.worker;
     updateTask(taskId, {

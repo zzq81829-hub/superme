@@ -46,6 +46,7 @@ Acceptance:
 - AI CEO 内置 `grilling` 决策树技能；Hermes 仍为 COO，职责口径见 `founder_os/projects/AI_CEO.md`。
 - 新增电脑只读安全入口，仅覆盖常用用户资料夹，阻止隐私/凭据/金融路径，并在读取文本时隐藏金额和常见个人标识。
 - Hermes 已通过官方更新器升级到最新主线 `e721b03f`，Windows Desktop 客户端已重建；控制台按钮和 Windows 桌面快捷方式都直接打开原生 Desktop 客户端。
+- Antigravity 连接层已增加 headless 权限预检：`permissionMode=configured` 时会明确显示 `HEADLESS_PERMISSION_BLOCKED` 并从自动派工/回退链跳过，只有创始人显式启用 `dangerous-bypass`（或在 Antigravity 内配置等价 allow-rules）才会执行需要工具的任务。
 
 ## Phase 1 — Shuzhai content loop
 Target loop:

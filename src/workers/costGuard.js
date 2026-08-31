@@ -4,7 +4,8 @@ import { workerHealthMap } from "./health.js";
 import { FALLBACK_CHAIN } from "./ids.js";
 import { getWorkerQuota } from "./quota.js";
 
-export function applyCostGuard(requested, healthMap = workerHealthMap({ probeReadiness: true }), options = {}) {
+export function applyCostGuard(requested, healthMap, options = {}) {
+  const resolvedHealthMap = healthMap || workerHealthMap({ probeReadiness: true, config: options.config || null });
   const forbidden = isForbiddenApiEnabled();
   if (forbidden.length) {
     return {
@@ -45,7 +46,7 @@ export function applyCostGuard(requested, healthMap = workerHealthMap({ probeRea
       continue;
     }
 
-    const health = healthMap[id];
+    const health = resolvedHealthMap[id];
     const policy = workerPolicy(id);
     if (!health) {
       attempts.push({ id, skip: "unknown worker" });
@@ -72,7 +73,7 @@ export function applyCostGuard(requested, healthMap = workerHealthMap({ probeRea
       worker: id,
       reason: id === requested || requested === "auto"
         ? `selected ${id}`
-        : `${requested} unavailable (${healthMap[requested]?.status || "OFFLINE"}), fallback ${id}`,
+        : `${requested} unavailable (${resolvedHealthMap[requested]?.status || "OFFLINE"}), fallback ${id}`,
       attempts
     };
   }

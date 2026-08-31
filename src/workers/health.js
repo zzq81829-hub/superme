@@ -127,7 +127,7 @@ function applyReadinessProbes(map) {
   return map;
 }
 
-export function workerHealthMap({ probeReadiness = false } = {}) {
+export function workerHealthMap({ probeReadiness = false, config = null } = {}) {
   const hermes = binaryStatus("hermes", "hermes");
   const map = {
     hermes,
@@ -159,11 +159,22 @@ export function workerHealthMap({ probeReadiness = false } = {}) {
       detail: hermes.available ? "Hermes executable found; DeepSeek provider readiness not probed" : "Hermes executable missing"
     }
   };
+  const permissionMode = config?.agents?.antigravity?.permissionMode || "configured";
+  if (config && permissionMode !== "dangerous-bypass") {
+    map.antigravity = {
+      ...map.antigravity,
+      status: "HEADLESS_PERMISSION_BLOCKED",
+      available: false,
+      readinessVerified: true,
+      permissionMode,
+      detail: "headless tasks that need tools are blocked; explicit dangerous-bypass or Antigravity allow-rules required"
+    };
+  }
   return probeReadiness ? applyReadinessProbes(map) : map;
 }
 
 export function listWorkerHealth(config = null) {
-  const map = workerHealthMap({ probeReadiness: true });
+  const map = workerHealthMap({ probeReadiness: true, config });
   return WORKERS.map((id) => {
     const worker = map[id];
     if (id !== "antigravity" || !config) return worker;
