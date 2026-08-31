@@ -39,9 +39,22 @@ function showToast(message, type = "error") {
   }, 4000);
 }
 
-async function api(url, options) {
+const phoneAccessToken = (() => {
+  const params = new URLSearchParams(window.location.search);
+  const fromUrl = params.get("access")?.trim();
+  if (fromUrl) {
+    try { sessionStorage.setItem("os-phone-access", fromUrl); } catch { /* private mode */ }
+    window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+    return fromUrl;
+  }
+  try { return sessionStorage.getItem("os-phone-access") || ""; } catch { return ""; }
+})();
+
+async function api(url, options = {}) {
   try {
-    const r = await fetch(url, options);
+    const headers = new Headers(options.headers || {});
+    if (phoneAccessToken) headers.set("X-OS-Phone-Token", phoneAccessToken);
+    const r = await fetch(url, { ...options, headers });
     const data = await r.json();
     if (!r.ok) throw new Error(data.error || `Request failed with status ${r.status}`);
     return data;

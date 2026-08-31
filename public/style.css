@@ -1972,3 +1972,111 @@ header p { font-size: 13px; color: var(--ivory-muted); }
   .task, .tasks, .taskTop, .taskHeaderInfo { min-width: 0; max-width: 100%; }
   .task { overflow: hidden; }
 }
+
+/* Phone shell — tuned for 360–430 CSS px portrait screens (vivo X300 Pro class). */
+@media (max-width: 600px) {
+  :root { --phone-gutter: 12px; }
+  html { scroll-padding-top: 112px; }
+  body {
+    min-width: 0;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(215, 180, 119, 0.18);
+  }
+  section { scroll-margin-top: 112px; }
+  .shell {
+    width: 100%;
+    padding: max(8px, env(safe-area-inset-top)) var(--phone-gutter) calc(72px + env(safe-area-inset-bottom));
+  }
+  .sideRail {
+    width: calc(100% + (var(--phone-gutter) * 2));
+    margin-left: calc(var(--phone-gutter) * -1);
+    margin-right: calc(var(--phone-gutter) * -1);
+    padding: 10px var(--phone-gutter) 9px;
+    border-radius: 0 0 16px 16px;
+  }
+  .brandLockup { padding: 0 4px 8px; }
+  .brandName { font-size: 18px; }
+  .primaryNav {
+    margin: 0 -4px;
+    padding: 0 4px 3px;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+  .primaryNav::-webkit-scrollbar { display: none; }
+  .navGroupLabel { display: none; }
+  .navItem {
+    min-height: 44px;
+    padding: 0 13px;
+    border-radius: 999px;
+    scroll-snap-align: start;
+  }
+  .navItem.active::before { display: none; }
+  .navItem.active {
+    background: var(--os-gold-soft);
+    border-color: rgba(215, 180, 119, 0.34);
+  }
+  header {
+    align-items: center;
+    flex-direction: row;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  header > div:first-child { min-width: 0; }
+  header h1 { font-size: 40px; }
+  header p { font-size: 12px; line-height: 1.45; }
+  #health {
+    flex: 0 0 auto;
+    max-width: 44%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 7px 10px;
+    font-size: 11px;
+  }
+  .panel { padding: 16px; border-radius: 14px; margin-bottom: 14px; }
+  .monitorPanel { padding: 15px; }
+  .monitorHeader { align-items: stretch; flex-direction: column; gap: 10px; }
+  .monitorControls { justify-content: space-between; }
+  .monitorOpenBtn { flex: 1; height: 44px !important; }
+  .monitorGrid { grid-template-columns: 1fr; gap: 8px; }
+  .monitorItem { padding: 10px; }
+  .monitorValue { font-size: 13px; }
+  .sectionHeader { align-items: stretch; gap: 9px; }
+  .sectionHeader > .headerActions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .sectionHeader > .headerActions button { width: 100%; }
+  .headerActions { width: 100%; flex-wrap: wrap; }
+  .headerActions button { min-height: 42px; height: 42px; }
+  .taskSectionIdentity { min-width: 0; }
+  .taskTabs { width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .taskTabs::-webkit-scrollbar { display: none; }
+  .tabBtn { flex: 1 0 auto; min-height: 40px; height: 40px; padding: 0 12px; }
+  .hero { padding: 18px 14px; }
+  .hero > #title { height: 48px; margin-top: 16px; }
+  .hero > #description { min-height: 120px; }
+  .heroActions { gap: 10px; }
+  .heroHint { font-size: 10px; line-height: 1.45; }
+  .advancedTaskGrid { gap: 8px; }
+  .row { gap: 8px; }
+  .task { padding: 14px; border-radius: 12px; }
+  .taskTop { align-items: stretch; flex-direction: column; gap: 10px; }
+  .taskTopRight { width: 100%; justify-content: space-between; }
+  .taskTopRight button { min-height: 42px; height: 42px; }
+  .taskActions { gap: 8px; }
+  .taskActions button { flex: 1 1 calc(50% - 8px); min-width: 0; height: 42px; padding: 0 8px; }
+  .workerCard { min-height: 0; padding: 14px; }
+  .workerCardActions button { flex: 1 1 calc(50% - 6px); min-height: 42px; height: 42px; }
+  .briefExtractActions { justify-content: stretch; }
+  .briefExtractActions > button { flex: 1 1 calc(50% - 8px); min-width: 0; height: 42px; }
+  #briefContent { min-height: 180px; }
+  button { width: auto; min-height: 44px; }
+  .heroActions button, #create { width: 100%; }
+  .modalOverlay { padding: 10px; }
+  .modalBox { max-height: calc(100vh - 20px); border-radius: 14px; }
+  .modalHeader, .modalBody, .feedbackComposer { padding-left: 14px; padding-right: 14px; }
+  .feedbackActions { display: grid; grid-template-columns: 1fr; }
+  .feedbackActions button { width: 100%; }
+  .toastContainer { top: auto; bottom: max(14px, env(safe-area-inset-bottom)); }
+}

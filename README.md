@@ -36,6 +36,18 @@ Codex 已经是可在本机运行的跨平台软件 Agent；Antigravity CLI 也�
 
 Dashboard 中点击“创建并执行”后会自动完成：创建任务 -> 路由 Agent -> 执行 -> 保存结果。
 
+## 手机版（vivo X300 Pro）
+
+OS 已适配 360–430 CSS px 的手机竖屏，并支持安装到 Android 主屏。电脑上保持 OS 运行，在手机浏览器打开手机访问模式打印出的地址，选择“添加到主屏幕”即可像客户端一样使用；所有任务、审批、Hermes 共识和产物仍由电脑上的 OS 统一管理。
+
+手机访问模式只在主动启动时开放局域网，并为本次会话生成一次性口令：
+
+```bash
+npm run start:phone
+```
+
+电脑和手机应连接同一个可信 Wi‑Fi；关闭窗口后口令失效。默认 `npm start` 仍只监听本机，不开放局域网。
+
 ## 配置
 第一次启动会把 `config.example.json` 复制成 `config.json`。
 

@@ -19,6 +19,7 @@ export function loadConfig() {
   const config = {
     ...defaults,
     ...saved,
+    host: process.env.AI_FOUNDER_OS_HOST?.trim() || saved.host || defaults.host,
     execution: { ...defaults.execution, ...saved.execution },
     computerAccess: { ...defaults.computerAccess, ...saved.computerAccess },
     agents: {

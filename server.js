@@ -66,8 +66,18 @@ const __dirname = path.dirname(__filename);
 const config = loadConfig();
 const app = express();
 const version = "1.0.0";
+const phoneAccessToken = process.env.AI_FOUNDER_OS_PHONE_TOKEN?.trim() || "";
 
 app.use(express.json({ limit: "1mb" }));
+if (phoneAccessToken) {
+  app.use((req, res, next) => {
+    if (!req.path.startsWith("/api/")) return next();
+    if (req.get("X-OS-Phone-Token") !== phoneAccessToken) {
+      return res.status(401).json({ error: "手机访问口令无效或已过期" });
+    }
+    return next();
+  });
+}
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/api/health", async (_req, res) => {

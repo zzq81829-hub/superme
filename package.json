@@ -6,6 +6,7 @@
   "description": "Local AI CEO console for routing work to Codex and Antigravity.",
   "scripts": {
     "start": "node server.js",
+    "start:phone": "node scripts/start-phone.js",
     "dev": "node --watch server.js",
     "test": "node --import ./test-support/isolate-data.js --test ./test/*.js",
     "smoke:codex": "node scripts/smoke-agents.js codex",
