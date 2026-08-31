@@ -1,7 +1,7 @@
 # PROJECT_STATE
 
-Current Phase: **C complete after this checkpoint; next is D Environment Audit**  
-Current Status: Control Center V1 live. Codex + Antigravity real loops proven. Hermes already installed, not bridged.  
+Current Phase: **D Environment Audit written; next E verify Hermes (already installed, do not reinstall)**  
+Current Status: Control Center V1 live. Codex + Antigravity real loops proven. Git checkpoint `59c5d51` (`phase-a-existing-system-audit`). Hermes already installed, not bridged.  
 Last Successful Test: `npm test` 14/14 (2026-08-31)
 
 ## Worker status
