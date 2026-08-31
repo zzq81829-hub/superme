@@ -5,7 +5,9 @@
   "dryRun": true,
   "execution": {
     "timeoutMs": 600000,
-    "maxOutputBytes": 2097152
+    "maxOutputBytes": 2097152,
+    "verificationTimeoutMs": 120000,
+    "maxRepairAttempts": 1
   },
   "agents": {
     "codex": {

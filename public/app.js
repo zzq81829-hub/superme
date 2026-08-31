@@ -32,6 +32,9 @@ function esc(v = "") {
 
 function renderTask(t) {
   const result = t.result ? `<pre>${esc(JSON.stringify(t.result, null, 2))}</pre>` : "";
+  const criteria = t.acceptanceCriteria?.length
+    ? `<div class="criteria">机器验收：${t.acceptanceCriteria.map((item) => esc(item.type)).join(" · ")}</div>`
+    : "";
   const canRun = !["queued", "running"].includes(t.status);
   return `
     <article class="task">
@@ -45,6 +48,7 @@ function renderTask(t) {
       <div class="taskActions">
         ${canRun ? `<button onclick="runTask('${t.id}')">${t.status === "draft" ? "执行" : "重新执行"}</button>` : ""}
       </div>
+      ${criteria}
       ${result}
     </article>
   `;
@@ -64,7 +68,8 @@ $("create").onclick = async () => {
     title: $("title").value,
     description: $("description").value,
     agent: $("agent").value,
-    projectPath: $("projectPath").value
+    projectPath: $("projectPath").value,
+    acceptanceCriteria: $("acceptance").value
   };
   try {
     await api("/api/tasks", {
@@ -74,6 +79,7 @@ $("create").onclick = async () => {
     });
     $("title").value = "";
     $("description").value = "";
+    $("acceptance").value = "";
     await loadTasks();
   } catch (error) {
     alert(error.message);

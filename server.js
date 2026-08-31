@@ -6,6 +6,7 @@ import { createTask, listTasks, getTask, updateTask } from "./src/store.js";
 import { dispatchTask } from "./src/router.js";
 import { resolveAgentCommand } from "./src/adapters/resolveCommand.js";
 import { listWorkerHealth } from "./src/workers/health.js";
+import { normalizeAcceptanceCriteria } from "./src/verify/criteria.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -57,7 +58,7 @@ app.get("/api/tasks/:id", (req, res) => {
 
 app.post("/api/tasks", async (req, res) => {
   try {
-    const { title, description, agent = "auto", projectPath = "", execute = true } = req.body ?? {};
+    const { title, description, agent = "auto", projectPath = "", acceptanceCriteria, execute = true } = req.body ?? {};
     if (!title?.trim() || !description?.trim()) {
       return res.status(400).json({ error: "title and description are required" });
     }
@@ -67,12 +68,19 @@ app.post("/api/tasks", async (req, res) => {
     if (typeof projectPath !== "string") {
       return res.status(400).json({ error: "projectPath must be a string" });
     }
+    let normalizedCriteria;
+    try {
+      normalizedCriteria = normalizeAcceptanceCriteria(acceptanceCriteria);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
 
     const task = createTask({
       title: title.trim(),
       description: description.trim(),
       agent,
-      projectPath
+      projectPath,
+      acceptanceCriteria: normalizedCriteria
     });
 
     if (execute !== false) {

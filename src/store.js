@@ -25,12 +25,15 @@ export function createTask(input) {
     description: input.description,
     agent: input.agent || "auto",
     projectPath: input.projectPath || "",
+    acceptanceCriteria: input.acceptanceCriteria || [],
     status: "draft",
     createdAt: now,
     updatedAt: now,
     startedAt: null,
     finishedAt: null,
     result: null,
+    executionHistory: [],
+    verificationHistory: [],
     error: null
   };
   fs.writeFileSync(taskFile(task.id), JSON.stringify(task, null, 2));

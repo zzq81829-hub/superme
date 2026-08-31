@@ -11,3 +11,8 @@ test("resolves Antigravity to agy.exe", () => {
   const resolved = resolveAgentCommand("antigravity", "agy");
   assert.match(resolved, /agy(\.exe)?$/i);
 });
+
+test("resolves Claude to the native executable instead of a shell shim", () => {
+  const resolved = resolveAgentCommand("claude", "claude");
+  assert.match(resolved, /claude\.exe$/i);
+});

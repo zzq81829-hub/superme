@@ -57,9 +57,11 @@ function knownLocations(agentName) {
     return [path.join(localAppData, "hermes", "hermes-agent", "bin", "hermes.exe")];
   }
   if (agentName === "claude") {
+    const npmRoot = path.join(process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"), "npm");
     return [
-      path.join(process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"), "npm", "claude.cmd"),
-      path.join(process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"), "npm", "claude.exe")
+      path.join(npmRoot, "node_modules", "@anthropic-ai", "claude-code", "bin", "claude.exe"),
+      path.join(npmRoot, "claude.exe"),
+      path.join(npmRoot, "claude.cmd")
     ];
   }
   if (agentName === "grok" || agentName === "grok-build") {
@@ -71,6 +73,14 @@ function knownLocations(agentName) {
 export function resolveAgentCommand(agentName, configured = "") {
   if (configured && path.isAbsolute(configured) && isFile(configured)) {
     return configured;
+  }
+
+  // The npm shim is a .cmd file and would require a shell. Prefer Claude's
+  // native executable so an untrusted task prompt is never parsed by cmd.exe.
+  if (agentName === "claude" && configured && !path.extname(configured)) {
+    for (const candidate of knownLocations(agentName)) {
+      if (/\.exe$/i.test(candidate) && isFile(candidate)) return candidate;
+    }
   }
 
   if (configured) {

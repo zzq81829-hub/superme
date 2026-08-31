@@ -27,9 +27,15 @@ test("router sends the Phase 0 demo prompt to Antigravity", () => {
 });
 
 test("prompt contains task intent, project path, and safety workflow", () => {
-  const prompt = buildPrompt({ title: "Test task", description: "Do the work" }, "C:/project");
+  const prompt = buildPrompt({
+    title: "Test task",
+    description: "Do the work",
+    acceptanceCriteria: [{ type: "file-exists", path: "proof.txt" }]
+  }, "C:/project");
   assert.match(prompt, /PROJECT PATH: C:\/project/);
   assert.match(prompt, /TASK: Test task/);
   assert.match(prompt, /Do the work/);
   assert.match(prompt, /Do not publish, purchase/);
+  assert.match(prompt, /MACHINE-VERIFIED ACCEPTANCE CRITERIA/);
+  assert.match(prompt, /file exists: proof.txt/);
 });

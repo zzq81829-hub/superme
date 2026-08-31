@@ -2,6 +2,7 @@ import { getTask, updateTask } from "./store.js";
 import { runAgent } from "./adapters/runAgent.js";
 import { applyCostGuard } from "./workers/costGuard.js";
 import { verifyTask } from "./verify/verifyTask.js";
+import { describeAcceptanceCriteria } from "./verify/criteria.js";
 
 export function chooseAgent(task) {
   if (task.agent && task.agent !== "auto") return task.agent;
@@ -43,12 +44,22 @@ export async function dispatchTask(taskId, config) {
 
   let result;
   const skip = [];
+  const executionHistory = [...(task.executionHistory || [])];
+  const verificationHistory = [...(task.verificationHistory || [])];
   for (;;) {
+    const attemptStartedAt = new Date().toISOString();
     try {
       result = await runAgent(agent, task, projectPath, config);
     } catch (error) {
       result = { ok: false, agent, error: error?.stack || String(error) };
     }
+    executionHistory.push({
+      agent,
+      ok: !!result.ok,
+      error: result.error || null,
+      startedAt: attemptStartedAt,
+      finishedAt: new Date().toISOString()
+    });
     const unavailable = /usage limit|quota|QUOTA_LIMITED|AUTH_REQUIRED|not logged in|PROXY_DOWN|ECONNREFUSED|unrecognized_model|timed out/i.test(`${result.error || ""}\n${result.message || ""}`);
     if (result.ok || !unavailable) break;
     skip.push(agent);
@@ -63,21 +74,35 @@ export async function dispatchTask(taskId, config) {
     });
   }
 
-  updateTask(taskId, { status: "verifying", result });
-  let verification = await verifyTask({ projectPath, result, config });
+  updateTask(taskId, { status: "verifying", result, executionHistory });
+  let verification = await verifyTask({ projectPath, result, config, task });
+  verificationHistory.push({ ...verification, at: new Date().toISOString(), repair: false });
 
-  if (!verification.ok && result.ok && (task.attemptCount || 0) < 1) {
+  const maxRepairAttempts = Math.max(0, Math.min(config.execution?.maxRepairAttempts ?? 1, 3));
+  let repairAttempt = 0;
+  while (!verification.ok && result.ok && repairAttempt < maxRepairAttempts) {
+    repairAttempt += 1;
     updateTask(taskId, { status: "repairing" });
     const repairTask = {
       ...task,
-      description: `${task.description}\n\nVERIFIER FAILED: ${verification.reason}. Fix the smallest issue and retest.`
+      description: `${task.description}\n\nVERIFIER FAILED: ${verification.reason}. Evidence: ${JSON.stringify(verification.checks)}. Fix the smallest issue and retest.`
     };
+    const attemptStartedAt = new Date().toISOString();
     try {
       result = await runAgent(agent, repairTask, projectPath, config);
     } catch (error) {
       result = { ok: false, agent, error: error?.stack || String(error) };
     }
-    verification = await verifyTask({ projectPath, result, config });
+    executionHistory.push({
+      agent,
+      ok: !!result.ok,
+      error: result.error || null,
+      repair: true,
+      startedAt: attemptStartedAt,
+      finishedAt: new Date().toISOString()
+    });
+    verification = await verifyTask({ projectPath, result, config, task });
+    verificationHistory.push({ ...verification, at: new Date().toISOString(), repair: true });
   }
 
   const passed = result.ok && verification.ok;
@@ -85,12 +110,15 @@ export async function dispatchTask(taskId, config) {
     status: passed ? "completed" : result.ok ? "failed" : "failed",
     result: { ...result, verification },
     verification,
+    executionHistory,
+    verificationHistory,
     error: passed ? null : (verification.ok ? result.error : verification.reason),
     finishedAt: new Date().toISOString()
   });
 }
 
 export function buildPrompt(task, projectPath) {
+  const acceptance = describeAcceptanceCriteria(task.acceptanceCriteria || []);
   return [
     "You are an execution agent inside AI Founder OS.",
     "",
@@ -99,6 +127,7 @@ export function buildPrompt(task, projectPath) {
     "",
     "USER INTENT:",
     task.description,
+    ...(acceptance.length ? ["", "MACHINE-VERIFIED ACCEPTANCE CRITERIA:", ...acceptance.map((item, index) => `${index + 1}. ${item}`)] : []),
     "",
     "MANDATORY WORKFLOW:",
     "1. Read AGENTS.md and founder_os/ before making changes if those files exist.",
