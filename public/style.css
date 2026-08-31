@@ -503,6 +503,22 @@ button.deleteBtn:active:not(:disabled) {
   border: 1px solid var(--border-couture);
 }
 
+.taskSectionIdentity {
+  min-width: 170px;
+}
+
+.taskSectionIdentity .eyebrow {
+  margin-bottom: 3px;
+}
+
+.taskSectionIdentity h2 {
+  margin: 0;
+  color: var(--ivory-pure);
+  font-family: var(--font-display);
+  font-size: 19px;
+  letter-spacing: -0.02em;
+}
+
 .tabBtn {
   height: 32px;
   padding: 0 14px;
@@ -535,10 +551,15 @@ button.deleteBtn:active:not(:disabled) {
 }
 
 .tabBtn.active {
-  background: rgba(244, 239, 230, 0.12);
-  border-color: var(--border-couture-light);
+  background: var(--couture-red);
+  border-color: rgba(244, 239, 230, 0.22);
   color: var(--ivory-pure);
   font-weight: 600;
+}
+
+.tabBtn.active .tabBadge {
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--ivory-pure);
 }
 
 .tabBadge {
@@ -1529,33 +1550,54 @@ header p { font-size: 13px; color: var(--ivory-muted); }
 
 .workerBoard {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 12px;
-  margin-top: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
 }
 
 .workerCard {
-  background: rgba(12, 12, 16, 0.7);
-  border: 1px solid var(--border-couture, rgba(255, 255, 255, 0.08));
-  border-radius: 12px;
-  padding: 14px;
+  position: relative;
+  background: linear-gradient(155deg, rgba(27, 24, 25, 0.95), rgba(12, 12, 16, 0.92));
+  border: 1px solid rgba(244, 239, 230, 0.12);
+  border-radius: 14px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  min-height: 196px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.workerCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(244, 239, 230, 0.24);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .workerCardTop {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
 }
 
 .workerName {
+  min-width: 0;
   font-size: 14px;
   font-weight: 700;
   color: var(--ivory-pure, #f5f0e8);
   letter-spacing: 0.03em;
+  line-height: 1.35;
+}
+
+.workerCardTop > .badge {
+  max-width: 48%;
+  justify-content: center;
+  text-align: center;
+  white-space: normal;
+  line-height: 1.25;
 }
 
 .workerCardRow {
@@ -1577,6 +1619,58 @@ header p { font-size: 13px; color: var(--ivory-muted); }
   color: var(--ivory-muted, #9b948a);
 }
 
+.workerQuota {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid rgba(244, 239, 230, 0.08);
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.workerQuota > div {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.workerActivity {
+  min-width: 0;
+  padding: 10px 11px 11px;
+  border-left: 2px solid rgba(244, 239, 230, 0.2);
+  border-radius: 0 8px 8px 0;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.workerActivity.is-working { border-left-color: #f59e0b; }
+.workerActivity.is-completed { border-left-color: #34d399; }
+.workerActivity.is-failed { border-left-color: #f87171; }
+.workerActivity.is-idle { border-left-color: rgba(244, 239, 230, 0.2); }
+
+.activityKicker {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--ivory-muted, #9b948a);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.activityTitle {
+  display: block;
+  overflow: hidden;
+  color: var(--ivory-soft, #ddd5ca);
+  font-size: 12px;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .boardQuotaReason {
   font-size: 11px;
   color: #fca5a5;
@@ -1590,7 +1684,9 @@ header p { font-size: 13px; color: var(--ivory-muted); }
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
-  margin-top: 2px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid rgba(244, 239, 230, 0.07);
 }
 
 .workerCardActions button {
@@ -1803,6 +1899,9 @@ header p { font-size: 13px; color: var(--ivory-muted); }
   .workerCard { min-width: 0; overflow: hidden; }
   .workerCardRow { min-width: 0; }
   .workerCard .badge { white-space: normal; overflow-wrap: anywhere; }
+  .workerQuota { align-items: flex-start; }
+  .workerQuota > div { min-width: 0; }
+  .activityTitle { white-space: normal; overflow-wrap: anywhere; }
   .workerCardActions { min-width: 0; }
   .task, .tasks, .taskTop, .taskHeaderInfo { min-width: 0; max-width: 100%; }
   .task { overflow: hidden; }

@@ -24,7 +24,7 @@
         <a class="navItem" href="#approvalSection"><span class="navGlyph">!</span><span>需要签字</span></a>
         <a class="navItem" href="#commandMonitor"><span class="navGlyph">◌</span><span>Hermes 监控</span></a>
         <a class="navItem" href="#briefSection"><span class="navGlyph">▤</span><span>需求简报</span></a>
-        <a class="navItem" href="#workerStatusSection"><span class="navGlyph">·</span><span>执行团队</span></a>
+        <a class="navItem" href="#workerBoardSection"><span class="navGlyph">·</span><span>执行团队</span></a>
         <a class="navItem" href="#taskSection"><span class="navGlyph">↗</span><span>任务与执行</span></a>
         <a class="navItem" href="#memorySection"><span class="navGlyph">⌁</span><span>创始人记忆</span></a>
         <a class="navItem" href="#contentPackagesSection"><span class="navGlyph">▱</span><span>内容工作台</span></a>
@@ -180,7 +180,7 @@
       </div>
     </section>
 
-    <section class="panel" id="taskSection">
+    <section class="panel" id="workerDirectorySection">
       <div class="sectionHeader">
         <h2>Workers</h2>
       </div>
@@ -201,11 +201,16 @@
       <div id="workerBoard" class="workerBoard">加载中…</div>
     </section>
 
-    <section class="panel" id="workerStatusSection">
+    <section class="panel" id="taskSection">
       <div class="sectionHeader">
+        <div class="taskSectionIdentity">
+          <div class="eyebrow">EXECUTION LEDGER</div>
+          <h2>任务看板</h2>
+        </div>
         <div class="taskTabs">
-          <button class="tabBtn active" id="tabActive">Active Tasks (活跃任务) <span id="activeCount" class="tabBadge">0</span></button>
-          <button class="tabBtn" id="tabTrash">Trash (回收站) <span id="trashCount" class="tabBadge">0</span></button>
+          <button class="tabBtn active" id="tabActive">活跃任务 <span id="activeCount" class="tabBadge">0</span></button>
+          <button class="tabBtn" id="tabCompleted">已完成 <span id="completedCount" class="tabBadge">0</span></button>
+          <button class="tabBtn" id="tabTrash">回收站 <span id="trashCount" class="tabBadge">0</span></button>
         </div>
         <div class="headerActions" id="activeActions">
           <button class="ghost" id="expandAll" title="展开所有任务详情">全部展开 (Expand All)</button>

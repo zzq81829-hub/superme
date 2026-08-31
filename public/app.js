@@ -1,7 +1,7 @@
 const $ = (id) => document.getElementById(id);
 let cachedTasks = [];
 let cachedTrashTasks = [];
-let currentView = "active"; // "active" | "trash"
+let currentView = "active"; // "active" | "completed" | "trash"
 let activeRunData = null; // Stored for smooth 1s local clock ticking
 
 let pollTimer = null;
@@ -407,10 +407,9 @@ async function loadCommandMonitor() {
 async function loadTasks() {
   try {
     cachedTasks = await api("/api/tasks");
-    $("activeCount").textContent = cachedTasks.length;
-    if (currentView === "active") {
-      renderTaskList();
-    }
+    $("activeCount").textContent = cachedTasks.filter((t) => t.status !== "completed").length;
+    $("completedCount").textContent = cachedTasks.filter((t) => t.status === "completed").length;
+    renderCurrentTaskView();
   } catch (error) {
     console.error("Failed to load tasks:", error);
   }
@@ -429,15 +428,29 @@ async function loadTrash() {
 }
 
 function renderTaskList() {
-  $("tasks").innerHTML = cachedTasks.length
-    ? cachedTasks.map((t) => renderTask(t, false)).join("")
+  const activeTasks = cachedTasks.filter((t) => t.status !== "completed");
+  $("tasks").innerHTML = activeTasks.length
+    ? activeTasks.map((t) => renderTask(t, false)).join("")
     : '<p>当前没有活跃任务。</p>';
+}
+
+function renderCompletedList() {
+  const completedTasks = cachedTasks.filter((t) => t.status === "completed");
+  $("tasks").innerHTML = completedTasks.length
+    ? completedTasks.map((t) => renderTask(t, false)).join("")
+    : '<p>还没有已完成任务。</p>';
 }
 
 function renderTrashList() {
   $("tasks").innerHTML = cachedTrashTasks.length
     ? cachedTrashTasks.map((t) => renderTask(t, true)).join("")
     : '<p>回收站是空的。</p>';
+}
+
+function renderCurrentTaskView() {
+  if (currentView === "trash") return renderTrashList();
+  if (currentView === "completed") return renderCompletedList();
+  return renderTaskList();
 }
 
 function renderTask(t, isTrash = false) {
@@ -732,7 +745,7 @@ window.pauseTask = async (id, btn) => {
   const task = cachedTasks.find(t => t.id === id);
   if (task) {
     task.status = "paused";
-    renderTaskList();
+    renderCurrentTaskView();
   }
   try {
     await api(`/api/tasks/${id}/pause`, { method: "POST" });
@@ -752,7 +765,7 @@ window.resumeTask = async (id, btn) => {
   const task = cachedTasks.find(t => t.id === id);
   if (task) {
     task.status = "queued";
-    renderTaskList();
+    renderCurrentTaskView();
   }
   try {
     await api(`/api/tasks/${id}/resume`, { method: "POST" });
@@ -773,7 +786,7 @@ window.stopTask = async (id, btn) => {
   const task = cachedTasks.find(t => t.id === id);
   if (task) {
     task.status = "cancelling";
-    renderTaskList();
+    renderCurrentTaskView();
   }
   try {
     await api(`/api/tasks/${id}/stop`, { method: "POST" });
@@ -802,7 +815,7 @@ window.deleteTask = async (id, btn) => {
 
   // Optimistic UI state: remove immediately from active view
   cachedTasks = cachedTasks.filter(t => t.id !== id);
-  renderTaskList();
+  renderCurrentTaskView();
 
   try {
     await api(`/api/tasks/${id}`, { method: "DELETE" });
@@ -870,8 +883,7 @@ window.toggleTask = (id) => {
   } else {
     expandedTaskIds.add(id);
   }
-  if (currentView === "active") renderTaskList();
-  else renderTrashList();
+  renderCurrentTaskView();
 };
 
 window.toggleTimelineEvents = (id) => {
@@ -880,21 +892,20 @@ window.toggleTimelineEvents = (id) => {
   } else {
     showAllEventsTaskIds.add(id);
   }
-  if (currentView === "active") renderTaskList();
-  else renderTrashList();
+  renderCurrentTaskView();
 };
 
 window.expandAll = () => {
-  const currentList = currentView === "active" ? cachedTasks : cachedTrashTasks;
+  const currentList = currentView === "trash"
+    ? cachedTrashTasks
+    : cachedTasks.filter((t) => currentView === "completed" ? t.status === "completed" : t.status !== "completed");
   currentList.forEach(t => expandedTaskIds.add(t.id));
-  if (currentView === "active") renderTaskList();
-  else renderTrashList();
+  renderCurrentTaskView();
 };
 
 window.collapseAll = () => {
   expandedTaskIds.clear();
-  if (currentView === "active") renderTaskList();
-  else renderTrashList();
+  renderCurrentTaskView();
 };
 
 window.runTask = async (id, btn) => {
@@ -905,7 +916,7 @@ window.runTask = async (id, btn) => {
   const task = cachedTasks.find(t => t.id === id);
   if (task) {
     task.status = "queued";
-    renderTaskList();
+    renderCurrentTaskView();
   }
   try {
     await api(`/api/tasks/${id}/run`, { method: "POST" });
@@ -920,16 +931,28 @@ window.runTask = async (id, btn) => {
 $("tabActive").onclick = () => {
   currentView = "active";
   $("tabActive").classList.add("active");
+  $("tabCompleted").classList.remove("active");
   $("tabTrash").classList.remove("active");
   $("activeActions").style.display = "flex";
   $("trashActions").style.display = "none";
   renderTaskList();
 };
 
+$("tabCompleted").onclick = () => {
+  currentView = "completed";
+  $("tabCompleted").classList.add("active");
+  $("tabActive").classList.remove("active");
+  $("tabTrash").classList.remove("active");
+  $("activeActions").style.display = "flex";
+  $("trashActions").style.display = "none";
+  renderCompletedList();
+};
+
 $("tabTrash").onclick = () => {
   currentView = "trash";
   $("tabTrash").classList.add("active");
   $("tabActive").classList.remove("active");
+  $("tabCompleted").classList.remove("active");
   $("activeActions").style.display = "none";
   $("trashActions").style.display = "flex";
   renderTrashList();
@@ -971,7 +994,7 @@ $("create").onclick = async () => {
     // Optimistic insert into cachedTasks & immediate render
     if (createdTask?.id) {
       cachedTasks = [createdTask, ...cachedTasks.filter(t => t.id !== createdTask.id)];
-      if (currentView === "active") renderTaskList();
+      renderCurrentTaskView();
     }
     
     if (createdTask?.riskLevel === "high" && createdTask?.approvalStatus !== "approved") {
@@ -1834,11 +1857,11 @@ function renderWorkerBoard() {
 
   container.innerHTML = cachedWorkerBoard.map((w) => {
     const quota = w.quota;
-    const workInfo = w.working
-      ? `<span class="badge badge-queued">▸ 正在做: ${esc(w.working.title.slice(0, 30))}</span>`
+    const activity = w.working
+      ? { label: "正在处理", title: w.working.title, tone: "is-working" }
       : (w.lastFinished
-        ? `<span class="badge ${w.lastFinished.status === "completed" ? "badge-completed" : "badge-failed"}">✓ 最近完成: ${esc(w.lastFinished.title.slice(0, 30))}</span>`
-        : '<span class="badge badge-muted">— 暂无任务记录</span>');
+        ? { label: "最近完成", title: w.lastFinished.title, tone: w.lastFinished.status === "completed" ? "is-completed" : "is-failed" }
+        : { label: "暂无记录", title: "等待分配第一项任务", tone: "is-idle" });
 
     const quotaReason = quota && quota.reason ? `<div class="boardQuotaReason" title="${esc(quota.reason)}">${esc(quota.reason.slice(0, 60))}</div>` : "";
 
@@ -1848,13 +1871,18 @@ function renderWorkerBoard() {
           <span class="workerName">${esc(workerLabel(w.id))}</span>
           <span class="badge ${statusClass(w)}">${esc(workerStatusLabel(w.status))}</span>
         </div>
-        <div class="workerCardRow">
-          <span class="boardLabel">额度</span>
+        <div class="workerQuota">
+          <div>
+            <span class="boardLabel">额度状态</span>
+            <span class="boardSource">${quota ? (quota.source === "founder" ? "创始人标记" : "运行时探测") : "未记录"}</span>
+          </div>
           <span class="badge ${quotaBadgeClass(quota)}">${quotaLabel(quota)}</span>
-          <span class="boardSource">${quota ? (quota.source === "founder" ? "创始人标记" : "运行时探测") : "未记录"}</span>
         </div>
         ${quotaReason}
-        <div class="workerCardRow">${workInfo}</div>
+        <div class="workerActivity ${activity.tone}" title="${esc(activity.title)}">
+          <span class="activityKicker">${activity.label}</span>
+          <span class="activityTitle">${esc(activity.title)}</span>
+        </div>
         <div class="workerCardActions">
           <button class="ghost danger" onclick="setWorkerQuota('${esc(w.id)}', 'exhausted')">标为额度用尽</button>
           <button class="ghost" onclick="setWorkerQuota('${esc(w.id)}', 'normal')">恢复额度</button>
