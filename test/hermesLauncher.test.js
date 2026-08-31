@@ -9,9 +9,9 @@ test("Hermes launcher opens the official desktop client", (t) => {
   }
 
   const spec = buildHermesLaunchSpec({ agents: { hermes: { command: "hermes" } } });
-  assert.match(spec.launcher, /hermes(?:\.exe)?$/i);
-  assert.equal(spec.args[0], "desktop");
-  assert.equal(spec.args[1], "--skip-build");
+  assert.match(spec.launcher, /apps[\\/]desktop[\\/]release[\\/]win-unpacked[\\/]Hermes\.exe$/i);
+  assert.deepEqual(spec.args, []);
+  assert.equal(spec.env.HERMES_DESKTOP_CWD, process.cwd());
   assert.equal(spec.interface, "desktop-client");
 });
 
@@ -38,5 +38,5 @@ test("Hermes desktop launcher starts detached without a shell", (t) => {
   assert.equal(result.interface, "desktop-client");
   assert.equal(invocation.options.shell, false);
   assert.equal(invocation.options.detached, true);
-  assert.equal(invocation.options.windowsHide, false);
+  assert.equal(invocation.options.windowsHide, true);
 });
