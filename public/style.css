@@ -1735,6 +1735,46 @@ header p { font-size: 13px; color: var(--ivory-muted); }
   resize: vertical;
 }
 
+.briefExtractForm {
+  margin: 0 0 14px;
+  padding: 14px;
+  border: 1px solid rgba(197, 34, 47, 0.28);
+  border-radius: 10px;
+  background: rgba(20, 14, 17, 0.78);
+}
+
+.briefExtractTitle {
+  color: var(--ivory-pure);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.briefExtractHint {
+  color: var(--ivory-muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.briefExtractForm textarea {
+  margin-top: 8px;
+  min-height: 110px;
+}
+
+.briefExtractActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.briefExtractStatus {
+  flex: 1 1 180px;
+  color: var(--ivory-muted);
+  font-size: 11px;
+}
+
 /* Product Review & Feedback Modals */
 .modalOverlay {
   position: fixed;

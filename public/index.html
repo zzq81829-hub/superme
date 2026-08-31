@@ -169,10 +169,26 @@
           <span id="briefBadge" class="tabBadge">未保存</span>
         </div>
         <div class="headerActions">
+          <button class="ghost" id="toggleBriefExtractBtn" onclick="toggleBriefExtractForm()">+ 从免费 AI 对话提取重点</button>
           <button class="ghost" id="refreshBrief" onclick="loadBrief()">刷新</button>
         </div>
       </div>
       <p style="margin: 4px 0 10px; color: var(--ivory-muted); font-size: 11px;">Hermes 拷打后形成的最新共识备份。所有 AI 每次派工前都会读取；这里用于查看和修订共识，不是聊天入口。</p>
+      <div id="briefExtractForm" class="briefExtractForm" style="display: none;">
+        <div class="briefExtractTitle">免费 AI 对话提取（本地处理，不调用付费 API）</div>
+        <p class="briefExtractHint">把 ChatGPT、DeepSeek、豆包、Kimi 或其他 AI 的对话复制到这里。系统只提取带有“我希望 / 我决定 / 必须 / 不要”等明确要求的重点，助手建议不会直接写进核心简报。</p>
+        <textarea id="briefTranscriptInput" rows="6" placeholder="例如：\n用户：我希望首页更像一个安静的董事会，不要游戏风\n助手：可以采用……\n用户：以后所有发布都必须先经过我确认"></textarea>
+        <div class="briefExtractActions">
+          <span id="briefExtractStatus" class="briefExtractStatus"></span>
+          <button class="ghost" onclick="toggleBriefExtractForm()">取消</button>
+          <button id="extractBriefBtn" onclick="extractBriefFromConversation()">提取重点</button>
+        </div>
+        <textarea id="briefExtractPreview" rows="6" placeholder="提取结果会出现在这里，你可以先修改，再确认写入 Hermes 备份"></textarea>
+        <div class="briefExtractActions">
+          <span class="briefExtractHint">确认后会把提取重点追加到当前 Hermes 共识简报。</span>
+          <button id="saveExtractedBriefBtn" onclick="saveExtractedBrief()" disabled>确认写入 Hermes 备份</button>
+        </div>
+      </div>
       <textarea id="briefContent" rows="6" placeholder="在这里写下你的需求、品味与标准，例如：&#10;视觉一律暗黑奢华质感，细边框，严禁游戏风与粗糙渐变&#10;文案要有观点，不要堆砌事实&#10;优先验证完整业务闭环，而不是堆功能"></textarea>
       <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px;">
         <span id="briefStatus" style="font-size: 11px; color: var(--ivory-muted);"></span>

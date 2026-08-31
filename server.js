@@ -56,6 +56,7 @@ import { probeGrokBot } from "./src/secretary/probeGrokBot.js";
 import { receiveMessage, listInbox, acceptMessage, rejectMessage } from "./src/secretary/inbox.js";
 import { openHermesUI } from "./src/integrations/hermes/launcher.js";
 import { getBrief, updateBrief, updateHermesBrief } from "./src/briefs/store.js";
+import { extractBriefHighlights } from "./src/briefs/extract.js";
 import { listReviews, addReview } from "./src/reviews/store.js";
 import { defaultComputerRoots, listSafeComputerFiles, readSafeComputerText } from "./src/access/computerRead.js";
 
@@ -507,6 +508,15 @@ app.get("/api/brief", (_req, res) => {
     res.json(getBrief());
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/brief/extract", (req, res) => {
+  try {
+    const result = extractBriefHighlights(req.body?.text, { source: req.body?.source });
+    res.json({ ok: true, ...result });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 });
 

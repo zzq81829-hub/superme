@@ -2120,6 +2120,88 @@ window.saveBrief = async () => {
   }
 };
 
+window.toggleBriefExtractForm = () => {
+  const form = $("briefExtractForm");
+  if (!form) return;
+  const isHidden = form.style.display === "none";
+  form.style.display = isHidden ? "block" : "none";
+  if (isHidden) $("briefTranscriptInput")?.focus();
+};
+
+window.extractBriefFromConversation = async () => {
+  const sourceText = $("briefTranscriptInput")?.value.trim();
+  if (!sourceText) {
+    showToast("请先粘贴一段免费 AI 对话", "error");
+    return;
+  }
+
+  const btn = $("extractBriefBtn");
+  const status = $("briefExtractStatus");
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "提取中…";
+  }
+  if (status) status.textContent = "本地规则处理中，不会调用付费 API…";
+
+  try {
+    const data = await api("/api/brief/extract", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: sourceText, source: "free-ai-transcript" })
+    });
+    const current = $("briefContent")?.value.trim();
+    const stamp = new Date().toLocaleDateString("zh-CN");
+    const proposed = data.proposedContent
+      ? `${current ? `${current}\n\n` : ""}## Hermes 对话重点 · ${stamp}\n${data.proposedContent}`
+      : current;
+    $("briefExtractPreview").value = proposed;
+    $("saveExtractedBriefBtn").disabled = !data.highlights?.length;
+    if (status) {
+      status.textContent = data.highlights?.length
+        ? `已提取 ${data.highlights.length} 条重点；忽略 ${data.ignoredCount || 0} 条非明确要求`
+        : "没有发现明确的创始人要求，请换一种表达或补充“我希望 / 必须 / 不要”等判断";
+    }
+  } catch (err) {
+    if (status) status.textContent = "提取失败，请确认控制中枢在线";
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "提取重点";
+    }
+  }
+};
+
+window.saveExtractedBrief = async () => {
+  const content = $("briefExtractPreview")?.value.trim();
+  if (!content) {
+    showToast("请先提取重点并确认内容", "error");
+    return;
+  }
+  const btn = $("saveExtractedBriefBtn");
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "保存中…";
+  }
+  try {
+    const data = await api("/api/brief/hermes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content, confirmedByFounder: true })
+    });
+    $("briefContent").value = data.brief.content || content;
+    $("briefExtractForm").style.display = "none";
+    showToast("重点已写入 Hermes 需求收敛备份", "success");
+    await loadBrief();
+  } catch (err) {
+    // Handled in api()
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "确认写入 Hermes 备份";
+    }
+  }
+};
+
 // Product Review Modal (查看产物)
 window.openProductModal = (id) => {
   const t = cachedTasks.find(x => x.id === id) || cachedTrashTasks.find(x => x.id === id);
