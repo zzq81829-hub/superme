@@ -32,7 +32,7 @@ export function applyCostGuard(requested, healthMap = workerHealthMap(), options
       attempts.push({ id, skip: "unknown worker" });
       continue;
     }
-    if (policy.api_allowed === false && health.billingMode === "api" && health.status === "ONLINE") {
+    if (policy.api_allowed === false && health.billingMode === "api") {
       attempts.push({ id, skip: "subscription worker must not use API billing" });
       continue;
     }

@@ -18,7 +18,7 @@ app.use(express.json({ limit: "1mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/api/health", async (_req, res) => {
-  const workers = listWorkerHealth();
+  const workers = listWorkerHealth(config);
   res.json({
     ok: true,
     version,
@@ -36,7 +36,7 @@ app.get("/api/health", async (_req, res) => {
   });
 });
 
-app.get("/api/workers", (_req, res) => res.json(listWorkerHealth()));
+app.get("/api/workers", (_req, res) => res.json(listWorkerHealth(config)));
 
 app.get("/api/tools", async (_req, res) => {
   const { listLocalTools } = await import("./src/tools/localTools.js");
@@ -44,7 +44,7 @@ app.get("/api/tools", async (_req, res) => {
 });
 
 app.get("/api/hermes/status", (_req, res) => {
-  res.json(listWorkerHealth().find((w) => w.id === "hermes") || { status: "OFFLINE" });
+  res.json(listWorkerHealth(config).find((w) => w.id === "hermes") || { status: "OFFLINE" });
 });
 
 app.get("/api/tasks", (_req, res) => res.json(listTasks()));

@@ -17,3 +17,11 @@ test("Claude reverse-proxy down is skippable, not a login wait", () => {
     assert.notEqual(claude.status, "AUTH_REQUIRED");
   }
 });
+
+test("binary presence is reported as installed, not authenticated readiness", () => {
+  const codex = workerHealthMap().codex;
+  if (codex.available) {
+    assert.equal(codex.status, "INSTALLED");
+    assert.equal(codex.readinessVerified, false);
+  }
+});

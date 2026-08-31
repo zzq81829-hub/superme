@@ -41,6 +41,9 @@ export function loadConfig() {
   if (typeof config.dryRun !== "boolean") {
     throw new Error("config.dryRun must be true or false");
   }
+  if (!["configured", "dangerous-bypass"].includes(config.agents.antigravity.permissionMode || "configured")) {
+    throw new Error("agents.antigravity.permissionMode must be configured or dangerous-bypass");
+  }
 
   return config;
 }

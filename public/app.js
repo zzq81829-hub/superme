@@ -14,7 +14,7 @@ async function loadHealth() {
     $("health").textContent = `${h.dryRun ? "预演" : "执行"} · CEO Hermes ${ceo}`;
     const workers = h.workers || [];
     $("workers").innerHTML = workers.map((w) =>
-      `<span class="badge">${esc(w.id)} ${esc(w.status)}</span>`
+      `<span class="badge" title="${esc(w.detail || "")}">${esc(w.id)} ${esc(w.status)}${w.securityRisk ? " ⚠" : ""}</span>`
     ).join(" ");
   } catch {
     $("health").textContent = "离线";

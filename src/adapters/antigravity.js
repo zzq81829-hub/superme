@@ -1,11 +1,11 @@
 import fs from "fs";
-import os from "os";
 import path from "path";
 import { runProcess } from "./processRunner.js";
 import { executionLogPaths } from "./logPaths.js";
 import { resolveAgentCommand } from "./resolveCommand.js";
 
 export const ANTIGRAVITY_FALLBACK_MODELS = ["claude-sonnet-4-6", "gpt-oss-120b-medium"];
+export const ANTIGRAVITY_PERMISSION_MODES = ["configured", "dangerous-bypass"];
 
 export function isLocationBlocked(text = "") {
   return /User location is not supported for the API use/i.test(String(text));
@@ -32,8 +32,11 @@ function parseOutput(stdout) {
 }
 
 function readCliLog(cliLogPath) {
-  if (!fs.existsSync(cliLogPath)) return "";
-  return fs.readFileSync(cliLogPath, "utf8");
+  try {
+    return fs.readFileSync(cliLogPath, "utf8");
+  } catch {
+    return "";
+  }
 }
 
 function payloadFailed(payload) {
@@ -42,42 +45,6 @@ function payloadFailed(payload) {
 
 function argsAlreadyHave(args = [], flag) {
   return args.some((arg) => arg === flag || String(arg).startsWith(`${flag}=`));
-}
-
-export function ensureWorkspacePermissions(projectPath) {
-  const settingsPath = path.join(os.homedir(), ".gemini", "antigravity-cli", "settings.json");
-  const abs = path.resolve(projectPath);
-  const posix = abs.replace(/\\/g, "/");
-  const needed = [
-    `read_file(${abs})`,
-    `write_file(${abs})`,
-    `read_file(${posix})`,
-    `write_file(${posix})`,
-    "command(git)",
-    "command(npm)",
-    "command(node)"
-  ];
-
-  let settings = {};
-  try {
-    if (fs.existsSync(settingsPath)) {
-      settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
-    }
-  } catch {
-    settings = {};
-  }
-
-  settings.agentMode = settings.agentMode || "accept-edits";
-  settings.permissions = settings.permissions || {};
-  const allow = Array.isArray(settings.permissions.allow) ? settings.permissions.allow : [];
-  for (const rule of needed) {
-    if (!allow.includes(rule)) allow.push(rule);
-  }
-  settings.permissions.allow = allow;
-
-  fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
-  fs.writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`);
-  return settingsPath;
 }
 
 function buildArgs({ agent, logs, prompt, model, timeoutMs, cwd, skipPermissions }) {
@@ -207,20 +174,13 @@ export async function runAntigravity({ task, prompt, projectPath, config }) {
   const timeoutMs = agent.timeoutMs || config.execution?.timeoutMs || 10 * 60 * 1000;
   const logs = executionLogPaths(task?.id, "antigravity");
   const configuredModel = agent.model || null;
+  const permissionMode = agent.permissionMode || "configured";
   const tried = [];
   const attempts = [];
   let model = configuredModel;
-  let skipPermissions = !config.dryRun;
+  let skipPermissions = permissionMode === "dangerous-bypass";
   let transientTries = 0;
   let result;
-
-  if (!config.dryRun) {
-    try {
-      ensureWorkspacePermissions(cwd);
-    } catch {
-      // Permission file is helpful but not required if skip-permissions retry succeeds.
-    }
-  }
 
   while (true) {
     if (model) tried.push(model);
@@ -244,11 +204,6 @@ export async function runAntigravity({ task, prompt, projectPath, config }) {
     if (result.ok || result.dryRun || result.timedOut) break;
 
     const blob = `${result.error || ""}\n${result.stderr || ""}`;
-    if (isHeadlessPermissionDenied(blob) && !skipPermissions) {
-      skipPermissions = true;
-      continue;
-    }
-
     if (isLocationBlocked(blob) || isLocationBlocked(result.error || "") || isTransientProviderError(blob)) {
       const fallback = nextFallbackModel(tried);
       if (fallback) {
@@ -266,6 +221,7 @@ export async function runAntigravity({ task, prompt, projectPath, config }) {
     break;
   }
 
+  result.permissionMode = permissionMode;
   if (attempts.length > 1) result.attempts = attempts;
   return result;
 }

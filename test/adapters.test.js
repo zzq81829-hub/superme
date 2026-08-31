@@ -51,8 +51,31 @@ test("Antigravity adapter uses agy print mode without exposing the prompt in log
   assert.equal(result.args.includes("--add-dir"), true);
   assert.equal(result.args.includes("claude-sonnet-4-6"), true);
   assert.equal(result.args.includes("--sandbox"), false);
+  assert.equal(result.args.includes("--dangerously-skip-permissions"), false);
+  assert.equal(result.permissionMode, "configured");
   assert.equal(result.args.some((arg) => arg.includes("SECRET")), false);
   assert.equal(result.preview, "ANTIGRAVITY SECRET PROMPT");
+});
+
+test("Antigravity dangerous permission bypass is explicit and visible in dry-run", async (t) => {
+  const dangerousConfig = {
+    ...config,
+    agents: {
+      ...config.agents,
+      antigravity: { ...config.agents.antigravity, permissionMode: "dangerous-bypass" }
+    }
+  };
+  const result = await runAntigravity({
+    task: { id: "test-antigravity-dangerous-mode" },
+    prompt: "PERMISSION TEST",
+    projectPath: process.cwd(),
+    config: dangerousConfig
+  });
+  t.after(() => removeLog(result.logPath));
+
+  assert.equal(result.ok, true);
+  assert.equal(result.args.includes("--dangerously-skip-permissions"), true);
+  assert.equal(result.permissionMode, "dangerous-bypass");
 });
 
 test("location errors fall back to Claude then GPT-OSS", () => {

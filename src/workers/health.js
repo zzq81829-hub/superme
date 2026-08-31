@@ -15,10 +15,11 @@ export function probeClaudeSubscription() {
   if (proxy) {
     const up = isPortOpen(proxy.port, proxy.host);
     return {
-      status: up ? "ONLINE" : "OFFLINE",
+      status: up ? "READY" : "ON_DEMAND",
       available: up,
       experimental: true,
-      detail: up ? `antigravity reverse proxy ${proxy.url}` : `PROXY_DOWN ${proxy.url}`
+      onDemand: true,
+      detail: up ? `founder-approved Antigravity reverse proxy ${proxy.url}` : `PROXY_DOWN ${proxy.url}; start Claude terminal when needed`
     };
   }
   const command = resolveAgentCommand("claude", "claude");
@@ -42,7 +43,7 @@ export function probeClaudeSubscription() {
         detail: "claude auth is API key; subscription login required"
       };
     }
-    if (json.loggedIn) return { status: "ONLINE", available: true, detail: json.authMethod || "logged-in" };
+    if (json.loggedIn) return { status: "READY", available: true, detail: json.authMethod || "logged-in" };
   } catch {
     // fall through
   }
@@ -55,13 +56,15 @@ function binaryStatus(id, commandName) {
   const policy = workerPolicy(id);
   return {
     id,
-    status: onDisk ? "ONLINE" : "OFFLINE",
+    status: onDisk ? "INSTALLED" : "OFFLINE",
     experimental: false,
     required: false,
     billingMode: policy.billing || "subscription",
     apiAllowed: !!policy.api_allowed,
     resolvedCommand: resolved,
-    available: onDisk
+    available: onDisk,
+    readinessVerified: false,
+    detail: onDisk ? "executable found; auth, quota and provider readiness not probed" : "executable missing"
   };
 }
 
@@ -86,18 +89,29 @@ export function workerHealthMap() {
     },
     deepseek: {
       id: "deepseek",
-      status: hermes.available ? "ONLINE" : "OFFLINE",
+      status: hermes.available ? "INSTALLED" : "OFFLINE",
       experimental: false,
       required: false,
       billingMode: "api",
       apiAllowed: true,
       resolvedCommand: hermes.resolvedCommand,
-      available: hermes.available
+      available: hermes.available,
+      readinessVerified: false,
+      detail: hermes.available ? "Hermes executable found; DeepSeek provider readiness not probed" : "Hermes executable missing"
     }
   };
 }
 
-export function listWorkerHealth() {
+export function listWorkerHealth(config = null) {
   const map = workerHealthMap();
-  return WORKERS.map((id) => map[id]);
+  return WORKERS.map((id) => {
+    const worker = map[id];
+    if (id !== "antigravity" || !config) return worker;
+    const permissionMode = config.agents?.antigravity?.permissionMode || "configured";
+    return {
+      ...worker,
+      permissionMode,
+      securityRisk: permissionMode === "dangerous-bypass" ? "ALL_TOOLS_AUTO_APPROVED" : null
+    };
+  });
 }

@@ -23,5 +23,20 @@
     "path": "C:/Users/22145/Desktop/分类王",
     "cli": null,
     "keep": true
+  },
+  "opc-matrix": {
+    "path": "C:/Users/22145/Desktop/opc矩阵",
+    "cli": ["python", "main.py"],
+    "keep": true
+  },
+  "me": {
+    "path": "C:/Users/22145/Desktop/me",
+    "cli": ["python", "app.py"],
+    "keep": true
+  },
+  "video-matrix": {
+    "path": "C:/Users/22145/Desktop/github",
+    "cli": null,
+    "keep": true
   }
 }
