@@ -2,12 +2,9 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// The Founder Brief (需求简报) is a dedicated, human-editable markdown file that
-// captures the founder's requirements, taste and standards. It is injected into
-// every task prompt by src/router.js::buildPrompt so workers produce output
-// adapted to the founder's needs. It sits alongside FOUNDER_MODEL.md and
-// GOVERNANCE.md in founder_os/ on purpose: those files "read the founder's
-// thinking", this one reads the founder's *requirements*.
+// The Founder Brief is the shared Hermes consensus backup: the founder and
+// Hermes settle requirements through grilling, then the latest founder-approved
+// result is injected into every worker prompt by src/router.js::buildPrompt.
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,4 +45,10 @@ export function updateBrief(content, options = {}) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, text, "utf8");
   return getBrief(options);
+}
+
+export function updateHermesBrief(content, options = {}) {
+  const text = String(content ?? "").replace(/\r\n/g, "\n").trim();
+  if (!text) throw new Error("Hermes brief content cannot be empty");
+  return updateBrief(text, options);
 }

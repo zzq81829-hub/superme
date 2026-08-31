@@ -2087,7 +2087,7 @@ async function loadBrief() {
     }
     const status = $("briefStatus");
     if (status) {
-      status.textContent = data.exists ? `已保存 · 更新于 ${timeAgo(data.updatedAt)}` : "尚未保存（任务暂不带简报）";
+      status.textContent = data.exists ? `Hermes 共识已保存 · 更新于 ${timeAgo(data.updatedAt)}` : "尚未保存（任务暂不带 Hermes 共识）";
     }
   } catch (err) {
     console.error("Failed to load brief:", err);
@@ -2108,14 +2108,14 @@ window.saveBrief = async () => {
       body: JSON.stringify({ content })
     });
     cachedBrief = data.brief;
-    showToast("简报已保存，之后每次派工都会自动注入", "success");
+    showToast("Hermes 共识已保存，之后每次派工都会自动注入", "success");
     await loadBrief();
   } catch (err) {
     // Handled in api()
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = "保存简报";
+      btn.textContent = "保存当前共识";
     }
   }
 };

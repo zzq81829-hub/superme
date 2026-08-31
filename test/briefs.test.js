@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { getBrief, updateBrief } from "../src/briefs/store.js";
+import { getBrief, updateBrief, updateHermesBrief } from "../src/briefs/store.js";
 import { addReview } from "../src/reviews/store.js";
 import { buildPrompt } from "../src/router.js";
 
@@ -42,6 +42,18 @@ test("updateBrief writes and reads back content", () => {
     assert.equal(brief.exists, true);
     assert.ok(brief.content.includes("暗黑奢华"));
     assert.ok(brief.updatedAt);
+  } finally {
+    env.restore();
+  }
+});
+
+test("Hermes brief handoff rejects empty text and stores the approved snapshot", () => {
+  const env = tempBriefEnv();
+  try {
+    assert.throws(() => updateHermesBrief("  "), /cannot be empty/);
+    const brief = updateHermesBrief("核心目标：先完成一条可验证的内容闭环");
+    assert.equal(brief.exists, true);
+    assert.match(brief.content, /可验证的内容闭环/);
   } finally {
     env.restore();
   }

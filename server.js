@@ -55,7 +55,7 @@ import { extractFromTranscript } from "./src/memory/extractFromTranscript.js";
 import { probeGrokBot } from "./src/secretary/probeGrokBot.js";
 import { receiveMessage, listInbox, acceptMessage, rejectMessage } from "./src/secretary/inbox.js";
 import { openHermesUI } from "./src/integrations/hermes/launcher.js";
-import { getBrief, updateBrief } from "./src/briefs/store.js";
+import { getBrief, updateBrief, updateHermesBrief } from "./src/briefs/store.js";
 import { listReviews, addReview } from "./src/reviews/store.js";
 import { defaultComputerRoots, listSafeComputerFiles, readSafeComputerText } from "./src/access/computerRead.js";
 
@@ -507,6 +507,18 @@ app.get("/api/brief", (_req, res) => {
     res.json(getBrief());
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/brief/hermes", (req, res) => {
+  if (req.body?.confirmedByFounder !== true) {
+    return res.status(403).json({ error: "Hermes brief handoff requires founder confirmation" });
+  }
+  try {
+    const brief = updateHermesBrief(req.body?.content);
+    res.json({ ok: true, source: "hermes", brief });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 });
 

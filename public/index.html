@@ -161,22 +161,22 @@
       </div>
     </section>
 
-    <!-- Founder Brief (需求简报) -->
+    <!-- Hermes Consensus Brief (需求收敛备份) -->
     <section class="panel" id="briefSection">
       <div class="sectionHeader">
         <div style="display: flex; align-items: center; gap: 10px;">
-          <h2 style="margin: 0; font-size: 15px;">📋 需求简报 (Founder Brief)</h2>
+          <h2 style="margin: 0; font-size: 15px;">📋 Hermes 需求收敛备份</h2>
           <span id="briefBadge" class="tabBadge">未保存</span>
         </div>
         <div class="headerActions">
           <button class="ghost" id="refreshBrief" onclick="loadBrief()">刷新</button>
         </div>
       </div>
-      <p style="margin: 4px 0 10px; color: var(--ivory-muted); font-size: 11px;">这份简报会在每次派工前自动注入任务 Prompt，让 Worker 更贴合你的需求与品味。直接在这里写下你的想法，保存即生效。</p>
+      <p style="margin: 4px 0 10px; color: var(--ivory-muted); font-size: 11px;">Hermes 拷打后形成的最新共识备份。所有 AI 每次派工前都会读取；这里用于查看和修订共识，不是聊天入口。</p>
       <textarea id="briefContent" rows="6" placeholder="在这里写下你的需求、品味与标准，例如：&#10;视觉一律暗黑奢华质感，细边框，严禁游戏风与粗糙渐变&#10;文案要有观点，不要堆砌事实&#10;优先验证完整业务闭环，而不是堆功能"></textarea>
       <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px;">
         <span id="briefStatus" style="font-size: 11px; color: var(--ivory-muted);"></span>
-        <button id="saveBriefBtn" onclick="saveBrief()">保存简报</button>
+        <button id="saveBriefBtn" onclick="saveBrief()">保存当前共识</button>
       </div>
     </section>
 

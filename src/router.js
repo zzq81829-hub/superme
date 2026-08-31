@@ -255,7 +255,7 @@ export function buildPrompt(task, projectPath) {
   try {
     const briefText = (getBrief().content || "").trim();
     if (briefText) {
-      briefBlock = ["", "FOUNDER BRIEF (需求简报 · 每次派工自动注入，请据此适配产物):", briefText];
+      briefBlock = ["", "FOUNDER BRIEF / HERMES CONSENSUS (Hermes 需求收敛备份 · 创始人确认后生效 · 每次派工自动注入):", briefText];
     }
   } catch (err) {
     console.error("Brief injection skipped due to error:", err);
