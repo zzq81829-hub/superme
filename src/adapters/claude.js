@@ -11,12 +11,12 @@ export async function runClaude({ task, prompt, projectPath, config }) {
   const command = resolveAgentCommand("claude", agent.command || "claude");
   const cwd = agent.workingDirectory || projectPath || process.cwd();
   const logs = executionLogPaths(task?.id, "claude");
-  const args = ["-p", prompt, "--output-format", "text"];
+  const args = ["-p", prompt, "--output-format", "text", "--model", agent.model || "sonnet"];
 
   const processResult = await runProcess({
     command,
-    args: config.dryRun ? ["-p", "--output-format", "text"] : args,
-    displayArgs: ["-p", "<task prompt>", "--output-format", "text"],
+    args: config.dryRun ? ["-p", "--output-format", "text", "--model", agent.model || "sonnet"] : args,
+    displayArgs: ["-p", "<task prompt>", "--output-format", "text", "--model", agent.model || "sonnet"],
     cwd: path.resolve(cwd),
     dryRun: config.dryRun,
     timeoutMs: agent.timeoutMs || config.execution?.timeoutMs,

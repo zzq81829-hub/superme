@@ -1,7 +1,7 @@
 # PROJECT_STATE
 
-Current Phase: **T live fallback PASS; remaining human: Claude /login**  
-Current Status: Control Center live. T3/T4/T5/T7/T8/T9 live PASS. T1 Codex quota covered by T9 hop. T2 Claude AUTH_REQUIRED. Grok Bot deferred.  
+Current Phase: **T1 Codex live PASS; T2 still AUTH_REQUIRED**  
+Current Status: T1/T3/T4/T5/T7/T8/T9 PASS. T2 Claude login still required. Grok Bot deferred.  
 Last Successful Test: `npm test` 26/26
 
 ## Worker status
