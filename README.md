@@ -1,5 +1,7 @@
 # AI Founder OS V1
 
+这是本机 **AI Company Control Center**（老板台）。CEO 是已安装的 Hermes，不是再造一套运行时。
+
 这是一个可在 Windows 本机运行的 AI 任务控制台。
 
 它的目的不是一次做出“贾维斯”，而是先解决最痛的问题：
