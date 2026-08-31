@@ -2,7 +2,7 @@ import { isForbiddenApiEnabled, workerPolicy } from "../billing/policy.js";
 import { workerHealthMap } from "./health.js";
 import { FALLBACK_CHAIN } from "./ids.js";
 
-export function applyCostGuard(requested, healthMap = workerHealthMap(), options = {}) {
+export function applyCostGuard(requested, healthMap = workerHealthMap({ probeReadiness: true }), options = {}) {
   const forbidden = isForbiddenApiEnabled();
   if (forbidden.length) {
     return {

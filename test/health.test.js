@@ -1,6 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { workerHealthMap, probeClaudeSubscription } from "../src/workers/health.js";
+import {
+  workerHealthMap,
+  probeClaudeSubscription,
+  classifyCodexProbe,
+  classifyGrokProbe,
+  classifyHermesProbe
+} from "../src/workers/health.js";
 
 test("grok-bot is experimental and never required", () => {
   const bot = workerHealthMap()["grok-bot"];
@@ -24,4 +30,12 @@ test("binary presence is reported as installed, not authenticated readiness", ()
     assert.equal(codex.status, "INSTALLED");
     assert.equal(codex.readinessVerified, false);
   }
+});
+
+test("read-only status output is classified without claiming more than it proves", () => {
+  assert.equal(classifyCodexProbe("Logged in using ChatGPT", 0).status, "READY");
+  assert.equal(classifyCodexProbe("Not logged in", 1).status, "AUTH_REQUIRED");
+  assert.equal(classifyGrokProbe("You are logged in with grok.com.\nDefault model: grok-4.6", 0).status, "READY");
+  assert.equal(classifyHermesProbe("Provider: DeepSeek\nDeepSeek      ✓ configured", 0).status, "READY");
+  assert.equal(classifyHermesProbe("Provider: Other", 0).available, false);
 });
