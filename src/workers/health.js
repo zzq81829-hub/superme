@@ -1,10 +1,26 @@
 import { existsSync } from "fs";
 import { spawnSync } from "child_process";
 import { resolveAgentCommand } from "../adapters/resolveCommand.js";
-import { workerPolicy } from "../billing/policy.js";
+import { workerPolicy, localAnthropicProxy } from "../billing/policy.js";
 import { WORKERS } from "./ids.js";
 
+function isPortOpen(port, host = "127.0.0.1") {
+  const script = `const n=require("net");const s=n.connect(${Number(port)},${JSON.stringify(host)},()=>{s.end();process.exit(0)});s.on("error",()=>process.exit(1));setTimeout(()=>process.exit(1),800);`;
+  const r = spawnSync(process.execPath, ["-e", script], { windowsHide: true, timeout: 3000 });
+  return r.status === 0;
+}
+
 export function probeClaudeSubscription() {
+  const proxy = localAnthropicProxy();
+  if (proxy) {
+    const up = isPortOpen(proxy.port, proxy.host);
+    return {
+      status: up ? "ONLINE" : "OFFLINE",
+      available: up,
+      experimental: true,
+      detail: up ? `antigravity reverse proxy ${proxy.url}` : `PROXY_DOWN ${proxy.url}`
+    };
+  }
   const command = resolveAgentCommand("claude", "claude");
   if (!existsSync(command)) {
     return { status: "OFFLINE", available: false, detail: "claude CLI missing" };

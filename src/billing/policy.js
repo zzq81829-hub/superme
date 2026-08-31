@@ -74,3 +74,20 @@ export function subscriptionEnv(base = process.env) {
   delete env.GOOGLE_API_KEY;
   return env;
 }
+
+export function localAnthropicProxy(base = process.env) {
+  const url = String(base.ANTHROPIC_BASE_URL || "");
+  const match = url.match(/^https?:\/\/(127\.0\.0\.1|localhost):(\d+)/i);
+  if (!match) return null;
+  return { url, host: match[1], port: Number(match[2]) };
+}
+
+export function claudeRuntimeEnv(base = process.env) {
+  const env = subscriptionEnv(base);
+  const proxy = localAnthropicProxy(base);
+  if (proxy) {
+    env.ANTHROPIC_BASE_URL = proxy.url;
+    if (base.ANTHROPIC_API_KEY) env.ANTHROPIC_API_KEY = base.ANTHROPIC_API_KEY;
+  }
+  return env;
+}

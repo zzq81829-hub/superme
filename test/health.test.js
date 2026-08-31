@@ -10,10 +10,10 @@ test("grok-bot is experimental and never required", () => {
   assert.equal(bot.status, "UNKNOWN_CONTROL_INTERFACE");
 });
 
-test("Claude API-key auth is not treated as subscription", () => {
+test("Claude reverse-proxy down is skippable, not a login wait", () => {
   const claude = probeClaudeSubscription();
-  if (claude.detail && /API key/i.test(claude.detail)) {
-    assert.equal(claude.available, false);
-    assert.equal(claude.status, "SUBSCRIPTION_UNAVAILABLE");
+  if (claude.detail && /PROXY_DOWN|reverse proxy/i.test(claude.detail || "")) {
+    assert.equal(claude.required, undefined);
+    assert.notEqual(claude.status, "AUTH_REQUIRED");
   }
 });

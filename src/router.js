@@ -49,7 +49,7 @@ export async function dispatchTask(taskId, config) {
     } catch (error) {
       result = { ok: false, agent, error: error?.stack || String(error) };
     }
-    const unavailable = /usage limit|quota|QUOTA_LIMITED|AUTH_REQUIRED|not logged in/i.test(`${result.error || ""}\n${result.message || ""}`);
+    const unavailable = /usage limit|quota|QUOTA_LIMITED|AUTH_REQUIRED|not logged in|PROXY_DOWN|ECONNREFUSED|unrecognized_model|timed out/i.test(`${result.error || ""}\n${result.message || ""}`);
     if (result.ok || !unavailable) break;
     skip.push(agent);
     const fallback = applyCostGuard("auto", undefined, { skip });
