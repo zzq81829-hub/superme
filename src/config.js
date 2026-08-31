@@ -21,9 +21,14 @@ export function loadConfig() {
     ...saved,
     execution: { ...defaults.execution, ...saved.execution },
     agents: {
+      hermes: { enabled: true, command: "hermes", ...(saved.agents?.hermes || {}) },
       codex: { ...defaults.agents.codex, ...saved.agents?.codex },
+      claude: { enabled: true, command: "claude", ...(saved.agents?.claude || {}) },
       antigravity: { ...defaults.agents.antigravity, ...saved.agents?.antigravity },
-      grok: { enabled: false, command: "grok", ...(saved.agents?.grok || {}) }
+      grokBuild: { enabled: true, command: "grok", ...(saved.agents?.grokBuild || {}) },
+      grok: { enabled: true, command: "grok", ...(saved.agents?.grok || {}) },
+      grokBot: { enabled: false, command: "", ...(saved.agents?.grokBot || {}) },
+      deepseek: { enabled: true, command: "hermes", ...(saved.agents?.deepseek || {}) }
     }
   };
 

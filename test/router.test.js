@@ -6,8 +6,12 @@ test("router respects an explicit agent", () => {
   assert.equal(chooseAgent({ agent: "antigravity", title: "review", description: "" }), "antigravity");
 });
 
-test("router sends review and architecture work to Codex", () => {
-  assert.equal(chooseAgent({ agent: "auto", title: "检查代码架构", description: "review the design" }), "codex");
+test("router sends review work to Claude", () => {
+  assert.equal(chooseAgent({ agent: "auto", title: "code review", description: "review the design" }), "claude");
+});
+
+test("router sends architecture work to Codex", () => {
+  assert.equal(chooseAgent({ agent: "auto", title: "检查代码架构", description: "inspect the design" }), "codex");
 });
 
 test("router sends implementation work to Antigravity", () => {

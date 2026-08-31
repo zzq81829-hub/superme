@@ -4,6 +4,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { runCodex } from "../src/adapters/codex.js";
 import { runAntigravity, isLocationBlocked, isHeadlessPermissionDenied, nextFallbackModel } from "../src/adapters/antigravity.js";
+import { runClaude } from "../src/adapters/claude.js";
+import { runGrokBuild } from "../src/adapters/grokBuild.js";
 
 const config = {
   dryRun: true,
@@ -63,4 +65,30 @@ test("location errors fall back to Claude then GPT-OSS", () => {
 test("headless permission denials are detected from CLI and adapter wording", () => {
   assert.equal(isHeadlessPermissionDenied("Print mode: soft-denying tool confirmation \"RunCommand\""), true);
   assert.equal(isHeadlessPermissionDenied("Headless Antigravity denied a required tool"), true);
+});
+
+test("Claude adapter dry-run uses -p and strips prompt from display args", async (t) => {
+  const result = await runClaude({
+    task: { id: "test-claude-adapter" },
+    prompt: "CLAUDE SECRET",
+    projectPath: process.cwd(),
+    config
+  });
+  t.after(() => removeLog(result.logPath));
+  assert.equal(result.ok, true);
+  assert.equal(result.args.includes("-p"), true);
+  assert.equal(result.args.some((arg) => String(arg).includes("SECRET")), false);
+});
+
+test("Grok Build adapter dry-run uses -p", async (t) => {
+  const result = await runGrokBuild({
+    task: { id: "test-grok-build-adapter" },
+    prompt: "GROK SECRET",
+    projectPath: process.cwd(),
+    config
+  });
+  t.after(() => removeLog(result.logPath));
+  assert.equal(result.ok, true);
+  assert.equal(result.agent, "grok-build");
+  assert.equal(result.args.includes("-p"), true);
 });

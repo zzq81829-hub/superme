@@ -53,6 +53,18 @@ function knownLocations(agentName) {
   if (agentName === "antigravity") {
     return [path.join(localAppData, "agy", "bin", "agy.exe")];
   }
+  if (agentName === "hermes") {
+    return [path.join(localAppData, "hermes", "hermes-agent", "bin", "hermes.exe")];
+  }
+  if (agentName === "claude") {
+    return [
+      path.join(process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"), "npm", "claude.cmd"),
+      path.join(process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"), "npm", "claude.exe")
+    ];
+  }
+  if (agentName === "grok" || agentName === "grok-build") {
+    return [path.join(os.homedir(), ".grok", "bin", "grok.exe")];
+  }
   return [];
 }
 

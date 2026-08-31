@@ -1,16 +1,17 @@
 import { getTask, updateTask } from "./store.js";
 import { runAgent } from "./adapters/runAgent.js";
+import { applyCostGuard } from "./workers/costGuard.js";
+import { verifyTask } from "./verify/verifyTask.js";
 
 export function chooseAgent(task) {
   if (task.agent && task.agent !== "auto") return task.agent;
 
   const text = `${task.title}\n${task.description}`.toLowerCase();
-
-  // V1 deliberately uses a cheap deterministic router.
-  // Later this can be replaced by a smarter policy without burning model tokens.
-  const reviewSignals = ["review", "审查", "架构", "方案", "分析", "检查代码"];
-  if (reviewSignals.some((s) => text.includes(s))) return "codex";
-
+  if (["hermes", "编排", "拆任务", "多agent", "orchestrat"].some((s) => text.includes(s))) return "hermes";
+  if (["摘要", "总结", "改写", "分类", "便宜", "summar", "rewrite"].some((s) => text.includes(s))) return "deepseek";
+  if (["研究", "search", "调研"].some((s) => text.includes(s))) return "grok";
+  if (["review", "审查", "代码审查"].some((s) => text.includes(s))) return "claude";
+  if (["架构", "方案", "分析", "检查代码"].some((s) => text.includes(s))) return "codex";
   return "antigravity";
 }
 
@@ -18,31 +19,58 @@ export async function dispatchTask(taskId, config) {
   const task = getTask(taskId);
   if (!task) throw new Error("Task not found");
 
-  const agent = chooseAgent(task);
+  const requested = chooseAgent(task);
   const projectPath = task.projectPath || config.workspaceRoot || process.cwd();
+  const guard = applyCostGuard(requested);
+  if (!guard.ok) {
+    return updateTask(taskId, {
+      status: "blocked",
+      agentResolved: requested,
+      selectionReason: guard.reason,
+      error: guard.reason,
+      finishedAt: new Date().toISOString()
+    });
+  }
 
+  const agent = guard.worker;
   updateTask(taskId, {
     status: "running",
     agentResolved: agent,
+    selectionReason: guard.reason,
+    attemptCount: (task.attemptCount || 0) + 1,
     startedAt: new Date().toISOString()
   });
 
   let result;
-
   try {
     result = await runAgent(agent, task, projectPath, config);
   } catch (error) {
-    result = {
-      ok: false,
-      agent,
-      error: error?.stack || String(error)
-    };
+    result = { ok: false, agent, error: error?.stack || String(error) };
   }
 
+  updateTask(taskId, { status: "verifying", result });
+  let verification = await verifyTask({ projectPath, result, config });
+
+  if (!verification.ok && result.ok && (task.attemptCount || 0) < 1) {
+    updateTask(taskId, { status: "repairing" });
+    const repairTask = {
+      ...task,
+      description: `${task.description}\n\nVERIFIER FAILED: ${verification.reason}. Fix the smallest issue and retest.`
+    };
+    try {
+      result = await runAgent(agent, repairTask, projectPath, config);
+    } catch (error) {
+      result = { ok: false, agent, error: error?.stack || String(error) };
+    }
+    verification = await verifyTask({ projectPath, result, config });
+  }
+
+  const passed = result.ok && verification.ok;
   return updateTask(taskId, {
-    status: result.ok ? "completed" : "failed",
-    result,
-    error: result.ok ? null : result.error,
+    status: passed ? "completed" : result.ok ? "failed" : "failed",
+    result: { ...result, verification },
+    verification,
+    error: passed ? null : (verification.ok ? result.error : verification.reason),
     finishedAt: new Date().toISOString()
   });
 }

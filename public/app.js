@@ -10,7 +10,12 @@ async function api(url, options) {
 async function loadHealth() {
   try {
     const h = await api("/api/health");
-    $("health").textContent = h.dryRun ? "安全预演模式" : "执行模式";
+    const ceo = h.ceo?.status || "UNKNOWN";
+    $("health").textContent = `${h.dryRun ? "预演" : "执行"} · CEO Hermes ${ceo}`;
+    const workers = h.workers || [];
+    $("workers").innerHTML = workers.map((w) =>
+      `<span class="badge">${esc(w.id)} ${esc(w.status)}</span>`
+    ).join(" ");
   } catch {
     $("health").textContent = "离线";
   }
@@ -33,7 +38,7 @@ function renderTask(t) {
       <div class="taskTop">
         <div>
           <div class="taskTitle">${esc(t.title)}</div>
-          <div class="meta">${esc(t.agentResolved || t.agent)} · ${esc(t.projectPath || "默认工作区")}</div>
+          <div class="meta">${esc(t.agentResolved || t.agent)} · ${esc(t.projectPath || "默认工作区")}${t.selectionReason ? " · " + esc(t.selectionReason) : ""}</div>
         </div>
         <span class="badge">${esc(t.status)}</span>
       </div>

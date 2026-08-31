@@ -1,0 +1,56 @@
+Codex:
+  billing: subscription
+  api_allowed: false
+  required: false
+
+Claude:
+  billing: subscription
+  api_allowed: false
+  required: false
+
+Antigravity:
+  billing: subscription
+  api_allowed: false
+  required: false
+
+GrokBuild:
+  billing: subscription
+  api_allowed: false
+  required: false
+
+Grok:
+  billing: subscription
+  api_allowed: false
+  required: false
+
+GrokBot:
+  billing: subscription_or_quota
+  api_allowed: false
+  required: false
+
+DeepSeek:
+  billing: api
+  api_allowed: true
+  cost_class: cheap
+  required: false
+
+Hermes:
+  billing: subscription_or_cheap_api
+  api_allowed: true
+  cost_class: cheap
+  required: false
+
+OpenRouter:
+  enabled: false
+
+OpenAIAPI:
+  enabled: false
+
+AnthropicAPI:
+  enabled: false
+
+XAIAPI:
+  enabled: false
+
+GeminiAPI:
+  enabled: false

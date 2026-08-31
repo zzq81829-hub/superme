@@ -10,9 +10,9 @@
   <main class="shell">
     <header>
       <div>
-        <div class="eyebrow">AI COMPANY · V1</div>
+        <div class="eyebrow">AI COMPANY</div>
         <h1>AI Founder OS</h1>
-        <p>你只负责说目标。系统负责拆解、派单、执行、汇报。</p>
+        <p>CEO：Hermes。你只说目标。系统派工、验证、回报。</p>
       </div>
       <div id="health" class="status">连接中…</div>
     </header>
@@ -24,12 +24,25 @@
       <div class="row">
         <select id="agent">
           <option value="auto">自动分配</option>
-          <option value="antigravity">Antigravity</option>
+          <option value="hermes">Hermes</option>
           <option value="codex">Codex</option>
+          <option value="claude">Claude Code</option>
+          <option value="antigravity">Antigravity</option>
+          <option value="grok-build">Grok Build</option>
+          <option value="grok">Grok</option>
+          <option value="deepseek">DeepSeek</option>
+          <option value="grok-bot">Grok Bot (实验)</option>
         </select>
         <input id="projectPath" placeholder="项目路径，例如 D:\Projects\shuzhai" />
         <button id="create">创建并执行</button>
       </div>
+    </section>
+
+    <section class="panel">
+      <div class="sectionHeader">
+        <h2>Workers</h2>
+      </div>
+      <div id="workers" class="meta">加载中…</div>
     </section>
 
     <section class="panel">

@@ -170,10 +170,11 @@ export function runProcess({
     };
 
     try {
+      const useShell = process.platform === "win32" && /\.(cmd|bat)$/i.test(command);
       child = spawn(command, args, {
         cwd,
         env: pathWithCommandDir(command, env || process.env),
-        shell: false,
+        shell: useShell,
         windowsHide: true,
         stdio: ["pipe", "pipe", "pipe"]
       });

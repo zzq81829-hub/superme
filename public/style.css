@@ -26,7 +26,7 @@ button.ghost { background:#171e2c; color:#c9d2e5; padding:9px 13px; }
 .taskTop { display:flex; justify-content:space-between; gap:12px; align-items:center; }
 .taskTitle { font-weight:760; font-size:16px; }
 .meta { color:#7f8ba2; font-size:12px; margin-top:6px; }
-.badge { padding:5px 9px; border-radius:999px; background:#1b2434; color:#aec0dd; font-size:12px; }
+.badge { padding:5px 9px; border-radius:999px; background:#1b2434; color:#aec0dd; font-size:12px; display:inline-block; margin:0 6px 6px 0; }
 .taskActions { display:flex; gap:8px; margin-top:12px; }
 .taskActions button { min-height:36px; }
 pre { white-space:pre-wrap; overflow-wrap:anywhere; background:#080b11; border-radius:12px; padding:12px; color:#b8c4d9; }
