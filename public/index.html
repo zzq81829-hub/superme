@@ -19,12 +19,16 @@
       </div>
       <div class="railRule"></div>
       <nav class="primaryNav">
-        <a class="navItem active" href="#commandMonitor"><span class="navGlyph">◈</span><span>驾驶舱</span></a>
-        <a class="navItem" href="#secretarySection"><span class="navGlyph">✳</span><span>秘书收件箱</span><span class="navHint">想法</span></a>
-        <a class="navItem" href="#contentPackagesSection"><span class="navGlyph">▱</span><span>内容工作台</span></a>
+        <div class="navGroupLabel">WORKSPACE</div>
+        <a class="navItem active" href="#commandSection"><span class="navGlyph">◈</span><span>驾驶舱</span></a>
+        <a class="navItem" href="#approvalSection"><span class="navGlyph">!</span><span>需要签字</span></a>
+        <a class="navItem" href="#commandMonitor"><span class="navGlyph">◌</span><span>Hermes 监控</span></a>
+        <a class="navItem" href="#briefSection"><span class="navGlyph">▤</span><span>需求简报</span></a>
+        <a class="navItem" href="#workerStatusSection"><span class="navGlyph">·</span><span>执行团队</span></a>
         <a class="navItem" href="#taskSection"><span class="navGlyph">↗</span><span>任务与执行</span></a>
-        <a class="navItem" href="#workerBoardSection"><span class="navGlyph">·</span><span>执行团队</span></a>
         <a class="navItem" href="#memorySection"><span class="navGlyph">⌁</span><span>创始人记忆</span></a>
+        <a class="navItem" href="#contentPackagesSection"><span class="navGlyph">▱</span><span>内容工作台</span></a>
+        <a class="navItem" href="#secretarySection"><span class="navGlyph">✳</span><span>秘书收件箱</span><span class="navHint">想法</span></a>
       </nav>
       <div class="railFooter">
         <div class="railStatus"><span class="railStatusDot"></span><span>控制中枢在线</span></div>
@@ -197,7 +201,7 @@
       <div id="workerBoard" class="workerBoard">加载中…</div>
     </section>
 
-    <section class="panel">
+    <section class="panel" id="workerStatusSection">
       <div class="sectionHeader">
         <div class="taskTabs">
           <button class="tabBtn active" id="tabActive">Active Tasks (活跃任务) <span id="activeCount" class="tabBadge">0</span></button>
