@@ -15,12 +15,21 @@ function resolveInsideProject(projectPath, relativePath) {
 async function runAcceptanceCheck(criterion, projectPath, config) {
   if (criterion.type === "command") {
     if (config.dryRun) return { name: `command:${criterion.command}`, ok: true, skipped: "dryRun" };
-    const command = process.platform === "win32" && ["npm", "pnpm"].includes(criterion.command)
-      ? `${criterion.command}.cmd`
-      : criterion.command;
+    let command = criterion.command;
+    let args = criterion.args;
+    if (process.platform === "win32" && criterion.command === "npm") {
+      const npmCli = path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js");
+      if (!fs.existsSync(npmCli)) {
+        return { name: `command:npm ${criterion.args.join(" ")}`.trim(), ok: false, error: "safe npm-cli.js entry point not found" };
+      }
+      command = process.execPath;
+      args = [npmCli, ...criterion.args];
+    } else if (process.platform === "win32" && criterion.command === "pnpm") {
+      command = "pnpm.cmd";
+    }
     const result = await runProcess({
       command,
-      args: criterion.args,
+      args,
       cwd: projectPath,
       dryRun: false,
       timeoutMs: Math.min(config.execution?.verificationTimeoutMs || 120000, 300000),
@@ -75,6 +84,11 @@ export async function verifyTask({ projectPath, result, config, task = {} }) {
   }
   const pkg = path.join(projectPath, "package.json");
   if (!fs.existsSync(pkg)) return { ok: true, reason: "no package.json; message present", checks };
+
+  const explicitNpmTest = criteria.some((criterion) =>
+    criterion.type === "command" && criterion.command.replace(/\.cmd$/i, "") === "npm" && criterion.args[0] === "test"
+  );
+  if (explicitNpmTest) return { ok: true, reason: "checks passed", checks };
 
   if (config.dryRun) {
     checks.push({ name: "npm-test", ok: true, skipped: "dryRun" });

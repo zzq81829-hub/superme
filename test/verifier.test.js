@@ -67,3 +67,20 @@ test("verifier blocks artifact paths outside the project", async () => {
   assert.equal(result.ok, false);
   assert.match(result.checks.at(-1).error, /escapes project/);
 });
+
+test("explicit npm test acceptance is not run twice by legacy verification", async (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "founder-os-verifier-"));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({
+    private: true,
+    scripts: { test: "node --version" }
+  }));
+  const result = await verifyTask({
+    projectPath: dir,
+    result: { ok: true, message: "done" },
+    config: testConfig(),
+    task: { acceptanceCriteria: [{ type: "command", command: "npm", args: ["test"] }] }
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.checks.filter((check) => /npm.test/i.test(check.name)).length, 1);
+});

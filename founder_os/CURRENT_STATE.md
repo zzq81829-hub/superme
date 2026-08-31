@@ -14,24 +14,22 @@ Acceptance:
 - project state is preserved.
 
 ### V1 control-plane status — 2026-08-31
-- Dashboard, task persistence, deterministic routing, automatic execution and result polling are implemented.
-- The local runtime is now enabled with `config.json -> dryRun=false` and the Dashboard is running on `127.0.0.1:3210`.
-- Codex uses `codex exec` with explicit `workspace-write`, JSONL output, timeout handling and per-task logs.
-- Antigravity uses the installed `agy --print` headless interface with JSON output, timeout handling and native CLI diagnostics.
-- Unit/integration tests cover routing, command construction, dry-run behavior, child-process output and timeout termination.
-- A real Codex adapter smoke test passed end to end.
-- A real Dashboard -> persisted task -> router -> Codex CLI -> workspace file -> persisted result/log -> Dashboard result test passed. Codex created the exact 26-byte proof file in 109,221 ms and exited with code 0.
-- A real Dashboard -> persisted task -> router -> Antigravity CLI -> provider -> persisted error/log -> Dashboard error test also completed. The provider rejected the request after 18,202 ms with `User location is not supported for the API use.` This is an external access blocker, not an adapter or control-plane defect.
-- Follow-up diagnosis confirmed Antigravity CLI `1.1.22` is current and authenticates through a consumer Google account. The machine's effective public egress country is Japan, which Antigravity officially supports, while no Gemini API key or Google Cloud ADC mode is configured. The remaining likely blocker is the signed-in Google account's associated country or consumer eligibility; the compliant alternatives are correcting a genuinely incorrect account country, using an eligible Gemini API key, or using Gemini Enterprise Agent Platform.
-- Antigravity live loop is now viable on this machine by avoiding Gemini: `--model claude-sonnet-4-6`, `--add-dir <project>`, no `--sandbox`, and `--dangerously-skip-permissions` for headless tool use. Task `1788138927817-7b78d3` completed in 141508 ms with a real inspection report.
-- Gemini remains location-blocked (`User location is not supported`). Fallback is `gpt-oss-120b-medium`.
-- The current feasibility verdict is: local control plane, Codex, and Antigravity are all viable now if Antigravity is not left on the default Gemini model.
+- Dashboard, JSON task persistence, deterministic routing, automatic execution, bounded fallback, result polling and report logs are implemented.
+- The local runtime is intentionally in real execution mode (`dryRun=false`) at `127.0.0.1:3210`; the generated default remains `dryRun=true`.
+- The true V1 orchestrator is the local Router. Hermes is reused as a selectable DeepSeek-backed worker, not yet the dispatcher for every task.
+- Read-only cached probes verify Codex ChatGPT login, Grok grok.com login and Hermes DeepSeek provider state. Claude is `ON_DEMAND` while the founder-approved local Antigravity reverse proxy on port 8045 is stopped. Antigravity remains `INSTALLED` because no reliable provider-aware, zero-token probe exists.
+- Codex, Antigravity, Grok Build, Grok and Hermes/DeepSeek all have real successful execution evidence. Grok and Grok Build are modes of the same `grok.exe`; Grok Bot is honestly deferred.
+- Machine-verifiable acceptance supports exact/contained file content, file existence and allowlisted commands. Checks are restricted to the project directory, and failed checks feed evidence into at most one configured repair attempt.
+- Real strict E2E task `1788162612513-cb3353` passed Dashboard -> Codex -> exact artifact -> `npm test` -> persisted verification history in 123,797 ms.
+- Main tests pass 38/38. Shuzhai 4/4, Classify King 9/9 and OPC Matrix 11/11 regression suites pass; video-matrix Python compilation also passes.
+- The complete audit and phased rollback plan is `docs/CODEX_TAKEOVER_PLAN.md`.
 
 ### V1 safety decisions
 - The `dryRun` safety switch remains available; the current local runtime is intentionally set to `dryRun=false` for real execution validation.
-- Agent processes are spawned without a shell to avoid command injection through task text.
-- Codex is limited to the task workspace; Antigravity uses its CLI sandbox by default.
-- No adapter enables dangerous permission-bypass flags.
+- Claude resolves to its native executable so task prompts do not pass through `cmd.exe`; verifier commands are allowlisted and reject shell metacharacters.
+- Codex is limited to the task workspace. Founder OS no longer edits global Antigravity permissions or silently escalates after a denial.
+- The current machine explicitly configures Antigravity `dangerous-bypass` to preserve the proven headless flow. The Dashboard displays a warning because this mode auto-approves all tools.
+- Claude's localhost Antigravity reverse proxy is a founder-approved exception. When it is down, Claude is skipped without waiting for login.
 - Command output is bounded in memory and every run has a deadline.
 
 ## Phase 1 — Shuzhai content loop
