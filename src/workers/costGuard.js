@@ -1,6 +1,8 @@
 import { isForbiddenApiEnabled, workerPolicy } from "../billing/policy.js";
+import { getRemainingBudget, getBudgetSummary } from "../billing/deepseekBudget.js";
 import { workerHealthMap } from "./health.js";
 import { FALLBACK_CHAIN } from "./ids.js";
+import { getWorkerQuota } from "./quota.js";
 
 export function applyCostGuard(requested, healthMap = workerHealthMap({ probeReadiness: true }), options = {}) {
   const forbidden = isForbiddenApiEnabled();
@@ -12,6 +14,8 @@ export function applyCostGuard(requested, healthMap = workerHealthMap({ probeRea
       action: "HUMAN_ACTION_REQUIRED"
     };
   }
+
+  const remainingBudget = getRemainingBudget(options);
 
   const tryOrder = requested === "auto"
     ? [...FALLBACK_CHAIN]
@@ -26,6 +30,21 @@ export function applyCostGuard(requested, healthMap = workerHealthMap({ probeRea
       attempts.push({ id, skip: "runtime skip" });
       continue;
     }
+
+    // Check DeepSeek Monthly Budget Hard Cap for deepseek and hermes (which uses DeepSeek provider)
+    if ((id === "deepseek" || id === "hermes") && remainingBudget <= 0) {
+      attempts.push({ id, skip: "QUOTA_LIMITED (DeepSeek monthly budget exhausted)" });
+      continue;
+    }
+
+    // Check persisted subscription-quota state: an exhausted worker is skipped
+    // proactively so a fresh task does not re-dispatch to it and waste a run.
+    const quotaState = getWorkerQuota(id, options);
+    if (quotaState && quotaState.status === "exhausted") {
+      attempts.push({ id, skip: `QUOTA_EXHAUSTED (${quotaState.reason || "subscription quota exhausted"})` });
+      continue;
+    }
+
     const health = healthMap[id];
     const policy = workerPolicy(id);
     if (!health) {
@@ -54,6 +73,17 @@ export function applyCostGuard(requested, healthMap = workerHealthMap({ probeRea
       reason: id === requested || requested === "auto"
         ? `selected ${id}`
         : `${requested} unavailable (${healthMap[requested]?.status || "OFFLINE"}), fallback ${id}`,
+      attempts
+    };
+  }
+
+  if ((requested === "deepseek" || requested === "hermes") && remainingBudget <= 0) {
+    const summary = getBudgetSummary(options);
+    return {
+      ok: false,
+      worker: null,
+      reason: `DeepSeek monthly budget limit reached (${summary.spentCny.toFixed(2)}/${summary.totalLimitCny.toFixed(2)} CNY)`,
+      action: "HUMAN_ACTION_REQUIRED",
       attempts
     };
   }

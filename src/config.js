@@ -20,6 +20,7 @@ export function loadConfig() {
     ...defaults,
     ...saved,
     execution: { ...defaults.execution, ...saved.execution },
+    computerAccess: { ...defaults.computerAccess, ...saved.computerAccess },
     agents: {
       hermes: { enabled: true, command: "hermes", ...(saved.agents?.hermes || {}) },
       codex: { ...defaults.agents.codex, ...saved.agents?.codex },
@@ -29,6 +30,12 @@ export function loadConfig() {
       grok: { enabled: true, command: "grok", ...(saved.agents?.grok || {}) },
       grokBot: { enabled: false, command: "", ...(saved.agents?.grokBot || {}) },
       deepseek: { enabled: true, command: "hermes", ...(saved.agents?.deepseek || {}) }
+    },
+    bridge: {
+      enabled: true,
+      token: "change-me",
+      allowedOrigins: ["https://chatgpt.com", "https://chat.openai.com"],
+      ...(saved.bridge || {})
     }
   };
 

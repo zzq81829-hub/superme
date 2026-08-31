@@ -6,6 +6,9 @@ if not exist node_modules (
   pause
   exit /b 1
 )
-start "" http://localhost:3210
-npm start
-pause
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\start-founder-os.ps1"
+if errorlevel 1 (
+  echo AI Founder OS 启动失败，请查看 data\server-error.log
+  pause
+  exit /b 1
+)

@@ -3,6 +3,10 @@
   "host": "127.0.0.1",
   "workspaceRoot": "",
   "dryRun": true,
+  "computerAccess": {
+    "enabled": true,
+    "mode": "read-only-privacy-filtered"
+  },
   "execution": {
     "timeoutMs": 600000,
     "maxOutputBytes": 2097152,
@@ -29,5 +33,13 @@
       "timeoutMs": 600000,
       "workingDirectory": ""
     }
+  },
+  "bridge": {
+    "enabled": true,
+    "token": "change-me",
+    "allowedOrigins": [
+      "https://chatgpt.com",
+      "https://chat.openai.com"
+    ]
   }
 }

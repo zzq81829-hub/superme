@@ -32,6 +32,10 @@ DeepSeek:
   billing: api
   api_allowed: true
   cost_class: cheap
+  monthly_limit_cny: 30
+  currency: CNY
+  hard_stop: true
+  conservative_cost_per_call_cny: 0.20
   required: false
 
 Hermes:

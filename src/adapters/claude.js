@@ -37,7 +37,8 @@ export async function runClaude({ task, prompt, projectPath, config }) {
     maxOutputBytes: config.execution?.maxOutputBytes,
     logPath: logs.wrapperLogPath,
     env: claudeRuntimeEnv(),
-    input: config.dryRun ? prompt : ""
+    input: config.dryRun ? prompt : "",
+    taskId: task?.id
   });
 
   if (processResult.dryRun) {

@@ -8,7 +8,7 @@ Control Center never talks to worker internals except through:
 
 | id | binary | billing | required |
 |----|--------|---------|----------|
-| hermes | `hermes chat --query-file` | DeepSeek cheap API as CEO | no |
+| hermes | `hermes chat --query-file` | DeepSeek cheap API as COO | no |
 | codex | `codex exec` | subscription | no |
 | claude | `claude -p` through founder-approved localhost Antigravity proxy | on-demand local proxy | no |
 | antigravity | `agy --print` | subscription | no |

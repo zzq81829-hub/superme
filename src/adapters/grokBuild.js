@@ -28,7 +28,8 @@ export async function runGrokBuild({ task, prompt, projectPath, config, research
     maxOutputBytes: config.execution?.maxOutputBytes,
     logPath: logs.wrapperLogPath,
     env: subscriptionEnv(),
-    input: config.dryRun ? prompt : ""
+    input: config.dryRun ? prompt : "",
+    taskId: task?.id
   });
 
   if (processResult.dryRun) {

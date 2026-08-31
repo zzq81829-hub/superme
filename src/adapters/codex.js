@@ -63,7 +63,8 @@ export async function runCodex({ task, prompt, projectPath, config }) {
     dryRun: config.dryRun,
     timeoutMs,
     maxOutputBytes: config.execution?.maxOutputBytes,
-    logPath: logs.wrapperLogPath
+    logPath: logs.wrapperLogPath,
+    taskId: task?.id
   });
 
   const common = {

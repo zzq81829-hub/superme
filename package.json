@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node --test ./test/*.js",
+    "test": "node --import ./test-support/isolate-data.js --test ./test/*.js",
     "smoke:codex": "node scripts/smoke-agents.js codex",
     "smoke:antigravity": "node scripts/smoke-agents.js antigravity"
   },

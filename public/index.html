@@ -7,21 +7,107 @@
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
+  <div id="toastContainer" class="toastContainer"></div>
   <main class="shell">
     <header>
       <div>
         <div class="eyebrow">AI COMPANY</div>
         <h1>AI Founder OS</h1>
-        <p>CEO：Hermes。你只说目标。系统派工、验证、回报。</p>
+        <p>本机控制系统掌权 · Grok Bot 秘书 · Hermes COO 调度执行</p>
       </div>
       <div id="health" class="status">连接中…</div>
     </header>
 
+    <!-- Hermes Command Monitor Panel -->
+    <section class="panel monitorPanel" id="commandMonitor">
+      <div class="monitorHeader">
+        <div class="monitorTitle">
+          <div class="eyebrow">COMMAND MONITOR</div>
+          <h2>Hermes 运行监控中枢</h2>
+        </div>
+        <div class="monitorControls">
+          <div id="monitorHermesBadge" class="badge badge-idle">
+            <span class="pulse-dot"></span>
+            <span id="monitorStatusText">IDLE</span>
+          </div>
+          <button id="openHermesBtn" class="ghost monitorOpenBtn" onclick="openHermesInterface()">
+            打开 Hermes 界面
+          </button>
+        </div>
+      </div>
+      <div class="monitorGrid">
+        <div class="monitorItem monitorIdentity">
+          <div class="monitorLabel">Hermes COO 软件</div>
+          <div class="monitorValue" id="monitorHermesRuntime">检查中…</div>
+        </div>
+        <div class="monitorItem monitorIdentity">
+          <div class="monitorLabel">模型与成本保护</div>
+          <div class="monitorValue" id="monitorHermesProvider">DeepSeek · ¥30/月硬闸</div>
+        </div>
+        <div class="monitorItem">
+          <div class="monitorLabel">当前 Agent</div>
+          <div class="monitorValue" id="monitorAgent">—</div>
+        </div>
+        <div class="monitorItem">
+          <div class="monitorLabel">当前任务</div>
+          <div class="monitorValue" id="monitorTask">无活跃任务 (No active task)</div>
+        </div>
+        <div class="monitorItem">
+          <div class="monitorLabel">当前步骤</div>
+          <div class="monitorValue" id="monitorStep">待命中 (Standby)</div>
+        </div>
+        <div class="monitorItem">
+          <div class="monitorLabel">执行耗时</div>
+          <div class="monitorValue" id="monitorElapsed">—</div>
+        </div>
+        <div class="monitorItem">
+          <div class="monitorLabel">最后更新</div>
+          <div class="monitorValue" id="monitorLastUpdate">—</div>
+        </div>
+        <div class="monitorItem">
+          <div class="monitorLabel">最近一次结果</div>
+          <div class="monitorValue" id="monitorLatestResult">—</div>
+        </div>
+        <div class="monitorItem" id="monitorBudgetBlock">
+          <div class="monitorLabel">DeepSeek 本月账本</div>
+          <div class="monitorValue" id="monitorBudgetValue" style="font-size: 13px;">
+            <span id="budgetSpentText">¥0.00</span> / <span id="budgetLimitText">¥30.00</span> (<span id="budgetRemainingText" style="color:#4ade80;">余 ¥30.00</span>)
+            <button class="ghost" onclick="openTopupPrompt()" style="padding: 1px 6px; font-size: 11px; margin-left: 4px;">+ 充值</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DeepSeek Monthly Budget Alert Banner (到限提醒横幅) -->
+    <div id="budgetAlertBanner" style="display: none; background: rgba(220, 38, 38, 0.15); border: 1px solid rgba(220, 38, 38, 0.4); padding: 10px 16px; border-radius: 8px; margin-bottom: 16px; color: #fca5a5; align-items: center; justify-content: space-between;">
+      <span id="budgetAlertText">⚠️ DeepSeek 本月已达 30 元上限，已停用。是否登记充值由你决定。</span>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <button class="ghost" id="ackAlertBtn" onclick="acknowledgeBudgetAlert()" style="font-size: 12px; padding: 3px 10px;">已知悉</button>
+        <button class="restoreBtn" onclick="openTopupPrompt()" style="font-size: 12px; padding: 3px 10px;">+ 登记充值</button>
+      </div>
+    </div>
+
+    <!-- Level 1 Approval Queue (一级审批队列) -->
+    <section class="panel" id="approvalSection" style="display: none; border-color: rgba(220, 38, 38, 0.4); background: rgba(30, 10, 15, 0.4);">
+      <div class="sectionHeader">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <h2 style="color: #ff6b6b; margin: 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+            <span>⚠ 一级审批队列 (Level 1 Approval Queue)</span>
+            <span id="approvalBadge" class="tabBadge" style="background: #dc2626; color: #fff;">0</span>
+          </h2>
+        </div>
+        <div class="headerActions">
+          <button class="ghost" id="refreshApprovals" onclick="loadApprovals()">刷新审批</button>
+        </div>
+      </div>
+      <div id="approvalList" class="tasks" style="margin-top: 10px;"></div>
+    </section>
+
     <section class="panel hero">
       <h2>今天想让 AI 做什么？</h2>
       <input id="title" placeholder="例如：把书摘的小红书封面系统改得更高级" />
-      <textarea id="description" rows="7" placeholder="把你的想法直接说出来，不需要写 PRD。"></textarea>
-      <textarea id="acceptance" rows="3" placeholder="可选机器验收，每行一条，例如：存在: output/report.md 或 运行: npm test"></textarea>
+      <textarea id="description" rows="3" placeholder="把你的想法直接说出来，不需要写 PRD。"></textarea>
+      <textarea id="acceptance" rows="2" placeholder="可选机器验收，每行一条，例如：存在: output/report.md 或 运行: npm test"></textarea>
       <div class="row">
         <select id="agent">
           <option value="auto">自动分配</option>
@@ -39,6 +125,25 @@
       </div>
     </section>
 
+    <!-- Founder Brief (需求简报) -->
+    <section class="panel" id="briefSection">
+      <div class="sectionHeader">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <h2 style="margin: 0; font-size: 15px;">📋 需求简报 (Founder Brief)</h2>
+          <span id="briefBadge" class="tabBadge">未保存</span>
+        </div>
+        <div class="headerActions">
+          <button class="ghost" id="refreshBrief" onclick="loadBrief()">刷新</button>
+        </div>
+      </div>
+      <p style="margin: 4px 0 10px; color: var(--ivory-muted); font-size: 11px;">这份简报会在每次派工前自动注入任务 Prompt，让 Worker 更贴合你的需求与品味。直接在这里写下你的想法，保存即生效。</p>
+      <textarea id="briefContent" rows="6" placeholder="在这里写下你的需求、品味与标准，例如：&#10;视觉一律暗黑奢华质感，细边框，严禁游戏风与粗糙渐变&#10;文案要有观点，不要堆砌事实&#10;优先验证完整业务闭环，而不是堆功能"></textarea>
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px;">
+        <span id="briefStatus" style="font-size: 11px; color: var(--ivory-muted);"></span>
+        <button id="saveBriefBtn" onclick="saveBrief()">保存简报</button>
+      </div>
+    </section>
+
     <section class="panel">
       <div class="sectionHeader">
         <h2>Workers</h2>
@@ -46,13 +151,211 @@
       <div id="workers" class="meta">加载中…</div>
     </section>
 
+    <!-- Worker Board (谁做完了 / 谁还在做 / 额度剩余) -->
+    <section class="panel" id="workerBoardSection">
+      <div class="sectionHeader">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <h2 style="margin: 0; font-size: 15px;">🧑‍💻 Worker 看板 (谁在做 · 谁做完了 · 额度)</h2>
+          <span id="workerBoardLegend" class="tabBadge">自动回弹已启用</span>
+        </div>
+        <div class="headerActions">
+          <button class="ghost" id="refreshWorkerBoard" onclick="loadWorkerBoard()">刷新</button>
+        </div>
+      </div>
+      <div id="workerBoard" class="workerBoard">加载中…</div>
+    </section>
+
     <section class="panel">
       <div class="sectionHeader">
-        <h2>任务队列</h2>
-        <button class="ghost" id="refresh">刷新</button>
+        <div class="taskTabs">
+          <button class="tabBtn active" id="tabActive">Active Tasks (活跃任务) <span id="activeCount" class="tabBadge">0</span></button>
+          <button class="tabBtn" id="tabTrash">Trash (回收站) <span id="trashCount" class="tabBadge">0</span></button>
+        </div>
+        <div class="headerActions" id="activeActions">
+          <button class="ghost" id="expandAll" title="展开所有任务详情">全部展开 (Expand All)</button>
+          <button class="ghost" id="collapseAll" title="收起所有任务详情">全部收起 (Collapse All)</button>
+          <button class="ghost" id="refresh" title="刷新任务列表">刷新</button>
+        </div>
+        <div class="headerActions" id="trashActions" style="display: none;">
+          <button class="ghost danger" id="clearTrash" title="清空回收站">清空回收站 (Clear Trash)</button>
+          <button class="ghost" id="refreshTrash" title="刷新回收站">刷新</button>
+        </div>
       </div>
       <div id="tasks" class="tasks"></div>
     </section>
+
+    <!-- Memory Ledger Section -->
+    <section class="panel" id="memorySection">
+      <div class="sectionHeader">
+        <div class="taskTabs">
+          <button class="tabBtn active" id="tabMemCandidates">待确认候选 (Candidates) <span id="candidateCount" class="tabBadge">0</span></button>
+          <button class="tabBtn" id="tabMemActive">有效记忆 (Active Memories) <span id="activeMemCount" class="tabBadge">0</span></button>
+        </div>
+        <div class="headerActions">
+          <button class="ghost" id="toggleNewMemBtn" onclick="toggleNewMemForm()">+ 手工新建候选</button>
+          <button class="ghost" id="refreshMem" title="刷新记忆">刷新</button>
+        </div>
+      </div>
+
+      <!-- New Candidate Form (Collapsible) -->
+      <div id="newMemForm" style="display: none; margin-bottom: 16px; background: rgba(12, 12, 16, 0.7); border: 1px solid var(--border-couture); border-radius: 12px; padding: 16px;">
+        <div style="font-size: 12px; font-weight: 700; color: var(--ivory-pure); margin-bottom: 10px;">新建创始人记忆候选 (New Candidate)</div>
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+          <input id="memTitle" placeholder="记忆标题，例如：审美标准 · 巴黎时装秀黑白红" />
+          <select id="memType">
+            <option value="judgment">判断 (judgment)</option>
+            <option value="aesthetic">审美标准 (aesthetic)</option>
+            <option value="goal">业务目标 (goal)</option>
+            <option value="priority">优先级 (priority)</option>
+            <option value="project_context">项目背景 (project_context)</option>
+            <option value="taboo">禁忌 (taboo)</option>
+            <option value="decision">已作决策 (decision)</option>
+            <option value="life">生活经验 (life)</option>
+          </select>
+          <select id="memLicense">
+            <option value="understand_only">仅供理解 (understand_only)</option>
+            <option value="influence_or_paraphrase">可意会改写 (influence_or_paraphrase)</option>
+            <option value="attributable">可对外公开引用 (attributable)</option>
+          </select>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; margin-bottom: 8px;">
+          <input id="memScope" placeholder="适用项目：* 或 shuzhai, xingxuan" value="*" />
+          <select id="memSensitivity">
+            <option value="medium">敏感度：中 (medium)</option>
+            <option value="low">敏感度：低 (low)</option>
+            <option value="high">敏感度：高 (high)</option>
+          </select>
+        </div>
+        <textarea id="memContent" rows="2" placeholder="记忆具体内容，例如：所有前端页面必须采用暗黑奢华质感，细边框，严禁粗糙渐变与游戏风。" style="margin-bottom: 8px;"></textarea>
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+          <button class="ghost" onclick="toggleNewMemForm()">取消</button>
+          <button id="submitMemBtn" onclick="submitMemoryCandidate()">提交候选</button>
+        </div>
+      </div>
+
+      <!-- Memory List Container -->
+      <div id="memoryList" class="tasks"></div>
+    </section>
+
+    <!-- Content Packages Section (内容三层 + 冻结发布包) -->
+    <section class="panel" id="contentPackagesSection">
+      <div class="sectionHeader">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <h2 style="margin: 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+            <span>📦 内容三层与发布包 (Content Packages)</span>
+            <span id="packageCount" class="tabBadge">0</span>
+          </h2>
+        </div>
+        <div class="headerActions">
+          <button class="ghost" id="toggleNewPkgBtn" onclick="toggleNewPkgForm()">+ 新建发布包</button>
+          <button class="ghost" id="refreshPackages" onclick="loadContentPackages()" title="刷新发布包">刷新</button>
+        </div>
+      </div>
+
+      <!-- New Package Form (Collapsible) -->
+      <div id="newPkgForm" style="display: none; margin-bottom: 16px; background: rgba(12, 12, 16, 0.7); border: 1px solid var(--border-couture); border-radius: 12px; padding: 16px;">
+        <div style="font-size: 12px; font-weight: 700; color: var(--ivory-pure); margin-bottom: 10px;">创建内容发布包草稿 (Create Content Package Draft)</div>
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+          <input id="pkgTitle" placeholder="标题，例如：每日书摘：3个极简方法提升转化率" />
+          <select id="pkgPlatform">
+            <option value="xiaohongshu">小红书 (xiaohongshu)</option>
+            <option value="wechat">微信公众号 (wechat)</option>
+            <option value="x">X / Twitter (x)</option>
+          </select>
+          <input id="pkgScheduledAt" placeholder="预定发布时间（可选）" />
+        </div>
+        <textarea id="pkgBody" rows="3" placeholder="正文内容..." style="margin-bottom: 8px;"></textarea>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+          <select id="pkgLayoutTemplate" aria-label="小红书图文排版模板">
+            <option value="shuzhai-editorial-v1">书斋·编辑感书摘｜1080 × 1440（推荐）</option>
+          </select>
+          <input id="pkgCallToAction" maxlength="32" value="收藏这一页，留给下一次重读。" placeholder="收尾引导（32字以内）" />
+        </div>
+        <p style="margin: -2px 0 10px; color: var(--ivory-muted); font-size: 11px;">3:4 竖版轮播 · 黑/象牙白/高级红 · 4–7 页 · 封面/钩子/洞察/收尾。模板与收尾文案会随发布包冻结。</p>
+        <textarea id="pkgFacts" rows="2" placeholder="底层事实与素材（每行一条，例如：事实: 转化率提升30% | 来源: 书摘第4章）" style="margin-bottom: 8px;"></textarea>
+        <div id="pkgMemSelector" style="margin-bottom: 10px; font-size: 12px; color: var(--ivory-muted);">
+          <div style="margin-bottom: 4px; font-weight: 600; color: var(--ivory-pure);">选择关联的有效观点卡片：</div>
+          <div id="pkgMemCheckboxes" style="max-height: 120px; overflow-y: auto; padding: 6px; background: rgba(0,0,0,0.3); border-radius: 6px;"></div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+          <button class="ghost" onclick="toggleNewPkgForm()">取消</button>
+          <button id="submitPkgBtn" onclick="submitContentPackage()">保存草稿</button>
+        </div>
+      </div>
+
+      <!-- Packages List Container -->
+      <div id="packagesList" class="tasks"></div>
+    </section>
+
+    <!-- Secretary Inbox Section (私人秘书收件箱) -->
+    <section class="panel" id="secretarySection">
+      <div class="sectionHeader">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <h2 style="margin: 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+            <span>🤖 私人秘书收件箱 (Secretary Inbox)</span>
+            <span id="secretaryCount" class="tabBadge">0</span>
+          </h2>
+          <span id="secretaryHealthBadge" class="badge badge-paused" style="font-size: 11px;">Grok Bot: 秘书职位保留，控制接口未验证</span>
+        </div>
+        <div class="headerActions">
+          <button class="ghost" id="toggleNewInboxBtn" onclick="toggleNewInboxForm()">+ 提交秘书意图</button>
+          <button class="ghost" id="refreshSecretary" onclick="loadSecretaryInbox()" title="刷新收件箱">刷新</button>
+        </div>
+      </div>
+
+      <!-- New Inbox Message Form (Collapsible) -->
+      <div id="newInboxForm" style="display: none; margin-bottom: 16px; background: rgba(12, 12, 16, 0.7); border: 1px solid var(--border-couture); border-radius: 12px; padding: 16px;">
+        <div style="font-size: 12px; font-weight: 700; color: var(--ivory-pure); margin-bottom: 8px;">提交秘书口述或对话想法 (Submit Secretary Intent)</div>
+        <textarea id="inboxInputText" rows="3" placeholder="输入想法、指令或偏好（例如：我想让书斋下一周重点发极简排版图文，不要出现霓虹灯色）" style="margin-bottom: 8px;"></textarea>
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+          <button class="ghost" onclick="toggleNewInboxForm()">取消</button>
+          <button id="submitInboxBtn" onclick="submitSecretaryMessage()">提交到收件箱</button>
+        </div>
+      </div>
+
+      <!-- Secretary Messages List -->
+      <div id="secretaryList" class="tasks"></div>
+    </section>
+
+    <!-- Product Review Modal (查看产物) -->
+    <div id="productModal" class="modalOverlay" style="display: none;">
+      <div class="modalBox">
+        <div class="modalHeader">
+          <div style="min-width: 0;">
+            <div class="eyebrow">PRODUCT REVIEW</div>
+            <h2 id="productModalTitle" style="font-size: 16px;">产物审查</h2>
+          </div>
+          <button class="ghost modalClose" onclick="closeProductModal()">✕ 关闭</button>
+        </div>
+        <div id="productModalBody" class="modalBody"></div>
+      </div>
+    </div>
+
+    <!-- Founder Feedback Modal (反馈沟通) -->
+    <div id="feedbackModal" class="modalOverlay" style="display: none;">
+      <div class="modalBox">
+        <div class="modalHeader">
+          <div style="min-width: 0;">
+            <div class="eyebrow">FOUNDER FEEDBACK</div>
+            <h2 id="feedbackModalTitle" style="font-size: 16px;">反馈沟通</h2>
+          </div>
+          <button class="ghost modalClose" onclick="closeFeedbackModal()">✕ 关闭</button>
+        </div>
+        <div id="feedbackThread" class="feedbackThread"></div>
+        <div class="feedbackComposer">
+          <select id="feedbackKind">
+            <option value="praise">👍 做得好 (praise)</option>
+            <option value="issue">👎 做得不好 (issue)</option>
+            <option value="note">💬 备注 (note)</option>
+          </select>
+          <textarea id="feedbackText" rows="3" placeholder="哪里做得好，哪里做得不好，要改成什么样……"></textarea>
+          <div class="feedbackActions">
+            <button class="ghost" onclick="submitFeedback(false)">仅记录反馈</button>
+            <button id="submitRefineBtn" onclick="submitFeedback(true)">提交反馈并返工完善</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <script src="/app.js"></script>

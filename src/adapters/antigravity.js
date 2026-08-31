@@ -125,7 +125,8 @@ async function invokeOnce({
   timeoutMs,
   logs,
   model,
-  skipPermissions
+  skipPermissions,
+  taskId
 }) {
   const { args, displayArgs } = buildArgs({
     agent,
@@ -145,7 +146,8 @@ async function invokeOnce({
     dryRun: config.dryRun,
     timeoutMs,
     maxOutputBytes: config.execution?.maxOutputBytes,
-    logPath: logs.wrapperLogPath
+    logPath: logs.wrapperLogPath,
+    taskId
   });
 
   if (processResult.dryRun) {
@@ -193,7 +195,8 @@ export async function runAntigravity({ task, prompt, projectPath, config }) {
       timeoutMs,
       logs,
       model,
-      skipPermissions
+      skipPermissions,
+      taskId: task?.id
     });
     attempts.push({
       model: model || "(default)",

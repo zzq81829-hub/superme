@@ -1,0 +1,58 @@
+{
+  "id": "shuzhai-xhs-20260831",
+  "project": "shuzhai",
+  "platform": "xiaohongshu",
+  "status": "draft",
+  "title": "AI Founder OS 小红书图文审批包",
+  "body": "# 一个⼈，不是一支队伍：AI 时代真正的杠杆\n\n很多人开始用 AI 后，反而更忙了。\n\n因为只是把“搜索、复制、粘贴、改格式”搬进了另一个窗口；真正应该被替代的重复执行，仍然在自己手里。\n\n我更相信一个分工：\n\n创始人负责方向、标准和审美；系统负责调研、拆解、初稿与交付。\n\n这不是让 AI 替你做决定，而是把你从不需要亲自做的重复决定里释放出来。\n\n这 4 张图，整理了我正在实践的“一人公司”工作流：捕捉 → 调研 → 交付 → 复盘。\n\n你现在最想交给系统的一件重复工作，是什么？\n\nAI 辅助创作。\n\n#超级个体 #一人公司 #AI生产力 #独立开发者 #创业复盘 #工作流 #效率工具 #AI工具",
+  "layout": {
+    "templateId": "shuzhai-editorial-v1",
+    "callToAction": "收藏这一页，留给下一次重读。"
+  },
+  "media": [
+    {
+      "kind": "image",
+      "path": "小红书图文审批_20260831/01_封面.png"
+    },
+    {
+      "kind": "image",
+      "path": "小红书图文审批_20260831/02_观点.png"
+    },
+    {
+      "kind": "image",
+      "path": "小红书图文审批_20260831/03_工作流.png"
+    },
+    {
+      "kind": "image",
+      "path": "小红书图文审批_20260831/04_收尾.png"
+    },
+    {
+      "kind": "document",
+      "path": "小红书图文审批_20260831/发布文案.md"
+    },
+    {
+      "kind": "document",
+      "path": "小红书图文审批_20260831/README_审批说明.md"
+    }
+  ],
+  "links": [],
+  "scheduledAt": null,
+  "layers": {
+    "facts": [
+      {
+        "text": "本地已生成四张 3:4 图文卡片及发布文案",
+        "source": "小红书图文审批_20260831"
+      }
+    ],
+    "expressions": [],
+    "viewpoints": []
+  },
+  "usedViewpoints": [],
+  "payloadHash": "79d453a454abbcb6",
+  "approvalStatus": "not_required",
+  "approvedAt": null,
+  "approvedHash": null,
+  "createdAt": "2026-08-31T19:04:20.985Z",
+  "updatedAt": "2026-08-31T19:04:20.985Z",
+  "frozenAt": null
+}

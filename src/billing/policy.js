@@ -91,3 +91,16 @@ export function claudeRuntimeEnv(base = process.env) {
   }
   return env;
 }
+
+export function getDeepSeekMonthlyLimit() {
+  const policy = workerPolicy("deepseek");
+  const limit = Number(policy.monthly_limit_cny);
+  return !isNaN(limit) && limit > 0 ? limit : 30;
+}
+
+export function getDeepSeekDefaultCallCost() {
+  const policy = workerPolicy("deepseek");
+  const cost = Number(policy.conservative_cost_per_call_cny);
+  return !isNaN(cost) && cost > 0 ? cost : 0.20;
+}
+
