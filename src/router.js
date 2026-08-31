@@ -16,6 +16,11 @@ export function chooseAgent(task) {
   return "antigravity";
 }
 
+export function isWorkerUnavailable(result = {}) {
+  return /usage limit|quota|QUOTA_LIMITED|AUTH_REQUIRED|not logged in|PROXY_DOWN|ECONNREFUSED|unrecognized_model|timed out|headless mode cannot prompt|denied a required tool/i
+    .test(`${result.error || ""}\n${result.message || ""}\n${result.stderr || ""}`);
+}
+
 export async function dispatchTask(taskId, config) {
   const task = getTask(taskId);
   if (!task) throw new Error("Task not found");
@@ -60,7 +65,7 @@ export async function dispatchTask(taskId, config) {
       startedAt: attemptStartedAt,
       finishedAt: new Date().toISOString()
     });
-    const unavailable = /usage limit|quota|QUOTA_LIMITED|AUTH_REQUIRED|not logged in|PROXY_DOWN|ECONNREFUSED|unrecognized_model|timed out/i.test(`${result.error || ""}\n${result.message || ""}`);
+    const unavailable = isWorkerUnavailable(result);
     if (result.ok || !unavailable) break;
     skip.push(agent);
     const fallback = applyCostGuard("auto", undefined, { skip });

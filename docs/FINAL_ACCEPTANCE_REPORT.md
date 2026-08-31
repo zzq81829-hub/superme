@@ -18,6 +18,6 @@ Control Center: `http://127.0.0.1:3210`
 | T11 worker readiness truth | **PASS** | Read-only probes show Hermes/Codex/Grok READY, Claude ON_DEMAND, Antigravity INSTALLED with explicit permission warning, Grok Bot unknown. |
 | T12 legacy regressions | **PASS** | Video-matrix Python compile fixed; OPC Matrix dependency junction repaired and suite passes 11/11. |
 
-Unit tests: `npm test` → 38/38 (`./test/*.js` only).
+Unit tests: `npm test` → 39/39 (`./test/*.js` only).
 
-Human actions remaining: none for the control plane. Start the Claude terminal/proxy only when a task needs Claude. Antigravity remains explicitly configured with all-tools auto-approval and should be moved to granular permissions before using it on sensitive repositories.
+Human actions remaining: none for the control plane. Start the Claude terminal/proxy only when a task needs Claude. Direct Antigravity runs now keep configured granular permissions; permission denial causes fallback instead of automatic escalation.

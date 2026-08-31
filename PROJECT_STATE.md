@@ -2,7 +2,7 @@
 
 Current Phase: **Codex takeover hardening complete; ready for Shuzhai product loop**
 Current Status: strict verifier E2E PASS; Claude on-demand; Grok Bot deferred.
-Last Successful Test: `npm test` 38/38
+Last Successful Test: `npm test` 39/39
 
 ## Worker status
 
@@ -11,7 +11,7 @@ Last Successful Test: `npm test` 38/38
 | Hermes | READY | read-only status verifies DeepSeek provider; real bridge proof passed |
 | Codex | READY | `codex login status` verifies ChatGPT; strict E2E task `1788162612513-cb3353` passed |
 | Claude Code | ON_DEMAND | founder-approved localhost Antigravity reverse proxy is currently stopped; start Claude terminal when needed |
-| Antigravity | INSTALLED / RISK | T3 real PASS; provider readiness unprobed; explicit `dangerous-bypass` warning |
+| Antigravity | INSTALLED | T3 historical real PASS; provider readiness unprobed; granular configured permissions only |
 | Grok Build | READY | grok.com session verified; T4 PASS; shares `grok.exe` |
 | Grok | READY | grok.com session verified; T5 PASS; shares `grok.exe` |
 | Grok Bot | EXPERIMENTAL / UNKNOWN_CONTROL_INTERFACE | T6 DEFERRED |

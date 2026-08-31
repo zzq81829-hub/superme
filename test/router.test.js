@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildPrompt, chooseAgent } from "../src/router.js";
+import { buildPrompt, chooseAgent, isWorkerUnavailable } from "../src/router.js";
 
 test("router respects an explicit agent", () => {
   assert.equal(chooseAgent({ agent: "antigravity", title: "review", description: "" }), "antigravity");
@@ -24,6 +24,11 @@ test("router sends the Phase 0 demo prompt to Antigravity", () => {
     title: "检查这个项目有什么问题。",
     description: "检查这个项目有什么问题。"
   }), "antigravity");
+});
+
+test("headless permission denial is an availability failure and can fall back safely", () => {
+  assert.equal(isWorkerUnavailable({ error: "Headless Antigravity denied a required tool" }), true);
+  assert.equal(isWorkerUnavailable({ stderr: "headless mode cannot prompt for read_file permission" }), true);
 });
 
 test("prompt contains task intent, project path, and safety workflow", () => {
