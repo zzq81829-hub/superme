@@ -13,6 +13,12 @@ const __dirname = path.dirname(__filename);
 const root = path.resolve(__dirname, "..");
 const defaultTasksDir = path.join(root, "data", "tasks");
 const defaultTrashDir = path.join(root, "data", "trash");
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export const TASK_RETENTION = Object.freeze({
+  completedDays: 3,
+  trashDays: 7
+});
 
 export function getTasksDir(options = {}) {
   const dir = options.tasksDir || (process.env.TASKS_BASE_DIR ? path.join(process.env.TASKS_BASE_DIR, "tasks") : defaultTasksDir);
@@ -188,6 +194,52 @@ export function listTrashTasks(options = {}) {
     .filter((name) => name.endsWith(".json"))
     .map((name) => JSON.parse(fs.readFileSync(path.join(dir, name), "utf8")))
     .sort((a, b) => (b.deletedAt || b.updatedAt || b.createdAt).localeCompare(a.deletedAt || a.updatedAt || a.createdAt));
+}
+
+function timestampMs(value) {
+  const parsed = Date.parse(value || "");
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+/**
+ * Apply the founder's retention policy without touching non-completed work.
+ * `now` is injectable so the policy stays deterministic in tests.
+ */
+export function applyTaskRetention(options = {}, now = Date.now()) {
+  const nowMs = now instanceof Date ? now.getTime() : Number(now);
+  if (!Number.isFinite(nowMs)) throw new Error("Invalid retention timestamp");
+
+  const completedCutoff = nowMs - TASK_RETENTION.completedDays * DAY_MS;
+  const trashCutoff = nowMs - TASK_RETENTION.trashDays * DAY_MS;
+  let movedToTrash = 0;
+  let purgedFromTrash = 0;
+
+  for (const task of listTasks(options)) {
+    if (task.status !== "completed") continue;
+    const completedAt = timestampMs(task.finishedAt || task.updatedAt || task.createdAt);
+    if (completedAt === null || completedAt > completedCutoff) continue;
+
+    const trashed = {
+      ...task,
+      deletedAt: new Date(nowMs).toISOString(),
+      retentionReason: "completed_after_3_days"
+    };
+    fs.writeFileSync(trashFile(task.id, options), JSON.stringify(trashed, null, 2));
+    fs.unlinkSync(taskFile(task.id, options));
+    movedToTrash += 1;
+  }
+
+  for (const task of listTrashTasks(options)) {
+    const deletedAt = timestampMs(task.deletedAt || task.updatedAt || task.createdAt);
+    if (deletedAt === null || deletedAt > trashCutoff) continue;
+    const file = trashFile(task.id, options);
+    if (fs.existsSync(file)) {
+      fs.unlinkSync(file);
+      purgedFromTrash += 1;
+    }
+  }
+
+  return { movedToTrash, purgedFromTrash };
 }
 
 export function moveTaskToTrash(id, options = {}) {

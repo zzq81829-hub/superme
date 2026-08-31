@@ -519,6 +519,12 @@ button.deleteBtn:active:not(:disabled) {
   letter-spacing: -0.02em;
 }
 
+.retentionNote {
+  margin: 4px 0 0;
+  color: var(--ivory-muted);
+  font-size: 11px;
+}
+
 .tabBtn {
   height: 32px;
   padding: 0 14px;

@@ -14,7 +14,8 @@ import {
   getTrashTask,
   restoreTaskFromTrash,
   deleteTaskPermanently,
-  clearTrash
+  clearTrash,
+  applyTaskRetention
 } from "./src/store.js";
 import {
   createCandidate,
@@ -874,6 +875,21 @@ app.post("/api/secretary/inbox/:id/reject", (req, res) => {
 app.use((_req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
+
+function runTaskRetention() {
+  try {
+    const result = applyTaskRetention();
+    if (result.movedToTrash || result.purgedFromTrash) {
+      console.log(`Task retention: moved ${result.movedToTrash}, purged ${result.purgedFromTrash}`);
+    }
+  } catch (error) {
+    console.error("Task retention failed:", error.message);
+  }
+}
+
+runTaskRetention();
+const retentionTimer = setInterval(runTaskRetention, 60 * 1000);
+retentionTimer.unref?.();
 
 app.listen(config.port, config.host, () => {
   console.log(`AI Founder OS ${version} running at http://${config.host}:${config.port}`);
