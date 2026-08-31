@@ -93,10 +93,10 @@ export async function runCodex({ task, prompt, projectPath, config }) {
   } else if (processResult.ok && !parsed.message) {
     parsed.error = "Codex completed without a final agent message";
   }
-  const error = processResult.error || parsed.error;
+  const error = parsed.error || processResult.error;
   return {
     ...common,
-    ok: processResult.ok && !parsed.error,
+    ok: processResult.ok && !parsed.error && !error,
     threadId: parsed.threadId,
     message: parsed.message,
     usage: parsed.usage,

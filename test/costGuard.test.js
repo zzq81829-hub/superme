@@ -33,6 +33,18 @@ test("codex down falls back to claude not OpenAI API", () => {
   assert.equal(r.reason.includes("OpenAI"), false);
 });
 
+test("quota skip does not use paid APIs", () => {
+  const online = (id) => ({ id, status: "ONLINE", available: true, billingMode: "subscription", apiAllowed: false });
+  const r = applyCostGuard("codex", {
+    codex: online("codex"),
+    claude: online("claude"),
+    antigravity: online("antigravity"),
+    "grok-build": online("grok-build")
+  }, { skip: ["codex"] });
+  assert.equal(r.ok, true);
+  assert.equal(r.worker, "claude");
+});
+
 test("all coding workers down requires a human", () => {
   const down = { status: "OFFLINE", available: false, billingMode: "subscription" };
   const r = applyCostGuard("auto", {

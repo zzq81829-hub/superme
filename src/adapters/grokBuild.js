@@ -13,15 +13,15 @@ export async function runGrokBuild({ task, prompt, projectPath, config, research
   const cwd = agent.workingDirectory || projectPath || process.cwd();
   const logs = executionLogPaths(task?.id, agentName);
   const args = researchOnly
-    ? ["-p", prompt, "--output-format", "text"]
-    : ["-p", prompt, "--always-approve", "--output-format", "text"];
+    ? ["-p", prompt, "--output-format", "plain"]
+    : ["-p", prompt, "--always-approve", "--output-format", "plain"];
 
   const processResult = await runProcess({
     command,
-    args: config.dryRun ? ["-p", "--output-format", "text"] : args,
+    args: config.dryRun ? ["-p", "--output-format", "plain"] : args,
     displayArgs: researchOnly
-      ? ["-p", "<task prompt>", "--output-format", "text"]
-      : ["-p", "<task prompt>", "--always-approve", "--output-format", "text"],
+      ? ["-p", "<task prompt>", "--output-format", "plain"]
+      : ["-p", "<task prompt>", "--always-approve", "--output-format", "plain"],
     cwd: path.resolve(cwd),
     dryRun: config.dryRun,
     timeoutMs: agent.timeoutMs || config.execution?.timeoutMs,

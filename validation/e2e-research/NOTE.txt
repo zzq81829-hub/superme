@@ -1,0 +1,1 @@
+Read-only research sandbox. No package.json on purpose.

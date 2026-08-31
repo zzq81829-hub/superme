@@ -1,0 +1,8 @@
+{
+  "name": "e2e-codex",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test proof.test.js"
+  }
+}

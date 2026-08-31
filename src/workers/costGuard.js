@@ -2,7 +2,7 @@ import { isForbiddenApiEnabled, workerPolicy } from "../billing/policy.js";
 import { workerHealthMap } from "./health.js";
 import { FALLBACK_CHAIN } from "./ids.js";
 
-export function applyCostGuard(requested, healthMap = workerHealthMap()) {
+export function applyCostGuard(requested, healthMap = workerHealthMap(), options = {}) {
   const forbidden = isForbiddenApiEnabled();
   if (forbidden.length) {
     return {
@@ -19,8 +19,13 @@ export function applyCostGuard(requested, healthMap = workerHealthMap()) {
       ? ["grok-bot", ...FALLBACK_CHAIN]
       : [requested, ...FALLBACK_CHAIN.filter((id) => id !== requested)];
 
+  const skip = new Set(options.skip || []);
   const attempts = [];
   for (const id of tryOrder) {
+    if (skip.has(id)) {
+      attempts.push({ id, skip: "runtime skip" });
+      continue;
+    }
     const health = healthMap[id];
     const policy = workerPolicy(id);
     if (!health) {

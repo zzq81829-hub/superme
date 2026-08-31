@@ -48,6 +48,23 @@ export async function dispatchTask(taskId, config) {
     result = { ok: false, agent, error: error?.stack || String(error) };
   }
 
+  if (!result.ok && /usage limit|quota|QUOTA_LIMITED/i.test(`${result.error || ""}\n${result.message || ""}`)) {
+    const fallback = applyCostGuard("auto", undefined, { skip: [agent] });
+    if (fallback.ok && fallback.worker !== agent) {
+      updateTask(taskId, {
+        status: "running",
+        agentResolved: fallback.worker,
+        selectionReason: `quota on ${agent}; fallback ${fallback.worker}`,
+        attemptCount: (getTask(taskId).attemptCount || 1) + 1
+      });
+      try {
+        result = await runAgent(fallback.worker, task, projectPath, config);
+      } catch (error) {
+        result = { ok: false, agent: fallback.worker, error: error?.stack || String(error) };
+      }
+    }
+  }
+
   updateTask(taskId, { status: "verifying", result });
   let verification = await verifyTask({ projectPath, result, config });
 
