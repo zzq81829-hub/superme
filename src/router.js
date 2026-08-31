@@ -32,7 +32,7 @@ export async function dispatchTask(taskId, config) {
     });
   }
 
-  const agent = guard.worker;
+  let agent = guard.worker;
   updateTask(taskId, {
     status: "running",
     agentResolved: agent,
@@ -42,27 +42,25 @@ export async function dispatchTask(taskId, config) {
   });
 
   let result;
-  try {
-    result = await runAgent(agent, task, projectPath, config);
-  } catch (error) {
-    result = { ok: false, agent, error: error?.stack || String(error) };
-  }
-
-  if (!result.ok && /usage limit|quota|QUOTA_LIMITED/i.test(`${result.error || ""}\n${result.message || ""}`)) {
-    const fallback = applyCostGuard("auto", undefined, { skip: [agent] });
-    if (fallback.ok && fallback.worker !== agent) {
-      updateTask(taskId, {
-        status: "running",
-        agentResolved: fallback.worker,
-        selectionReason: `quota on ${agent}; fallback ${fallback.worker}`,
-        attemptCount: (getTask(taskId).attemptCount || 1) + 1
-      });
-      try {
-        result = await runAgent(fallback.worker, task, projectPath, config);
-      } catch (error) {
-        result = { ok: false, agent: fallback.worker, error: error?.stack || String(error) };
-      }
+  const skip = [];
+  for (;;) {
+    try {
+      result = await runAgent(agent, task, projectPath, config);
+    } catch (error) {
+      result = { ok: false, agent, error: error?.stack || String(error) };
     }
+    const unavailable = /usage limit|quota|QUOTA_LIMITED|AUTH_REQUIRED|not logged in/i.test(`${result.error || ""}\n${result.message || ""}`);
+    if (result.ok || !unavailable) break;
+    skip.push(agent);
+    const fallback = applyCostGuard("auto", undefined, { skip });
+    if (!fallback.ok || skip.includes(fallback.worker)) break;
+    agent = fallback.worker;
+    updateTask(taskId, {
+      status: "running",
+      agentResolved: agent,
+      selectionReason: `${skip.join(",")} unavailable; fallback ${agent}`,
+      attemptCount: (getTask(taskId).attemptCount || 1) + skip.length
+    });
   }
 
   updateTask(taskId, { status: "verifying", result });

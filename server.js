@@ -38,6 +38,11 @@ app.get("/api/health", async (_req, res) => {
 
 app.get("/api/workers", (_req, res) => res.json(listWorkerHealth()));
 
+app.get("/api/tools", async (_req, res) => {
+  const { listLocalTools } = await import("./src/tools/localTools.js");
+  res.json(listLocalTools());
+});
+
 app.get("/api/hermes/status", (_req, res) => {
   res.json(listWorkerHealth().find((w) => w.id === "hermes") || { status: "OFFLINE" });
 });

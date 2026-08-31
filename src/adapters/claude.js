@@ -39,14 +39,22 @@ export async function runClaude({ task, prompt, projectPath, config }) {
     };
   }
 
+  const message = (processResult.stdout || "").trim();
+  const blob = `${message}\n${processResult.stderr || ""}\n${processResult.error || ""}`;
+  const authRequired = /not logged in|please run \/login/i.test(blob);
+  const error = authRequired
+    ? "AUTH_REQUIRED"
+    : processResult.ok
+      ? (message ? null : "Claude completed without a response")
+      : processResult.error;
   return {
     agent: "claude",
-    ok: processResult.ok && !!(processResult.stdout || "").trim(),
+    ok: processResult.ok && !!message && !authRequired,
     dryRun: false,
     command,
     args: processResult.args,
-    message: (processResult.stdout || "").trim(),
-    error: processResult.ok ? ((processResult.stdout || "").trim() ? null : "Claude completed without a response") : processResult.error,
+    message,
+    error,
     stderr: processResult.stderr || null,
     exitCode: processResult.exitCode,
     durationMs: processResult.durationMs,

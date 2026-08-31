@@ -1,0 +1,27 @@
+{
+  "shuzhai": {
+    "path": "C:/Users/22145/Desktop/工作流",
+    "cli": ["node", "server.js"],
+    "keep": true
+  },
+  "xingxuan": {
+    "path": "C:/Users/22145/Desktop/星选",
+    "cli": ["python", "pipeline.py", "--help"],
+    "keep": true
+  },
+  "yuandian": {
+    "path": "C:/Users/22145/Desktop/原点",
+    "cli": null,
+    "keep": true
+  },
+  "book-matrix": {
+    "path": "C:/Users/22145/Desktop/book_matrix",
+    "cli": ["python", "-m", "streamlit", "run", "app.py"],
+    "keep": true
+  },
+  "classify-king": {
+    "path": "C:/Users/22145/Desktop/分类王",
+    "cli": null,
+    "keep": true
+  }
+}

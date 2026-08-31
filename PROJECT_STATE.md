@@ -1,8 +1,8 @@
 # PROJECT_STATE
 
-Current Phase: **T partial live acceptance; next: Claude login + Codex quota then re-run T1/T2**  
-Current Status: Control Center live. Hermes bridged. Agy + Grok Build + Grok + DeepSeek live PASS. Codex quota. Claude AUTH_REQUIRED. Grok Bot deferred.  
-Last Successful Test: `npm test` 25/25
+Current Phase: **T live fallback PASS; remaining human: Claude /login**  
+Current Status: Control Center live. T3/T4/T5/T7/T8/T9 live PASS. T1 Codex quota covered by T9 hop. T2 Claude AUTH_REQUIRED. Grok Bot deferred.  
+Last Successful Test: `npm test` 26/26
 
 ## Worker status
 
@@ -19,4 +19,4 @@ Last Successful Test: `npm test` 25/25
 
 ## Next action
 
-User: `claude` login (one command). Codex: wait for quota or use other workers. Then re-run T1/T2 only.
+Only human: `claude` then `/login`. After that T2 can be re-run. Company already runs without Claude/Codex.
