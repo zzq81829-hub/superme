@@ -1792,6 +1792,7 @@ async function loadHealth() {
     }
 
     const badge = $("secretaryHealthBadge");
+    const importBtn = $("toggleNewInboxBtn");
     if (badge && cachedHealth.secretary) {
       const s = cachedHealth.secretary;
       if (s.status === "READY") {
@@ -1803,6 +1804,12 @@ async function loadHealth() {
       } else {
         badge.textContent = `Grok Bot: ${s.status}`;
         badge.className = "badge badge-paused";
+      }
+      if (importBtn) {
+        importBtn.textContent = "+ 备用导入";
+        importBtn.title = s.status === "READY"
+          ? "正常入口是 Grok Bot；这里仅用于补录"
+          : "Grok Bot 尚未接通；这里仅用于临时导入，不是正常对话入口";
       }
     }
   } catch (err) {
@@ -1946,7 +1953,7 @@ function renderSecretaryInbox() {
   const container = $("secretaryList");
   if (!container) return;
   if (!cachedSecretaryInbox.length) {
-    container.innerHTML = '<p>暂无秘书收件记录。在此可收集 Grok Bot 或人工录入的非结构化意图，并安全转为草稿任务或记忆候选（绝不自动执行）。</p>';
+    container.innerHTML = '<p>暂无秘书转运记录。正常入口是 Grok Bot；这里仅保留从手机或其他聊天窗口临时导入的消息（绝不自动执行）。</p>';
     return;
   }
 

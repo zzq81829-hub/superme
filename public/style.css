@@ -1702,6 +1702,25 @@ header p { font-size: 13px; color: var(--ivory-muted); }
   width: auto;
 }
 
+.secretaryRouteNote {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: -2px 0 14px;
+  padding: 10px 12px;
+  border-left: 2px solid var(--couture-red);
+  border-radius: 0 8px 8px 0;
+  background: rgba(197, 34, 47, 0.06);
+  color: var(--ivory-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.secretaryRouteNote strong {
+  flex: 0 0 auto;
+  color: var(--ivory-pure);
+}
+
 /* Founder Brief (需求简报) */
 #briefSection textarea {
   width: 100%;
@@ -1909,6 +1928,7 @@ header p { font-size: 13px; color: var(--ivory-muted); }
   .workerQuota > div { min-width: 0; }
   .activityTitle { white-space: normal; overflow-wrap: anywhere; }
   .workerCardActions { min-width: 0; }
+  .secretaryRouteNote { align-items: flex-start; flex-direction: column; gap: 3px; }
   .task, .tasks, .taskTop, .taskHeaderInfo { min-width: 0; max-width: 100%; }
   .task { overflow: hidden; }
 }

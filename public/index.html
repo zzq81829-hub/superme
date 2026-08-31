@@ -340,15 +340,20 @@
           <span id="secretaryHealthBadge" class="badge badge-paused" style="font-size: 11px;">Grok Bot: 秘书职位保留，控制接口未验证</span>
         </div>
         <div class="headerActions">
-          <button class="ghost" id="toggleNewInboxBtn" onclick="toggleNewInboxForm()">+ 提交秘书意图</button>
+          <button class="ghost" id="toggleNewInboxBtn" onclick="toggleNewInboxForm()" title="正常入口是 Grok Bot；这里仅用于备用导入">+ 备用导入</button>
           <button class="ghost" id="refreshSecretary" onclick="loadSecretaryInbox()" title="刷新收件箱">刷新</button>
         </div>
       </div>
 
+      <div class="secretaryRouteNote">
+        <strong>正常入口：Grok Bot</strong>
+        <span>你只需要在那里说话；OS 负责接收、判断、派工和回报。当前 Grok Bot 接口尚未验证，下面的入口仅作临时转运。</span>
+      </div>
+
       <!-- New Inbox Message Form (Collapsible) -->
       <div id="newInboxForm" style="display: none; margin-bottom: 16px; background: rgba(12, 12, 16, 0.7); border: 1px solid var(--border-couture); border-radius: 12px; padding: 16px;">
-        <div style="font-size: 12px; font-weight: 700; color: var(--ivory-pure); margin-bottom: 8px;">提交秘书口述或对话想法 (Submit Secretary Intent)</div>
-        <textarea id="inboxInputText" rows="3" placeholder="输入想法、指令或偏好（例如：我想让书斋下一周重点发极简排版图文，不要出现霓虹灯色）" style="margin-bottom: 8px;"></textarea>
+        <div style="font-size: 12px; font-weight: 700; color: var(--ivory-pure); margin-bottom: 8px;">备用导入：粘贴 Grok Bot 或手机 ChatGPT 内容</div>
+        <textarea id="inboxInputText" rows="3" placeholder="仅在 Grok Bot 尚未接通时使用：粘贴你刚才说的想法、指令或偏好" style="margin-bottom: 8px;"></textarea>
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
           <button class="ghost" onclick="toggleNewInboxForm()">取消</button>
           <button id="submitInboxBtn" onclick="submitSecretaryMessage()">提交到收件箱</button>
