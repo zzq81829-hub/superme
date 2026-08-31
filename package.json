@@ -1,0 +1,17 @@
+{
+  "name": "ai-founder-os-v1",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local AI CEO console for routing work to Codex and Antigravity.",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test",
+    "smoke:codex": "node scripts/smoke-agents.js codex",
+    "smoke:antigravity": "node scripts/smoke-agents.js antigravity"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

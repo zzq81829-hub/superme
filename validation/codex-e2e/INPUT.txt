@@ -1,0 +1,6 @@
+AI Founder OS real-execution feasibility test.
+
+Acceptance target:
+- The delegated Codex process must create E2E_PROOF.txt in this directory.
+- The file must contain exactly: AI_FOUNDER_OS_CODEX_E2E_OK
+- No other file in this validation directory should be changed.

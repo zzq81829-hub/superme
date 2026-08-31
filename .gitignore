@@ -1,0 +1,7 @@
+node_modules/
+config.json
+npm-debug.log*
+data/tasks/*.json
+data/reports/*
+!data/tasks/.gitkeep
+!data/reports/.gitkeep
