@@ -40,14 +40,15 @@ function showToast(message, type = "error") {
 }
 
 const phoneAccessToken = (() => {
+  const storageKey = "os-phone-access";
   const params = new URLSearchParams(window.location.search);
   const fromUrl = params.get("access")?.trim();
   if (fromUrl) {
-    try { sessionStorage.setItem("os-phone-access", fromUrl); } catch { /* private mode */ }
+    try { localStorage.setItem(storageKey, fromUrl); } catch { /* private mode */ }
     window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
     return fromUrl;
   }
-  try { return sessionStorage.getItem("os-phone-access") || ""; } catch { return ""; }
+  try { return localStorage.getItem(storageKey) || ""; } catch { return ""; }
 })();
 
 async function api(url, options = {}) {

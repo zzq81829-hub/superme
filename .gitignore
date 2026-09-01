@@ -14,6 +14,7 @@ data/quota/
 data/secretary/
 data/trash/
 data/*.log
+data/phone-access-token
 !data/tasks/.gitkeep
 !data/reports/.gitkeep
 !data/content/

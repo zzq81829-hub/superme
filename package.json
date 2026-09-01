@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "start:phone": "node scripts/start-phone.js",
+    "start:phone:reset": "node scripts/start-phone.js --reset",
     "dev": "node --watch server.js",
     "test": "node --import ./test-support/isolate-data.js --test ./test/*.js",
     "smoke:codex": "node scripts/smoke-agents.js codex",
