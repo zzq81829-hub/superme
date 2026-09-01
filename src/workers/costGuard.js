@@ -17,6 +17,11 @@ export function applyCostGuard(requested, healthMap, options = {}) {
   }
 
   const remainingBudget = getRemainingBudget(options);
+  const usesDeepSeekBudget = (id) => {
+    if (id === "deepseek") return true;
+    if (id !== "hermes") return false;
+    return String(options.config?.agents?.hermes?.provider || "custom:gemini-proxy").toLowerCase() === "deepseek";
+  };
 
   const tryOrder = requested === "auto"
     ? [...FALLBACK_CHAIN]
@@ -32,8 +37,8 @@ export function applyCostGuard(requested, healthMap, options = {}) {
       continue;
     }
 
-    // Check DeepSeek Monthly Budget Hard Cap for deepseek and hermes (which uses DeepSeek provider)
-    if ((id === "deepseek" || id === "hermes") && remainingBudget <= 0) {
+    // Check the DeepSeek monthly hard cap only for workers that actually use DeepSeek.
+    if (usesDeepSeekBudget(id) && remainingBudget <= 0) {
       attempts.push({ id, skip: "QUOTA_LIMITED (DeepSeek monthly budget exhausted)" });
       continue;
     }
@@ -78,7 +83,7 @@ export function applyCostGuard(requested, healthMap, options = {}) {
     };
   }
 
-  if ((requested === "deepseek" || requested === "hermes") && remainingBudget <= 0) {
+  if (usesDeepSeekBudget(requested) && remainingBudget <= 0) {
     const summary = getBudgetSummary(options);
     return {
       ok: false,

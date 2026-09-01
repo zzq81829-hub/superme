@@ -23,7 +23,14 @@ export function loadConfig() {
     execution: { ...defaults.execution, ...saved.execution },
     computerAccess: { ...defaults.computerAccess, ...saved.computerAccess },
     agents: {
-      hermes: { enabled: true, command: "hermes", ...(saved.agents?.hermes || {}) },
+      hermes: {
+        enabled: true,
+        command: "hermes",
+        provider: "custom:gemini-proxy",
+        model: "gemini-flash-3.7",
+        modelReasoningEffort: "high",
+        ...(saved.agents?.hermes || {})
+      },
       codex: { ...defaults.agents.codex, ...saved.agents?.codex },
       claude: { enabled: true, command: "claude", ...(saved.agents?.claude || {}) },
       antigravity: { ...defaults.agents.antigravity, ...saved.agents?.antigravity },

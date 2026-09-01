@@ -19,7 +19,7 @@ export async function runAgent(agent, task, project, config) {
   if (agent === "grok-build") return runGrokBuild({ task, prompt, projectPath, config, researchOnly: false });
   if (agent === "grok") return runGrokBuild({ task, prompt, projectPath, config, researchOnly: true });
   if (agent === "hermes" || agent === "deepseek") {
-    return runHermes({ instruction: prompt, projectPath, config, taskId: task?.id || "hermes" });
+    return runHermes({ instruction: prompt, projectPath, config, taskId: task?.id || "hermes", agent });
   }
   if (agent === "grok-bot") {
     return {

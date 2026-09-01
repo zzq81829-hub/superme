@@ -102,12 +102,19 @@ export function classifyGrokProbe(text, exitCode = 0, error = null) {
 }
 
 export function classifyHermesProbe(text, exitCode = 0, error = null) {
-  const provider = /Provider:\s*DeepSeek/i.test(text);
-  const configured = /DeepSeek\s+(?:✓|configured)/i.test(text);
+  const providerText = text.match(/Provider:\s*([^\r\n]+)/i)?.[1] || "";
+  const provider = /deepseek|gemini[-:]?proxy/i.test(providerText);
+  const configured = /DeepSeek\s+(?:✓|configured)|gemini[-:]?proxy|gemini-flash-3\.7/i.test(text);
   if (!error && exitCode === 0 && provider && configured) {
-    return { status: "READY", available: true, readinessVerified: true, detail: "Hermes DeepSeek provider verified" };
+    const gemini = /gemini/i.test(`${providerText} ${text}`);
+    return {
+      status: "READY",
+      available: true,
+      readinessVerified: true,
+      detail: gemini ? "Hermes Gemini Flash 3.7 High provider verified" : "Hermes DeepSeek provider verified"
+    };
   }
-  return { status: "PROVIDER_UNVERIFIED", available: false, readinessVerified: true, detail: "Hermes DeepSeek provider not verified" };
+  return { status: "PROVIDER_UNVERIFIED", available: false, readinessVerified: true, detail: "Hermes provider not verified" };
 }
 
 function applyReadinessProbes(map) {

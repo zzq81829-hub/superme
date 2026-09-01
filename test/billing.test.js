@@ -39,6 +39,23 @@ test("billing policy forbids extra model APIs", () => {
   assert.equal(getDeepSeekDefaultCallCost(), 0.20);
 });
 
+test("Gemini Hermes route is not blocked by the DeepSeek budget", () => {
+  const baseDir = createIsolatedTestDir();
+  const options = {
+    baseDir,
+    period: "2026-08",
+    config: { agents: { hermes: { provider: "custom:gemini-proxy" } } }
+  };
+  recordUsage({ taskId: "task-gemini", worker: "deepseek", costCny: 30.00, source: "test" }, options);
+  const health = {
+    hermes: { id: "hermes", status: "READY", available: true, billingMode: "subscription_or_cheap_api" },
+    codex: { id: "codex", status: "OFFLINE", available: false }
+  };
+  const result = applyCostGuard("hermes", health, options);
+  assert.equal(result.ok, true);
+  assert.equal(result.worker, "hermes");
+});
+
 test("subscription env strips paid API keys", () => {
   const env = subscriptionEnv({
     OPENAI_API_KEY: "x",

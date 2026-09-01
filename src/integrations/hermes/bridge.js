@@ -10,6 +10,16 @@ function hermesBin(config) {
   return resolveAgentCommand("hermes", config?.agents?.hermes?.command || "hermes");
 }
 
+function hermesModelArgs(agent, config) {
+  if (agent === "deepseek") return ["--provider", "deepseek"];
+  const hermes = config?.agents?.hermes || {};
+  return [
+    "--provider", hermes.provider || "custom:gemini-proxy",
+    "--model", hermes.model || "gemini-flash-3.7",
+    "--reasoning", hermes.modelReasoningEffort || "high"
+  ];
+}
+
 export async function healthCheck(config = {}) {
   const command = hermesBin(config);
   const result = await runProcess({
@@ -29,7 +39,7 @@ export async function healthCheck(config = {}) {
   };
 }
 
-export async function sendTask({ instruction, projectPath, config = {}, taskId = "hermes" }) {
+export async function sendTask({ instruction, projectPath, config = {}, taskId = "hermes", agent = "hermes" }) {
   const command = hermesBin(config);
   const cwd = projectPath || config.workspaceRoot || process.cwd();
   const logs = executionLogPaths(taskId, "hermes");
@@ -44,8 +54,7 @@ export async function sendTask({ instruction, projectPath, config = {}, taskId =
     "-Q",
     "--source",
     "tool",
-    "--provider",
-    "deepseek",
+    ...hermesModelArgs(agent, config),
     "--max-turns",
     "40",
     "--run-budget",

@@ -1794,7 +1794,9 @@ async function loadHealth() {
     if (providerEl) {
       providerEl.textContent = /deepseek/i.test(coo.detail || "")
         ? "DeepSeek 已验证 · ¥30/月硬闸"
-        : "Provider 待验证 · 禁止自动付费";
+        : /gemini/i.test(coo.detail || "")
+          ? "Gemini Flash 3.7 High 已验证 · custom:gemini-proxy"
+          : "Provider 待验证 · 禁止自动付费";
     }
 
     const openBtn = $("openHermesBtn");

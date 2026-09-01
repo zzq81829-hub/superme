@@ -53,5 +53,6 @@ test("read-only status output is classified without claiming more than it proves
   assert.equal(classifyCodexProbe("Not logged in", 1).status, "AUTH_REQUIRED");
   assert.equal(classifyGrokProbe("You are logged in with grok.com.\nDefault model: grok-4.6", 0).status, "READY");
   assert.equal(classifyHermesProbe("Provider: DeepSeek\nDeepSeek      ✓ configured", 0).status, "READY");
+  assert.equal(classifyHermesProbe("Provider: custom:gemini-proxy\nDefault model: gemini-flash-3.7", 0).detail, "Hermes Gemini Flash 3.7 High provider verified");
   assert.equal(classifyHermesProbe("Provider: Other", 0).available, false);
 });
