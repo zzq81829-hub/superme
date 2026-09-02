@@ -37,7 +37,10 @@ export class PublicResearchProvider extends BaseXhsProvider {
 
     let browser = null;
     try {
-      browser = await chromium.launch({ headless: true });
+      browser = await chromium.launch({
+        headless: true,
+        args: ["--no-proxy-server"]
+      });
       const context = await browser.newContext({
         userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
       });

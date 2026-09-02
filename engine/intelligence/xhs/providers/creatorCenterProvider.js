@@ -52,6 +52,7 @@ export class CreatorCenterProvider extends BaseXhsProvider {
     try {
       context = await chromium.launchPersistentContext(profileDir, {
         headless: true,
+        args: ["--no-proxy-server"],
         viewport: { width: 1280, height: 800 },
         userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
       });
@@ -102,6 +103,7 @@ export class CreatorCenterProvider extends BaseXhsProvider {
       onProgress({ step: "launch_browser", message: `[${accountKey}] 启动隔离浏览器 profile...` });
       context = await chromium.launchPersistentContext(profileDir, {
         headless: true,
+        args: ["--no-proxy-server"],
         viewport: { width: 1440, height: 900 }
       });
 

@@ -59,7 +59,8 @@ class XhsIntelligenceService {
     }
 
     // PowerShell Start-Process brings the GUI window to the foreground on Windows
-    const psCmd = `Start-Process -FilePath "${exe}" -ArgumentList @('--user-data-dir="${profileDir}"', '--new-window', '--no-first-run', '--no-default-browser-check', 'https://creator.xiaohongshu.com/login')`;
+    // --no-proxy-server forces Chrome/Edge to bypass system Global proxy and connect directly via domestic broadband
+    const psCmd = `Start-Process -FilePath "${exe}" -ArgumentList @('--user-data-dir="${profileDir}"', '--new-window', '--no-first-run', '--no-default-browser-check', '--no-proxy-server', 'https://creator.xiaohongshu.com/login')`;
     spawn("powershell", ["-NoProfile", "-NonInteractive", "-Command", psCmd], { detached: true, stdio: "ignore" }).unref();
 
     this._log(`已为账号 [${acc.label} (${accountKey})] 打开独立登录窗口 (${path.basename(exe)})`);
