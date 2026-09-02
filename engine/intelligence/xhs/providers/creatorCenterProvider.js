@@ -9,6 +9,40 @@ import {
 } from "../storage/repository.js";
 
 /**
+ * Generates human-like variable delay with natural Gaussian/bell-curve variance
+ * (Central limit theorem creates high entropy, preventing bot detection)
+ */
+export function bioJitter(minMs, maxMs) {
+  const r1 = Math.random();
+  const r2 = Math.random();
+  const factor = (r1 + r2) / 2;
+  return Math.floor(minMs + factor * (maxMs - minMs));
+}
+
+/**
+ * Emulates natural human browsing behaviors:
+ * 1. Smooth multi-step mouse drift
+ * 2. Physiological reading micro-scrolls
+ * 3. Occasional subtle counter-scrolls (simulating human eye tracking)
+ */
+async function humanMicroActions(page) {
+  try {
+    const x = Math.floor(250 + Math.random() * 450);
+    const y = Math.floor(180 + Math.random() * 320);
+    await page.mouse.move(x, y, { steps: Math.floor(4 + Math.random() * 7) });
+
+    const scrollDelta = Math.floor(120 + Math.random() * 240);
+    await page.mouse.wheel(0, scrollDelta);
+    await page.waitForTimeout(bioJitter(250, 550));
+
+    if (Math.random() < 0.35) {
+      await page.mouse.wheel(0, -Math.floor(scrollDelta * 0.35));
+      await page.waitForTimeout(bioJitter(180, 420));
+    }
+  } catch {}
+}
+
+/**
  * CreatorCenterProvider - Manages 3 distinct accounts with isolated Playwright persistent profiles.
  * References architectural patterns from orangexie05/creator-platform-data:
  * - Persistent profile per account
@@ -150,7 +184,9 @@ export class CreatorCenterProvider extends BaseXhsProvider {
       const maxPages = 15; // 安全翻页上限，杜绝死循环
 
       while (pageNum <= maxPages) {
-        await page.waitForTimeout(2000);
+        // 动态生理学微动作与高斯浮动等待 (1.8s ~ 3.6s)
+        await humanMicroActions(page);
+        await page.waitForTimeout(bioJitter(1800, 3600));
 
         const currentUrl = page.url();
         if (this.isLoginExpired(currentUrl)) break;
@@ -273,7 +309,9 @@ export class CreatorCenterProvider extends BaseXhsProvider {
 
         if (!hasNextPage) break;
         pageNum++;
-        await page.waitForTimeout(2000);
+        // 动态生理学翻页行为仿真：微滚动 + 2.4s ~ 5.2s 动态高斯浮动间隔
+        await humanMicroActions(page);
+        await page.waitForTimeout(bioJitter(2400, 5200));
       }
 
       onProgress({ step: "complete", message: `[${accountKey}] 全量采集完成，共沉淀 ${totalCollected} 篇笔记数据` });

@@ -1,4 +1,5 @@
 import { BaseXhsProvider } from "./baseProvider.js";
+import { bioJitter } from "./creatorCenterProvider.js";
 import {
   upsertPublicNote,
   appendPublicNoteSnapshot,
@@ -77,8 +78,9 @@ export class PublicResearchProvider extends BaseXhsProvider {
     for (const kw of keywords) {
       const res = await this.searchKeyword(kw, onProgress);
       results.push(res);
-      // Gentle pacing - sleep 1s between keyword queries to protect from rate limits
-      await new Promise((r) => setTimeout(r, 1000));
+      // 生理学生物节流：2.8s ~ 6.2s 动态高斯浮动间隔，防止关键词检索被频控
+      const jitterMs = bioJitter(2800, 6200);
+      await new Promise((r) => setTimeout(r, jitterMs));
     }
 
     this.status = "IDLE";
