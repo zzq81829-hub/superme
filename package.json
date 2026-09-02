@@ -14,6 +14,7 @@
     "smoke:antigravity": "node scripts/smoke-agents.js antigravity"
   },
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "playwright-core": "^1.62.1"
   }
 }

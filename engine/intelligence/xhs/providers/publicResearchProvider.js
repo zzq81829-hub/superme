@@ -22,7 +22,12 @@ export class PublicResearchProvider extends BaseXhsProvider {
       const pw = await import("playwright");
       return pw.chromium || pw.default?.chromium;
     } catch {
-      return null;
+      try {
+        const pwCore = await import("playwright-core");
+        return pwCore.chromium || pwCore.default?.chromium;
+      } catch {
+        return null;
+      }
     }
   }
 
@@ -37,7 +42,9 @@ export class PublicResearchProvider extends BaseXhsProvider {
 
     let browser = null;
     try {
+      const exe = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
       browser = await chromium.launch({
+        executablePath: exe,
         headless: true,
         args: ["--no-proxy-server"]
       });

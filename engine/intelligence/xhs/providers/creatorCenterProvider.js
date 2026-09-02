@@ -31,12 +31,27 @@ export class CreatorCenterProvider extends BaseXhsProvider {
     return profileDir;
   }
 
+  _getExecutablePath(accountKey) {
+    if (accountKey === "xhs_account_2") {
+      const edge = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
+      if (fs.existsSync(edge)) return edge;
+    }
+    const chrome = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+    if (fs.existsSync(chrome)) return chrome;
+    return "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
+  }
+
   async _getPlaywright() {
     try {
       const pw = await import("playwright");
       return pw.chromium || pw.default?.chromium;
     } catch {
-      return null;
+      try {
+        const pwCore = await import("playwright-core");
+        return pwCore.chromium || pwCore.default?.chromium;
+      } catch {
+        return null;
+      }
     }
   }
 
@@ -51,6 +66,7 @@ export class CreatorCenterProvider extends BaseXhsProvider {
 
     try {
       context = await chromium.launchPersistentContext(profileDir, {
+        executablePath: this._getExecutablePath(accountKey),
         headless: true,
         args: ["--no-proxy-server"],
         viewport: { width: 1280, height: 800 },
@@ -102,6 +118,7 @@ export class CreatorCenterProvider extends BaseXhsProvider {
     try {
       onProgress({ step: "launch_browser", message: `[${accountKey}] 启动隔离浏览器 profile...` });
       context = await chromium.launchPersistentContext(profileDir, {
+        executablePath: this._getExecutablePath(accountKey),
         headless: true,
         args: ["--no-proxy-server"],
         viewport: { width: 1440, height: 900 }
