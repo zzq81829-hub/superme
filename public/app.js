@@ -3494,12 +3494,14 @@ window.submitFeedback = async (refine) => {
     const notice = $("feedbackCandidateNotice");
     if (notice) {
       notice.style.display = "block";
-      notice.textContent = "💡 已形成学习候选，待确认（记录已生成，待在「创始人记忆」中确认生效）";
+      notice.textContent = res.candidate
+        ? "💡 已形成学习候选，待确认（记录已生成，待在「创始人记忆」中确认生效）"
+        : "💡 反馈已记录。本次未生成记忆候选（可能触发敏感拦截），已生效记忆未改动。";
     }
 
-    const toastMsg = refine
-      ? "反馈已提交并返工；已形成学习候选，待确认"
-      : "反馈已记录；已形成学习候选，待确认";
+    const toastMsg = res.candidate
+      ? (refine ? "反馈已提交并返工；已形成学习候选，待确认" : "反馈已记录；已形成学习候选，待确认")
+      : (refine ? "反馈已提交并返工；未生成记忆候选" : "反馈已记录；未生成记忆候选");
     showToast(toastMsg, "success");
 
     await loadReviews();
@@ -3767,13 +3769,64 @@ function renderXhsAccounts(accounts) {
         </div>
         ${a.last_error ? `<div class="accErrorTip">⚠️ ${esc(a.last_error)}</div>` : ""}
         <div class="accActions">
-          <button class="ghost primaryBtn" onclick="collectSingleAccount('${esc(a.account_key)}', this)">⚡ 采集数据</button>
-          <button class="ghost" onclick="viewAccountNotes('${esc(a.account_key)}')">📑 查看笔记</button>
+          <button class="ghost primaryBtn" onclick="openAccountLogin('${esc(a.account_key)}')">📱 扫码登录</button>
+          <button class="ghost" onclick="collectSingleAccount('${esc(a.account_key)}', this)">⚡ 采集数据</button>
+          <button class="ghost" onclick="viewAccountNotes('${esc(a.account_key)}')">📑 笔记</button>
+          <button class="ghost danger" onclick="resetXhsAccount('${esc(a.account_key)}')" title="清空该账号登录缓存，重新扫码" style="padding: 4px 6px;">🧹 重置</button>
         </div>
       </div>
     `;
   }).join("");
 }
+
+window.openAccountLogin = async (accountKey) => {
+  const modal = $("xhsLoginModal");
+  const acc = cachedXhsAccounts.find((a) => a.account_key === accountKey) || { label: accountKey, profile_dir: `data/profiles/${accountKey}` };
+
+  if ($("xhsLoginAccountName")) $("xhsLoginAccountName").textContent = `账号：${acc.label}`;
+  if ($("xhsLoginProfileDir")) $("xhsLoginProfileDir").textContent = acc.profile_dir || `data/profiles/${accountKey}`;
+
+  const launchBtn = $("btnLaunchBrowserWindow");
+  if (launchBtn) {
+    launchBtn.onclick = async () => {
+      launchBtn.disabled = true;
+      launchBtn.textContent = "正在拉起独立浏览器...";
+      try {
+        const res = await api(`/api/intelligence/xhs/accounts/${accountKey}/login-window`, { method: "POST" });
+        showToast(res.message || `已为 ${acc.label} 开启独立登录窗口`, "success");
+      } catch (err) {
+        showToast(err.message, "error");
+      } finally {
+        launchBtn.disabled = false;
+        launchBtn.textContent = "🚀 重新拉起独立登录窗口";
+      }
+    };
+  }
+
+  if (modal) modal.style.display = "flex";
+};
+
+window.resetXhsAccount = async (accountKey) => {
+  if (!confirm(`确定要清空该账号 (${accountKey}) 的独立登录缓存并重新扫码吗？`)) return;
+  try {
+    const res = await api(`/api/intelligence/xhs/accounts/${accountKey}/reset`, { method: "POST" });
+    showToast(res.message, "success");
+    await loadXhsIntelligence(true);
+  } catch (err) {
+    showToast(err.message, "error");
+  }
+};
+
+window.closeXhsLoginModal = () => {
+  const modal = $("xhsLoginModal");
+  if (modal) modal.style.display = "none";
+};
+
+window.confirmAccountLoggedIn = async () => {
+  closeXhsLoginModal();
+  showToast("正在刷新账号状态与笔记...", "info");
+  await loadXhsIntelligence(true);
+};
 
 window.viewAccountNotes = async (accountKey) => {
   const drawer = $("xhsAccountNotesDrawer");

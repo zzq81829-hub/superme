@@ -40,8 +40,8 @@ import { listRoutingLogs } from "./src/workforce/routingLogger.js";
 import { evaluateModelNeed } from "./src/workforce/modelNeed.js";
 import { scanAllRebounds } from "./src/workforce/rebound.js";
 import { generateSecretaryBrief } from "./src/secretary/brief.js";
-import { getFile, listFiles, validateSafePath, updateFile, computeFileHash } from "./src/files/registry.js";
-import { getPhoneAccessToken } from "./src/phoneAccess.js";
+import { listFiles, toPublicFile } from "./src/files/registry.js";
+import { handleFileDownload } from "./src/files/download.js";
 import { emitLearningEvent } from "./src/learning/router.js";
 import { listEvents } from "./src/learning/events.js";
 import { probeDesktopBot, openDesktopBot } from "./src/secretary/desktopBot.js";
@@ -1176,7 +1176,7 @@ app.get("/api/delivery/outbox", (_req, res) => {
 
 app.get("/api/files", (req, res) => {
   try {
-    res.json({ ok: true, files: listFiles(req.query || {}) });
+    res.json({ ok: true, files: listFiles(req.query || {}).map(toPublicFile) });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1235,82 +1235,19 @@ app.post("/api/secretary/grok-bot/inbound", (req, res) => {
 // File Registry Endpoints
 app.get("/api/secretary/files", (_req, res) => {
   try {
-    const files = listFiles();
+    const files = listFiles().map(toPublicFile);
     res.json({ ok: true, files });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Local Phone Safe File Download Endpoint
-const handleFileDownload = (req, res) => {
-  // 1. Phone Token Authentication
-  const token = req.get("X-OS-Phone-Token");
-  if (!token) {
-    return res.status(401).json({ error: "手机访问口令缺失 (Phone token is required for file download)" });
-  }
-
-  let activeToken = process.env.AI_FOUNDER_OS_PHONE_TOKEN?.trim();
-  if (!activeToken) {
-    try {
-      activeToken = getPhoneAccessToken();
-    } catch {
-      activeToken = null;
-    }
-  }
-
-  if (!activeToken || token !== activeToken) {
-    return res.status(401).json({ error: "手机访问口令无效或已过期 (Invalid or expired phone token)" });
-  }
-
-  // 2. File Registry Verification
-  const fileId = req.params.id;
-  const file = getFile(fileId);
-  if (!file) {
-    return res.status(404).json({ error: `未登记文件不能下载 (File not registered: ${fileId})` });
-  }
-
-  if (!file.verified) {
-    return res.status(403).json({ error: "未验收文件不能标记为可发送 (Unverified file cannot be downloaded)" });
-  }
-
-  // 3. Path & Security Checks
-  const projectRoot = config.workspaceRoot || process.cwd();
-  let safe;
-  try {
-    safe = validateSafePath(file.path, projectRoot);
-  } catch (err) {
-    return res.status(403).json({ error: `越权路径被拒绝: ${err.message}` });
-  }
-
-  if (!fs.existsSync(safe.absolutePath) || !fs.statSync(safe.absolutePath).isFile()) {
-    return res.status(404).json({ error: "文件在磁盘上不存在" });
-  }
-
-  try {
-    const currentHash = computeFileHash(safe.absolutePath);
-    const registeredHash = file.hash || file.sha256;
-    if (!registeredHash || currentHash !== registeredHash) {
-      return res.status(409).json({ error: "文件内容已变化，拒绝下载 (File hash mismatch)" });
-    }
-  } catch {
-    return res.status(404).json({ error: "文件无法读取" });
-  }
-
-  // 4. Send File
-  try {
-    updateFile(fileId, { deliveryStatus: "downloaded" });
-  } catch {
-    // Delivery status update should not block download
-  }
-
-  res.setHeader("Content-Type", file.mime || "application/octet-stream");
-  res.setHeader("Content-Disposition", `attachment; filename="${encodeURIComponent(file.name)}"`);
-  res.sendFile(safe.absolutePath);
-};
-
-app.get("/api/secretary/files/:id/download", handleFileDownload);
-app.get("/api/files/:id/download", handleFileDownload);
+app.get("/api/secretary/files/:id/download", (req, res) => {
+  handleFileDownload(req, res, { projectRoot: config.workspaceRoot || process.cwd() });
+});
+app.get("/api/files/:id/download", (req, res) => {
+  handleFileDownload(req, res, { projectRoot: config.workspaceRoot || process.cwd() });
+});
 
 // Secretary Inbox Endpoints
 app.get("/api/secretary/inbox", (_req, res) => {

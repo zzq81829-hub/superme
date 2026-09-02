@@ -27,6 +27,7 @@
         <div class="navGroupLabel">YOUR DAY</div>
         <a class="navItem active" href="#commandSection"><span class="navGlyph">＋</span><span>发起任务</span></a>
         <a class="navItem" href="#taskSection"><span class="navGlyph">◌</span><span>看进度</span></a>
+        <a class="navItem" href="#xhsIntelligenceSection"><span class="navGlyph">📊</span><span>小红书情报</span></a>
         <button class="navItem navMore" id="moreNavToggle" type="button" aria-expanded="false"><span class="navGlyph">•••</span><span>更多</span></button>
         <div class="moreNav" id="moreNav" hidden>
           <div class="moreNavGroup">我的系统</div>
@@ -481,7 +482,7 @@
     </section>
 
     <!-- Xiaohongshu Data Intelligence Section (小红书数据情报 v0.1) -->
-    <section class="panel secondaryPanel" id="xhsIntelligenceSection">
+    <section class="panel" id="xhsIntelligenceSection">
       <div class="sectionHeader">
         <div class="sectionTitleBlock">
           <div class="eyebrow">XHS DATA INTELLIGENCE</div>
@@ -591,6 +592,35 @@
         </div>
       </div>
     </section>
+
+    <!-- XHS Account Login Modal Card (扫码弹窗卡片) -->
+    <div id="xhsLoginModal" class="metricsModal" style="display: none;">
+      <div class="metricsModalBackdrop" onclick="closeXhsLoginModal()"></div>
+      <div class="metricsModalContent" style="max-width: 520px; text-align: center;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h3 id="xhsLoginModalTitle" style="margin: 0; font-size: 16px; color: var(--ivory-pure);">📱 扫码登录账号</h3>
+          <button class="ghost" onclick="closeXhsLoginModal()" style="padding: 4px 8px;">✕</button>
+        </div>
+        <div id="xhsLoginModalBody" style="display: flex; flex-direction: column; gap: 14px; align-items: center;">
+          <div style="background: rgba(217, 119, 6, 0.1); border: 1px solid rgba(217, 119, 6, 0.3); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #fbbf24; width: 100%; text-align: left;">
+            <strong id="xhsLoginAccountName">账号：书斋 (社科/哲学/认知书籍)</strong><br/>
+            <span style="font-size: 11px; color: var(--ivory-muted);">隔离存储：<code id="xhsLoginProfileDir">data/profiles/xhs_account_1</code></span>
+          </div>
+          <div style="font-size: 13px; color: var(--ivory-pure); line-height: 1.6; text-align: left; width: 100%;">
+            1. 点击下方按钮，将直接调出<strong>小红书创作者登录页</strong>（含官方登录二维码）；<br/>
+            2. 打开手机对应账号的<strong>小红书 App</strong>，扫描窗口中的二维码并确认登录；<br/>
+            3. 扫码成功后，点击下方的<strong>【✅ 我已扫码完成】</strong>，系统会自动长效保存独立登录态！
+          </div>
+          <div style="display: flex; gap: 10px; width: 100%; justify-content: center; margin-top: 8px;">
+            <button id="btnLaunchBrowserWindow" class="primaryBtn" style="flex: 1; padding: 11px 16px; font-weight: 700; font-size: 14px;">🚀 弹出扫码独立窗口并打开网页</button>
+          </div>
+          <div style="display: flex; gap: 8px; width: 100%; justify-content: flex-end; margin-top: 10px;">
+            <button class="ghost" onclick="closeXhsLoginModal()">稍后扫码</button>
+            <button class="ghost primaryBtn" onclick="confirmAccountLoggedIn()">✅ 我已扫码完成，刷新状态</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Secretary Section: Grok Bot 私人秘书（对话 + 调教 + 收件箱草稿） -->
     <section class="panel secondaryPanel" id="secretarySection">

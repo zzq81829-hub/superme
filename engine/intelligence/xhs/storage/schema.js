@@ -153,9 +153,9 @@ export function applyMigrations(db) {
         INSERT INTO xhs_accounts (account_key, label, profile_dir, enabled, login_status, created_at, updated_at)
         VALUES (?, ?, ?, 1, 'unknown', datetime('now'), datetime('now'))
       `);
-      insertAcc.run("xhs_account_1", "主账号 (书斋一号)", "data/profiles/xhs_account_1");
-      insertAcc.run("xhs_account_2", "二号账号 (书斋二号)", "data/profiles/xhs_account_2");
-      insertAcc.run("xhs_account_3", "三号账号 (矩阵备用)", "data/profiles/xhs_account_3");
+      insertAcc.run("xhs_account_1", "书斋 (社科/哲学/认知书籍)", "data/profiles/xhs_account_1");
+      insertAcc.run("xhs_account_2", "X搬运 (前沿推文编译与深度思考)", "data/profiles/xhs_account_2");
+      insertAcc.run("xhs_account_3", "个人IP (创始人主理)", "data/profiles/xhs_account_3");
     }
 
     // Pre-populate default tracking keywords if empty

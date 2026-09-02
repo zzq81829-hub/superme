@@ -31,6 +31,26 @@ xhsRouter.get("/accounts", (_req, res) => {
   }
 });
 
+xhsRouter.post("/accounts/:accountKey/login-window", (req, res) => {
+  try {
+    const { accountKey } = req.params;
+    const result = xhsIntelligenceService.openAccountLoginWindow(accountKey);
+    res.json({ ok: true, ...result });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+xhsRouter.post("/accounts/:accountKey/reset", (req, res) => {
+  try {
+    const { accountKey } = req.params;
+    const result = xhsIntelligenceService.resetAccount(accountKey);
+    res.json({ ok: true, ...result });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 xhsRouter.post("/accounts/:accountKey/collect", async (req, res) => {
   try {
     const { accountKey } = req.params;

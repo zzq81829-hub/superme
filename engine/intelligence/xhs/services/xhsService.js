@@ -1,6 +1,10 @@
+import fs from "node:fs";
+import path from "node:path";
+import { spawn } from "node:child_process";
 import {
   listAccounts,
   getAccount,
+  updateAccountStatus,
   listMyNotes,
   getNoteSnapshots,
   getLatestNoteSnapshot,
@@ -29,6 +33,61 @@ class XhsIntelligenceService {
     this.currentJob = null;
     this.jobLogs = [];
     this.schedulerEnabled = false;
+  }
+
+  openAccountLoginWindow(accountKey) {
+    const acc = getAccount(accountKey);
+    if (!acc) throw new Error(`账号不存在: ${accountKey}`);
+
+    const profileDir = path.resolve(process.cwd(), acc.profile_dir);
+    if (!fs.existsSync(profileDir)) {
+      fs.mkdirSync(profileDir, { recursive: true });
+    }
+
+    // Hardware/Process level separation:
+    // Account 1 (书斋) uses Google Chrome
+    // Account 2 (X搬运) uses Microsoft Edge
+    // Account 3 (个人IP) uses isolated Chrome profile
+    let exe = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+    if (accountKey === "xhs_account_2") {
+      const edge = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
+      if (fs.existsSync(edge)) exe = edge;
+    }
+
+    if (!fs.existsSync(exe)) {
+      exe = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
+    }
+
+    // PowerShell Start-Process brings the GUI window to the foreground on Windows
+    const psCmd = `Start-Process -FilePath "${exe}" -ArgumentList @('--user-data-dir="${profileDir}"', '--new-window', '--no-first-run', '--no-default-browser-check', 'https://creator.xiaohongshu.com/login')`;
+    spawn("powershell", ["-NoProfile", "-NonInteractive", "-Command", psCmd], { detached: true, stdio: "ignore" }).unref();
+
+    this._log(`已为账号 [${acc.label} (${accountKey})] 打开独立登录窗口 (${path.basename(exe)})`);
+    return {
+      ok: true,
+      accountKey,
+      label: acc.label,
+      browser: path.basename(exe),
+      message: `已为 ${acc.label} 开启独立登录窗口 (${path.basename(exe)})，请在弹出的新窗口扫码`
+    };
+  }
+
+  resetAccount(accountKey) {
+    const acc = getAccount(accountKey);
+    if (!acc) throw new Error(`账号不存在: ${accountKey}`);
+    const profileDir = path.resolve(process.cwd(), acc.profile_dir);
+    try {
+      const killCmd = `Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*${accountKey}*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }`;
+      spawn("powershell", ["-NoProfile", "-NonInteractive", "-Command", killCmd], { stdio: "ignore" });
+      setTimeout(() => {
+        try { fs.rmSync(profileDir, { recursive: true, force: true }); } catch {}
+        try { fs.mkdirSync(profileDir, { recursive: true }); } catch {}
+      }, 500);
+    } catch (e) {}
+
+    updateAccountStatus(accountKey, "need_login", "已重置登录态，请重新扫码");
+    this._log(`已重置账号 [${acc.label} (${accountKey})] 的登录态缓存`);
+    return { ok: true, accountKey, message: `已成功清空 ${acc.label} 的登录缓存` };
   }
 
   setMode(mode) {
