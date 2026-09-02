@@ -144,11 +144,143 @@ export class CreatorCenterProvider extends BaseXhsProvider {
       }
 
       onProgress({ step: "reading_notes", message: `[${accountKey}] 正在解析创作者笔记时序数据...` });
-      // DOM / API scraping logic
+
+      let totalCollected = 0;
+      let pageNum = 1;
+      const maxPages = 15; // 安全翻页上限，杜绝死循环
+
+      while (pageNum <= maxPages) {
+        await page.waitForTimeout(2000);
+
+        const currentUrl = page.url();
+        if (this.isLoginExpired(currentUrl)) break;
+        if (this.isCaptchaOrRiskControl(currentUrl)) {
+          this.status = "NEED_VERIFICATION";
+          updateAccountStatus(accountKey, "captcha", "触发安全验证码");
+          await context.close();
+          return { ok: false, status: "captcha", message: "触发小红书安全验证，已安全暂停" };
+        }
+
+        const cardsData = await page.evaluate(() => {
+          const cards = Array.from(document.querySelectorAll("div.note-card"));
+          return cards.map((card) => {
+            let noteId = "";
+            try {
+              const imp = card.getAttribute("data-impression");
+              if (imp) {
+                const parsed = JSON.parse(imp);
+                noteId = parsed?.noteTarget?.value?.noteId || "";
+              }
+            } catch {}
+
+            const coverImg = card.querySelector("img");
+            const cover = coverImg ? coverImg.src : "";
+
+            const body = card.querySelector(".note-card__body") || card;
+            const text = body.innerText || "";
+            const lines = text.split("\n").map((s) => s.trim()).filter(Boolean);
+
+            return { noteId, cover, lines };
+          });
+        });
+
+        if (cardsData.length === 0) {
+          if (pageNum === 1) {
+            await page.waitForTimeout(2500);
+            const retryCards = await page.evaluate(() => document.querySelectorAll("div.note-card").length);
+            if (retryCards === 0) break;
+            continue;
+          } else {
+            break;
+          }
+        }
+
+        const snapshotTime = new Date().toISOString();
+
+        for (const item of cardsData) {
+          if (!item.lines || item.lines.length < 2) continue;
+
+          let title = item.lines[0];
+          let dateStr = item.lines[1];
+          let numLines = item.lines.slice(2);
+
+          // 兼容“仅自己可见”、“审核中”、“未通过”、“置顶”等状态标签
+          if (["仅自己可见", "审核中", "未通过", "置顶"].includes(title) && item.lines.length >= 3) {
+            title = item.lines[1];
+            dateStr = item.lines[2];
+            numLines = item.lines.slice(3);
+          }
+
+          const safeNoteId = item.noteId || `note_${accountKey}_${Buffer.from(title).toString("hex").slice(0, 16)}`;
+
+          // 官方后台指标序列：[播放/阅读, 分享, 点赞, 收藏, 评论]
+          const nums = numLines.map((s) => {
+            const clean = s.replace(/,/g, "").trim();
+            if (clean.endsWith("万") || clean.endsWith("w") || clean.endsWith("W")) {
+              return Math.round(parseFloat(clean) * 10000);
+            }
+            const n = parseInt(clean, 10);
+            return isNaN(n) ? 0 : n;
+          });
+
+          const views = nums[0] || 0;
+          const shares = nums[1] || 0;
+          const likes = nums[2] || 0;
+          const favorites = nums[3] || 0;
+          const comments = nums[4] || 0;
+
+          // 1. 记录笔记元数据
+          upsertNote({
+            accountKey,
+            noteId: safeNoteId,
+            title,
+            publishTime: dateStr,
+            noteType: "normal",
+            url: `https://www.xiaohongshu.com/explore/${safeNoteId}`
+          });
+
+          // 2. 追加时序快照 (Append-only)
+          appendNoteSnapshot({
+            accountKey,
+            noteId: safeNoteId,
+            snapshotAt: snapshotTime,
+            impressions: views,
+            views,
+            likes,
+            favorites,
+            comments,
+            shares,
+            source: "creator_center"
+          });
+
+          totalCollected++;
+        }
+
+        onProgress({
+          step: "reading_notes",
+          message: `[${accountKey}] 第 ${pageNum} 页已解析，当前累计收录 ${totalCollected} 篇笔记...`
+        });
+
+        // 检查是否有下一页
+        const hasNextPage = await page.evaluate(() => {
+          const nextBtn = document.querySelector(".btn-next, li.ant-pagination-next, [class*='next']:not([class*='disabled'])");
+          if (nextBtn && !nextBtn.disabled && !nextBtn.classList.contains("disabled") && !nextBtn.classList.contains("ant-pagination-disabled")) {
+            nextBtn.click();
+            return true;
+          }
+          return false;
+        });
+
+        if (!hasNextPage) break;
+        pageNum++;
+        await page.waitForTimeout(2000);
+      }
+
+      onProgress({ step: "complete", message: `[${accountKey}] 全量采集完成，共沉淀 ${totalCollected} 篇笔记数据` });
       updateAccountStatus(accountKey, "logged_in", null, true);
       this.status = "IDLE";
       await context.close();
-      return { ok: true, accountKey, collected: 0 };
+      return { ok: true, accountKey, collected: totalCollected };
     } catch (err) {
       if (context) await context.close();
       this.status = "ERROR";
