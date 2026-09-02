@@ -1,0 +1,231 @@
+import {
+  listAccounts,
+  getAccount,
+  listMyNotes,
+  getNoteSnapshots,
+  getLatestNoteSnapshot,
+  listPublicCreators,
+  upsertPublicCreator,
+  listPublicNotes,
+  getPublicNoteSnapshots,
+  getLatestPublicSnapshot,
+  listKeywords,
+  addKeyword,
+  removeKeyword,
+  toggleKeyword
+} from "../storage/repository.js";
+import { MockXhsProvider } from "../providers/mockProvider.js";
+import { CreatorCenterProvider } from "../providers/creatorCenterProvider.js";
+import { PublicResearchProvider } from "../providers/publicResearchProvider.js";
+import { computeSnapshotMetrics, computeVelocity, computeViralScore } from "../analysis/metrics.js";
+import { generateDailyBrief } from "../analysis/brief.js";
+
+class XhsIntelligenceService {
+  constructor() {
+    this.mockProvider = new MockXhsProvider();
+    this.creatorProvider = new CreatorCenterProvider();
+    this.publicProvider = new PublicResearchProvider();
+    this.activeMode = "real"; // 'real' or 'mock'
+    this.currentJob = null;
+    this.jobLogs = [];
+    this.schedulerEnabled = false;
+  }
+
+  setMode(mode) {
+    this.activeMode = mode === "mock" ? "mock" : "real";
+  }
+
+  getStatus() {
+    const accounts = listAccounts();
+    const myNotes = listMyNotes(null, 1);
+    const pubNotes = listPublicNotes(1);
+
+    return {
+      ok: true,
+      mode: this.activeMode,
+      schedulerEnabled: this.schedulerEnabled,
+      currentJob: this.currentJob,
+      creatorStatus: this.activeMode === "mock" ? this.mockProvider.getStatus() : this.creatorProvider.getStatus(),
+      publicStatus: this.activeMode === "mock" ? this.mockProvider.getStatus() : this.publicProvider.getStatus(),
+      counts: {
+        accounts: accounts.length,
+        hasNotes: myNotes.length > 0,
+        hasPublicNotes: pubNotes.length > 0
+      },
+      recentLogs: this.jobLogs.slice(-10)
+    };
+  }
+
+  _log(msg) {
+    const entry = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    this.jobLogs.push(entry);
+    if (this.jobLogs.length > 50) this.jobLogs.shift();
+  }
+
+  async collectAccount(accountKey, forceMock = false) {
+    const useMock = forceMock || this.activeMode === "mock";
+    const provider = useMock ? this.mockProvider : this.creatorProvider;
+
+    this.currentJob = {
+      type: "collect_account",
+      target: accountKey,
+      step: "starting",
+      startedAt: new Date().toISOString()
+    };
+    this._log(`开始采集账号: ${accountKey} (${useMock ? "Mock模式" : "真实浏览器模式"})`);
+
+    try {
+      const res = await provider.collectAccount(accountKey, ({ step, message }) => {
+        if (this.currentJob) this.currentJob.step = step;
+        this._log(message);
+      });
+      this.currentJob = null;
+      return res;
+    } catch (err) {
+      this.currentJob = null;
+      this._log(`采集出错: ${err.message}`);
+      throw err;
+    }
+  }
+
+  async collectAllAccounts(forceMock = false) {
+    const accounts = listAccounts().filter((a) => a.enabled);
+    const results = [];
+    for (const acc of accounts) {
+      try {
+        const r = await this.collectAccount(acc.account_key, forceMock);
+        results.push(r);
+      } catch (err) {
+        results.push({ ok: false, accountKey: acc.account_key, error: err.message });
+      }
+    }
+    return { ok: true, results };
+  }
+
+  async collectPublic(keywords = [], forceMock = false) {
+    const useMock = forceMock || this.activeMode === "mock";
+    const provider = useMock ? this.mockProvider : this.publicProvider;
+
+    const kwList = keywords.length ? keywords : listKeywords().filter((k) => k.enabled).map((k) => k.keyword);
+    const creators = listPublicCreators().filter((c) => c.tracked);
+
+    this.currentJob = {
+      type: "collect_public",
+      step: "starting",
+      startedAt: new Date().toISOString()
+    };
+    this._log(`开始外部雷达扫描: ${kwList.join(", ")}`);
+
+    try {
+      const res = await provider.collectPublic(kwList, creators, ({ step, message }) => {
+        if (this.currentJob) this.currentJob.step = step;
+        this._log(message);
+      });
+      this.currentJob = null;
+      return res;
+    } catch (err) {
+      this.currentJob = null;
+      this._log(`公共采集出错: ${err.message}`);
+      throw err;
+    }
+  }
+
+  getAccounts() {
+    const accs = listAccounts();
+    return accs.map((a) => {
+      const notes = listMyNotes(a.account_key, 100);
+      return {
+        ...a,
+        notesCount: notes.length
+      };
+    });
+  }
+
+  getNotes(accountKey = null) {
+    const notes = listMyNotes(accountKey, 50);
+    return notes.map((n) => {
+      const snaps = getNoteSnapshots(n.note_id, 10);
+      const latest = snaps[snaps.length - 1] || null;
+      const prev = snaps.length >= 2 ? snaps[snaps.length - 2] : null;
+      const metrics = computeSnapshotMetrics(latest);
+      const velocity = computeVelocity(prev, latest);
+      return {
+        ...n,
+        latestSnapshot: latest,
+        metrics,
+        velocity,
+        snapshotsCount: snaps.length
+      };
+    });
+  }
+
+  getNoteHistory(noteId) {
+    const snaps = getNoteSnapshots(noteId, 50);
+    const history = [];
+    for (let i = 0; i < snaps.length; i++) {
+      const curr = snaps[i];
+      const prev = i > 0 ? snaps[i - 1] : null;
+      history.push({
+        snapshot: curr,
+        metrics: computeSnapshotMetrics(curr),
+        velocity: prev ? computeVelocity(prev, curr) : null
+      });
+    }
+    return { noteId, snapshots: history };
+  }
+
+  getCompetitors() {
+    const creators = listPublicCreators();
+    return creators;
+  }
+
+  addCompetitor({ creatorId, nickname, profileUrl }) {
+    upsertPublicCreator({ creatorId, nickname, profileUrl, tracked: 1 });
+    return { ok: true, creatorId };
+  }
+
+  getTrending() {
+    const publicNotes = listPublicNotes(50);
+    return publicNotes.map((pn) => {
+      const snaps = getPublicNoteSnapshots(pn.note_id, 10);
+      const latest = snaps[snaps.length - 1] || null;
+      const prev = snaps.length >= 2 ? snaps[snaps.length - 2] : null;
+      const velocity = prev && latest ? computeVelocity(prev, latest) : null;
+      const viral = computeViralScore({
+        latestSnapshot: latest,
+        velocity,
+        publishTime: pn.publishTime,
+        creatorFollowers: latest?.creator_followers
+      });
+      return {
+        ...pn,
+        latestSnapshot: latest,
+        velocity,
+        viralScore: viral.score,
+        viralDetails: viral
+      };
+    }).sort((a, b) => (b.viralScore || 0) - (a.viralScore || 0));
+  }
+
+  getDailyBrief() {
+    return generateDailyBrief();
+  }
+
+  getKeywords() {
+    return listKeywords();
+  }
+
+  addKeyword(keyword) {
+    return addKeyword(keyword);
+  }
+
+  removeKeyword(id) {
+    return removeKeyword(id);
+  }
+
+  toggleKeyword(id, enabled) {
+    return toggleKeyword(id, enabled);
+  }
+}
+
+export const xhsIntelligenceService = new XhsIntelligenceService();

@@ -24,33 +24,49 @@
       </div>
       <div class="railRule"></div>
       <nav class="primaryNav">
-        <div class="navGroupLabel">WORKSPACE</div>
-        <a class="navItem active" href="#commandSection"><span class="navGlyph">◈</span><span>驾驶舱</span></a>
-        <a class="navItem" href="#approvalSection"><span class="navGlyph">!</span><span>需要签字</span></a>
-        <a class="navItem" href="#commandMonitor"><span class="navGlyph">◌</span><span>Hermes 监控</span></a>
-        <a class="navItem" href="#briefSection"><span class="navGlyph">▤</span><span>需求简报</span></a>
-        <a class="navItem" href="#workerBoardSection"><span class="navGlyph">·</span><span>执行团队</span></a>
-        <a class="navItem" href="#taskSection"><span class="navGlyph">↗</span><span>任务与执行</span></a>
-        <a class="navItem" href="#memorySection"><span class="navGlyph">⌁</span><span>创始人记忆</span></a>
-        <a class="navItem" href="#contentPackagesSection"><span class="navGlyph">▱</span><span>内容工作台</span></a>
-        <a class="navItem" href="#secretarySection"><span class="navGlyph">✳</span><span>秘书收件箱</span><span class="navHint">想法</span></a>
+        <div class="navGroupLabel">YOUR DAY</div>
+        <a class="navItem active" href="#commandSection"><span class="navGlyph">＋</span><span>发起任务</span></a>
+        <a class="navItem" href="#taskSection"><span class="navGlyph">◌</span><span>看进度</span></a>
+        <button class="navItem navMore" id="moreNavToggle" type="button" aria-expanded="false"><span class="navGlyph">•••</span><span>更多</span></button>
+        <div class="moreNav" id="moreNav" hidden>
+          <div class="moreNavGroup">我的系统</div>
+          <a class="navItem navSecondary" href="#secretarySection"><span>Grok Bot 秘书</span></a>
+          <a class="navItem navSecondary" href="#memorySection"><span>创始人记忆</span></a>
+          <a class="navItem navSecondary" href="#briefSection"><span>需求简报</span></a>
+          <div class="moreNavGroup">执行系统</div>
+          <a class="navItem navSecondary" href="#xhsIntelligenceSection"><span>小红书数据情报</span></a>
+          <a class="navItem navSecondary" href="#contentPackagesSection"><span>内容工作台</span></a>
+          <a class="navItem navSecondary" href="#workerBoardSection"><span>Worker 团队</span></a>
+          <a class="navItem navSecondary" href="#commandMonitor"><span>Hermes 监控</span></a>
+          <a class="navItem navSecondary" href="#approvalSection"><span>需要签字 <span id="navApprovalCount"></span></span></a>
+          <div class="moreNavGroup">记录与设置</div>
+          <a class="navItem navSecondary" href="#taskSection" data-task-view="completed"><span>历史任务</span></a>
+          <a class="navItem navSecondary" href="#taskSection" data-task-view="trash"><span>回收站</span></a>
+        </div>
       </nav>
       <div class="railFooter">
         <div class="railStatus"><span class="railStatusDot"></span><span>控制中枢在线</span></div>
         <div class="railMeta">CEO · 本机控制系统<br />Hermes · COO</div>
       </div>
     </aside>
-    <header>
+    <header id="appHeader">
       <div>
-        <div class="eyebrow">FOUNDER CONTROL / 01</div>
-        <h1>OS</h1>
-        <p>你的创始人驾驶舱。CEO 理解方向，Hermes 推进执行。</p>
+        <div class="eyebrow">AI FOUNDER OS</div>
+        <h1>把事情交给系统。</h1>
+        <p>你给方向，CEO 推进执行；需要你决定时，才来找你。</p>
       </div>
-      <div id="health" class="status">连接中…</div>
+      <div class="headerActionsCompact">
+        <div id="health" class="status">连接中…</div>
+        <button id="mobileMoreToggle" class="headerMore" type="button" aria-expanded="false">•••</button>
+      </div>
+      <div class="connectionNotice" id="connectionNotice" hidden>
+        <span>未连接电脑</span>
+        <button type="button" onclick="showPhonePairingHelp()">重新配对</button>
+      </div>
     </header>
 
     <!-- Hermes Command Monitor Panel -->
-    <section class="panel monitorPanel" id="commandMonitor">
+    <section class="panel monitorPanel secondaryPanel" id="commandMonitor">
       <div class="monitorHeader">
         <div class="monitorTitle">
           <div class="eyebrow">COMMAND MONITOR</div>
@@ -73,7 +89,7 @@
         </div>
         <div class="monitorItem monitorIdentity">
           <div class="monitorLabel">模型与成本保护</div>
-          <div class="monitorValue" id="monitorHermesProvider">Gemini Flash 3.7 High · custom:gemini-proxy</div>
+          <div class="monitorValue" id="monitorHermesProvider">DeepSeek-V4-Pro · 官方直连</div>
         </div>
         <div class="monitorItem">
           <div class="monitorLabel">当前 Agent</div>
@@ -110,7 +126,7 @@
     </section>
 
     <!-- DeepSeek Monthly Budget Alert Banner (到限提醒横幅) -->
-    <div id="budgetAlertBanner" style="display: none; background: rgba(220, 38, 38, 0.15); border: 1px solid rgba(220, 38, 38, 0.4); padding: 10px 16px; border-radius: 8px; margin-bottom: 16px; color: #fca5a5; align-items: center; justify-content: space-between;">
+    <div id="budgetAlertBanner" class="secondaryPanel" style="display: none; background: rgba(220, 38, 38, 0.15); border: 1px solid rgba(220, 38, 38, 0.4); padding: 10px 16px; border-radius: 8px; margin-bottom: 16px; color: #fca5a5; align-items: center; justify-content: space-between;">
       <span id="budgetAlertText">⚠️ DeepSeek 本月已达 30 元上限，已停用。是否登记充值由你决定。</span>
       <div style="display: flex; gap: 8px; align-items: center;">
         <button class="ghost" id="ackAlertBtn" onclick="acknowledgeBudgetAlert()" style="font-size: 12px; padding: 3px 10px;">已知悉</button>
@@ -119,7 +135,7 @@
     </div>
 
     <!-- Level 1 Approval Queue (一级审批队列) -->
-    <section class="panel" id="approvalSection" style="display: none; border-color: rgba(220, 38, 38, 0.4); background: rgba(30, 10, 15, 0.4);">
+    <section class="panel secondaryPanel" id="approvalSection" style="display: none; border-color: rgba(220, 38, 38, 0.4); background: rgba(30, 10, 15, 0.4);">
       <div class="sectionHeader">
         <div style="display: flex; align-items: center; gap: 10px;">
           <h2 style="color: #ff6b6b; margin: 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
@@ -136,14 +152,15 @@
 
     <section class="panel hero" id="commandSection">
       <div class="heroIntro">
-        <div class="eyebrow">TODAY'S BRIEF</div>
-        <h2>今天想推进什么？</h2>
-        <p>说出结果就好。OS 会理解目标、判断风险，再交给合适的人。</p>
+        <div class="eyebrow">NEW TASK</div>
+        <h2>你想做什么？</h2>
+        <p>说出你想要的结果，不需要先写 PRD。</p>
       </div>
-      <input id="title" placeholder="例如：把书摘的小红书封面系统改得更高级" />
-      <textarea id="description" rows="3" placeholder="把你的想法直接说出来，不需要写 PRD。"></textarea>
+      <input id="title" class="intentTitle" aria-hidden="true" tabindex="-1" />
+      <label class="intentLabel" for="description">告诉 CEO 你想要的结果</label>
+      <textarea id="description" rows="4" placeholder="例如：帮我做一组有质感的小红书书摘封面，并告诉我什么时候可以审阅。"></textarea>
       <details class="advancedTaskOptions">
-        <summary>执行偏好 <span>自动分配 · 项目路径 · 验收标准</span></summary>
+        <summary>添加约束 <span>只有你希望指定时才填写</span></summary>
         <div class="advancedTaskGrid">
           <select id="agent">
             <option value="auto">自动分配</option>
@@ -154,7 +171,6 @@
             <option value="grok-build">Grok Build</option>
             <option value="grok">Grok</option>
             <option value="deepseek">DeepSeek</option>
-            <option value="grok-bot">Grok Bot (实验)</option>
           </select>
           <input id="projectPath" placeholder="项目路径（可选）例如 D:\Projects\shuzhai" />
           <textarea id="acceptance" rows="2" placeholder="验收标准（可选），每行一条，例如：存在: output/report.md 或 运行: npm test"></textarea>
@@ -162,12 +178,12 @@
       </details>
       <div class="heroActions">
         <span class="heroHint"><span class="heroHintDot"></span> CEO 会先理解，再决定是否需要你介入</span>
-        <button id="create">交给 CEO <span class="buttonArrow">↗</span></button>
+        <button id="create">提交并开始 <span class="buttonArrow">↗</span></button>
       </div>
     </section>
 
     <!-- Hermes Consensus Brief (需求收敛备份) -->
-    <section class="panel" id="briefSection">
+    <section class="panel secondaryPanel" id="briefSection">
       <div class="sectionHeader">
         <div style="display: flex; align-items: center; gap: 10px;">
           <h2 style="margin: 0; font-size: 15px;">📋 Hermes 需求收敛备份</h2>
@@ -201,7 +217,7 @@
       </div>
     </section>
 
-    <section class="panel" id="workerDirectorySection">
+    <section class="panel secondaryPanel" id="workerDirectorySection">
       <div class="sectionHeader">
         <h2>Workers</h2>
       </div>
@@ -209,7 +225,7 @@
     </section>
 
     <!-- Worker Board (谁做完了 / 谁还在做 / 额度剩余) -->
-    <section class="panel" id="workerBoardSection">
+    <section class="panel secondaryPanel" id="workerBoardSection">
       <div class="sectionHeader">
         <div style="display: flex; align-items: center; gap: 10px;">
           <h2 style="margin: 0; font-size: 15px;">🧑‍💻 Worker 看板 (谁在做 · 谁做完了 · 额度)</h2>
@@ -220,6 +236,24 @@
         </div>
       </div>
       <div id="workerBoard" class="workerBoard">加载中…</div>
+
+      <!-- 等待容量回弹任务区 -->
+      <div id="waitingCapacityContainer" class="waitingCapacityContainer" style="display: none; margin-top: 18px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 14px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <span style="font-size: 13px; font-weight: 600; color: #f59e0b;">⏳ 等待容量回弹任务 (Waiting for Capacity)</span>
+          <span id="waitingCapacityBadge" class="tabBadge">0</span>
+        </div>
+        <div id="waitingCapacityList"></div>
+      </div>
+
+      <!-- 调度决策审计日志区 -->
+      <div class="routingLogsSection" style="margin-top: 18px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 12px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;" onclick="toggleRoutingLogs()">
+          <span style="font-size: 13px; font-weight: 600; color: #94a3b8;">📜 调度决策审计日志 (Routing Logs)</span>
+          <span id="routingLogsToggleIcon" style="font-size: 12px; color: #64748b;">展开 ▾</span>
+        </div>
+        <div id="routingLogsList" style="display: none; margin-top: 10px;"></div>
+      </div>
     </section>
 
     <section class="panel" id="taskSection">
@@ -248,7 +282,7 @@
     </section>
 
     <!-- Memory Ledger Section -->
-    <section class="panel" id="memorySection">
+    <section class="panel secondaryPanel" id="memorySection">
       <div class="sectionHeader">
         <div class="taskTabs">
           <button class="tabBtn active" id="tabMemCandidates">待确认候选 (Candidates) <span id="candidateCount" class="tabBadge">0</span></button>
@@ -301,7 +335,7 @@
     </section>
 
     <!-- Content Packages Section (内容三层 + 冻结发布包) -->
-    <section class="panel" id="contentPackagesSection">
+    <section class="panel secondaryPanel" id="contentPackagesSection">
       <div class="sectionHeader">
         <div style="display: flex; align-items: center; gap: 10px;">
           <h2 style="margin: 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
@@ -313,6 +347,15 @@
           <button class="ghost" id="toggleNewPkgBtn" onclick="toggleNewPkgForm()">+ 新建发布包</button>
           <button class="ghost" id="refreshPackages" onclick="loadContentPackages()" title="刷新发布包">刷新</button>
         </div>
+      </div>
+      <div id="xhsAccountBar" style="margin: 0 0 12px; padding: 10px 12px; border: 1px solid var(--border-couture); border-radius: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12px;">
+        <span id="xhsAccountText">小红书账号：检查中…</span>
+        <button class="ghost" type="button" onclick="showXhsLoginQr()">扫码上号</button>
+        <button class="ghost" type="button" onclick="openXhsLoginWindow()">打开登录窗口</button>
+      </div>
+      <div id="xhsQrBox" hidden style="margin: 0 0 12px; padding: 12px; border: 1px dashed var(--border-couture); border-radius: 10px; text-align: center;">
+        <img id="xhsQrImg" alt="小红书登录二维码" style="max-width: 220px; background: #fff; padding: 8px; border-radius: 8px;" />
+        <p style="margin: 8px 0 0; color: var(--ivory-muted); font-size: 12px;">打开小红书扫这个码。上号成功后，已批准的包会显示「立即发布」。</p>
       </div>
 
       <!-- New Package Form (Collapsible) -->
@@ -348,40 +391,295 @@
 
       <!-- Packages List Container -->
       <div id="packagesList" class="tasks"></div>
+
+      <!-- Package Metrics Modal / Drawer (P0-2 笔记数据录入与复盘) -->
+      <div id="metricsModal" class="metricsModal" style="display: none;">
+        <div class="metricsModalBackdrop" onclick="closeMetricsModal()"></div>
+        <div class="metricsModalContent">
+          <div class="metricsModalHeader">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <h3 id="metricsModalTitle" style="margin: 0; font-size: 15px; color: var(--ivory-pure);">📊 录入笔记真实数据</h3>
+              <span id="metricsAttributionBadge" class="badge badge-paused">待补数据</span>
+            </div>
+            <button class="ghost" onclick="closeMetricsModal()" style="padding: 2px 8px; font-size: 14px;">✕</button>
+          </div>
+          <p id="metricsModalSubtitle" style="margin: 4px 0 12px; font-size: 12px; color: var(--ivory-muted);">输入小红书后台公布的笔记真实表现（仅保存数据，不修改原包哈希）</p>
+
+          <input type="hidden" id="metricsPackageId" value="" />
+
+          <div class="metricsFormGrid">
+            <div class="metricsFormField">
+              <label for="metricImpressions">曝光 (Impressions)</label>
+              <input type="number" id="metricImpressions" min="0" step="1" placeholder="0" oninput="onMetricInputChanged()" />
+            </div>
+            <div class="metricsFormField">
+              <label for="metricReads">阅读 / 播放 (Reads)</label>
+              <input type="number" id="metricReads" min="0" step="1" placeholder="0" oninput="onMetricInputChanged()" />
+            </div>
+            <div class="metricsFormField">
+              <label for="metricStay">停留秒数 / 完读 (Stay/Read)</label>
+              <input type="number" id="metricStay" min="0" step="0.1" placeholder="秒或完读率" oninput="onMetricInputChanged()" />
+            </div>
+            <div class="metricsFormField">
+              <label for="metricLikes">点赞 (Likes)</label>
+              <input type="number" id="metricLikes" min="0" step="1" placeholder="0" oninput="onMetricInputChanged()" />
+            </div>
+            <div class="metricsFormField">
+              <label for="metricSaves">收藏 (Saves)</label>
+              <input type="number" id="metricSaves" min="0" step="1" placeholder="0" oninput="onMetricInputChanged()" />
+            </div>
+            <div class="metricsFormField">
+              <label for="metricComments">评论 (Comments)</label>
+              <input type="number" id="metricComments" min="0" step="1" placeholder="0" oninput="onMetricInputChanged()" />
+            </div>
+            <div class="metricsFormField">
+              <label for="metricShares">分享 (Shares)</label>
+              <input type="number" id="metricShares" min="0" step="1" placeholder="0" oninput="onMetricInputChanged()" />
+            </div>
+            <div class="metricsFormField">
+              <label for="metricProfileVisits">主页访问 (Profile Visits)</label>
+              <input type="number" id="metricProfileVisits" min="0" step="1" placeholder="0" oninput="onMetricInputChanged()" />
+            </div>
+            <div class="metricsFormField">
+              <label for="metricFollowersGained">新增关注 (Followers Gained)</label>
+              <input type="number" id="metricFollowersGained" min="0" step="1" placeholder="0" oninput="onMetricInputChanged()" />
+            </div>
+            <div class="metricsFormField">
+              <label for="metricCapturedAt">采集时间 (Captured At)</label>
+              <input type="datetime-local" id="metricCapturedAt" />
+            </div>
+          </div>
+
+          <!-- Realtime Calculated Ratios Preview -->
+          <div class="metricsRatiosBar" id="metricsRatiosPreview">
+            <div class="ratioItem">
+              <span class="ratioLabel">点击率 (Click)</span>
+              <strong class="ratioValue" id="previewClickRate">-</strong>
+            </div>
+            <div class="ratioItem">
+              <span class="ratioLabel">收藏率 (Save)</span>
+              <strong class="ratioValue" id="previewSaveRate">-</strong>
+            </div>
+            <div class="ratioItem">
+              <span class="ratioLabel">互动率 (Engage)</span>
+              <strong class="ratioValue" id="previewEngageRate">-</strong>
+            </div>
+            <div class="ratioItem">
+              <span class="ratioLabel">关注转化 (Follow)</span>
+              <strong class="ratioValue" id="previewFollowRate">-</strong>
+            </div>
+          </div>
+
+          <div id="metricsFormError" class="metricsErrorNotice" style="display: none;"></div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
+            <button class="ghost" onclick="closeMetricsModal()">取消</button>
+            <button id="saveMetricsBtn" class="restoreBtn" onclick="submitPackageMetrics()">💾 保存数据</button>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <!-- Secretary Inbox Section (私人秘书收件箱) -->
-    <section class="panel" id="secretarySection">
+    <!-- Xiaohongshu Data Intelligence Section (小红书数据情报 v0.1) -->
+    <section class="panel secondaryPanel" id="xhsIntelligenceSection">
+      <div class="sectionHeader">
+        <div class="sectionTitleBlock">
+          <div class="eyebrow">XHS DATA INTELLIGENCE</div>
+          <h2 style="margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+            <span>📊 小红书数据情报 v0.1</span>
+            <span id="xhsIntelModeBadge" class="badge badge-completed">实测模式</span>
+          </h2>
+        </div>
+        <div class="headerActions">
+          <button class="ghost" id="xhsToggleModeBtn" onclick="toggleXhsIntelMode()" title="在真实浏览器与Mock测试数据间切换">切换Mock测试</button>
+          <button class="ghost" id="xhsRefreshBtn" onclick="loadXhsIntelligence(true)">🔄 刷新数据</button>
+          <button id="xhsCollectAllBtn" class="primaryBtn xhsActionBtn" onclick="collectAllXhsAccounts()">🚀 立即全量采集</button>
+        </div>
+      </div>
+
+      <!-- Stepped Progress Bar (正在启动浏览器 → 检查登录 → 读取笔记 → 写入快照 → 生成分析 → 完成) -->
+      <div id="xhsJobProgressContainer" class="xhsProgressBox" style="display: none;">
+        <div class="xhsProgressHeader">
+          <span id="xhsProgressStepText">正在准备采集...</span>
+          <span class="pulseDot"></span>
+        </div>
+        <div class="xhsStepsBar">
+          <span class="xhsStep" id="stepLaunch">1. 启动浏览器</span>
+          <span class="xhsStepArrow">→</span>
+          <span class="xhsStep" id="stepLogin">2. 检查登录</span>
+          <span class="xhsStepArrow">→</span>
+          <span class="xhsStep" id="stepNotes">3. 读取笔记时序</span>
+          <span class="xhsStepArrow">→</span>
+          <span class="xhsStep" id="stepSnapshot">4. 写入 Snapshot</span>
+          <span class="xhsStepArrow">→</span>
+          <span class="xhsStep" id="stepAnalysis">5. 生成 AI 简报</span>
+        </div>
+      </div>
+
+      <!-- 4 Tabs Switcher -->
+      <div class="taskTabs xhsTabs">
+        <button class="tabBtn active" id="tabXhsAccounts" onclick="switchXhsTab('accounts')">我的账号 (3个)</button>
+        <button class="tabBtn" id="tabXhsRadar" onclick="switchXhsTab('radar')">竞品雷达</button>
+        <button class="tabBtn" id="tabXhsBrief" onclick="switchXhsTab('brief')">AI 简报 (10大洞察)</button>
+        <button class="tabBtn" id="tabXhsStatus" onclick="switchXhsTab('status')">系统状态</button>
+      </div>
+
+      <!-- Tab 1: 我的账号 (Account A, B, C) -->
+      <div id="xhsPanelAccounts" class="xhsTabPanel">
+        <div id="xhsAccountsGrid" class="xhsAccountsGrid"></div>
+        <div id="xhsAccountNotesDrawer" class="xhsNotesDrawer" style="display: none;">
+          <div class="drawerHeader">
+            <h3 id="xhsDrawerTitle" style="font-size: 14px; margin: 0;">账号笔记与时序表现</h3>
+            <button class="ghost" onclick="closeXhsNotesDrawer()">✕ 收起笔记</button>
+          </div>
+          <div id="xhsNotesList" class="xhsNotesList"></div>
+        </div>
+      </div>
+
+      <!-- Tab 2: 竞品雷达 -->
+      <div id="xhsPanelRadar" class="xhsTabPanel" style="display: none;">
+        <div class="radarControlsCard">
+          <div class="radarKeywordsHeader">
+            <span><strong>监控关键词：</strong></span>
+            <div id="xhsKeywordsChips" class="xhsKeywordsChips"></div>
+            <button class="ghost" onclick="promptAddKeyword()">+ 添加词</button>
+            <button class="ghost primaryBtn" onclick="runPublicRadarScan()">🔍 扫描外部雷达</button>
+          </div>
+        </div>
+        <div style="font-size: 13px; font-weight: 700; margin: 12px 0 8px; color: var(--ivory-pure);">🔥 正在增长的爆款笔记 (ViralScore 排序)</div>
+        <div id="xhsTrendingNotesList" class="xhsTrendingList"></div>
+      </div>
+
+      <!-- Tab 3: AI 简报 (10大洞察) -->
+      <div id="xhsPanelBrief" class="xhsTabPanel" style="display: none;">
+        <div class="briefCardContainer">
+          <div class="briefCardHeader">
+            <span>📋 <strong>Xiaohongshu Daily Intelligence Brief</strong></span>
+            <span id="briefGeneratedTime" style="font-size: 11px; color: var(--ivory-muted);"></span>
+          </div>
+          <div id="xhsBriefAnswersGrid" class="xhsBriefAnswersGrid"></div>
+        </div>
+      </div>
+
+      <!-- Tab 4: 系统状态 -->
+      <div id="xhsPanelStatus" class="xhsTabPanel" style="display: none;">
+        <div class="systemStatusGrid">
+          <div class="statusCard">
+            <div class="statusCardTitle">SQLite 数据库状态</div>
+            <div class="statusCardValue">WAL 模式 · node:sqlite 原生接入</div>
+            <div class="statusCardMeta" id="dbStatusMeta">data/intelligence/xhs.sqlite</div>
+          </div>
+          <div class="statusCard">
+            <div class="statusCardTitle">Browser Profile 隔离</div>
+            <div class="statusCardValue">3 组独立 Playwright 目录</div>
+            <div class="statusCardMeta">data/profiles/xhs_account_{1,2,3}</div>
+          </div>
+          <div class="statusCard">
+            <div class="statusCardTitle">风控保护机制</div>
+            <div class="statusCardValue" style="color: #4ade80;">✔ 自动验证码检测 / 熔断挂起</div>
+            <div class="statusCardMeta">检测到滑块/验证码自动暂停，严防封号</div>
+          </div>
+          <div class="statusCard">
+            <div class="statusCardTitle">自动定时计划</div>
+            <div class="statusCardValue" id="schedulerStateValue">默认关闭 (需手动开启)</div>
+            <button class="ghost" id="toggleSchedulerBtn" onclick="toggleXhsScheduler()">切换开启/关闭</button>
+          </div>
+        </div>
+        <div style="margin-top: 12px;">
+          <div style="font-size: 12px; font-weight: 700; color: var(--ivory-muted); margin-bottom: 6px;">最近采集运行日志</div>
+          <div id="xhsLogsWindow" class="xhsLogsWindow"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Secretary Section: Grok Bot 私人秘书（对话 + 调教 + 收件箱草稿） -->
+    <section class="panel secondaryPanel" id="secretarySection">
       <div class="sectionHeader">
         <div style="display: flex; align-items: center; gap: 10px;">
           <h2 style="margin: 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
-            <span>🤖 私人秘书收件箱 (Secretary Inbox)</span>
-            <span id="secretaryCount" class="tabBadge">0</span>
+            <span>🤖 Grok Bot · 私人秘书</span>
+            <span id="secretaryCount" class="tabBadge" title="收件箱草稿数">0</span>
           </h2>
-          <span id="secretaryHealthBadge" class="badge badge-paused" style="font-size: 11px;">Grok Bot: 秘书职位保留，控制接口未验证</span>
+          <span id="secretaryHealthBadge" class="badge badge-paused" style="font-size: 11px;">Grok Bot: 秘书线未接通</span>
         </div>
         <div class="headerActions">
-          <button class="ghost" id="toggleNewInboxBtn" onclick="toggleNewInboxForm()" title="正常入口是 Grok Bot；这里仅用于备用导入">+ 备用导入</button>
-          <button class="ghost" id="refreshSecretary" onclick="loadSecretaryInbox()" title="刷新收件箱">刷新</button>
+          <button class="ghost" id="openDesktopBotBtn" onclick="openDesktopGrokBot()" title="仅可打开；未证明回连前不算接入">打开 Grok Bot.exe（仅可打开；未证明回连前不算接入）</button>
+          <button class="ghost" id="togglePersonaBtn" onclick="togglePersonaEditor()" title="编辑人格文件 founder_os/GROK_BOT_PERSONA.md = 调教">🎛 调教人格</button>
+          <button class="ghost" id="toggleNewInboxBtn" onclick="toggleNewInboxForm()" title="从手机或其他聊天窗口粘贴补录">+ 备用导入</button>
+          <button class="ghost" id="refreshSecretary" onclick="refreshSecretaryPanel()" title="刷新对话与收件箱">刷新</button>
         </div>
       </div>
 
       <div class="secretaryRouteNote">
-        <strong>正常入口：Grok Bot</strong>
-        <span>你只需要在那里说话；OS 负责接收、判断、派工和回报。当前 Grok Bot 接口尚未验证，下面的入口仅作临时转运。</span>
+        <strong>外部接入真实状态：</strong>
+        <span>外部 Grok Bot.exe 仅可打开；未证明回连前不算接入。不伪造在线、已接入或可派工状态。本页聊天 = grok -p CLI（订阅，无执行权）。</span>
       </div>
 
-      <!-- New Inbox Message Form (Collapsible) -->
+      <!-- Secretary Brief Summary Bar (只读全局概览) -->
+      <div id="secretaryBriefBar" class="secretaryBriefBar">
+        <div class="briefBarItem"><span class="briefBarLabel">执行中</span><span id="briefRunningCount" class="briefBarValue">0</span></div>
+        <div class="briefBarItem"><span class="briefBarLabel">等待审批</span><span id="briefApprovalCount" class="briefBarValue warn">0</span></div>
+        <div class="briefBarItem"><span class="briefBarLabel">已完成</span><span id="briefCompletedCount" class="briefBarValue success">0</span></div>
+        <div class="briefBarItem"><span class="briefBarLabel">已验收产物</span><span id="briefDeliverablesCount" class="briefBarValue">0</span></div>
+      </div>
+
+      <!-- Grok Bot Chat -->
+      <div class="grokChatShell">
+        <div id="grokChatLog" class="grokChatLog"><p style="color: var(--ivory-muted); font-size: 12px;">对话加载中…</p></div>
+
+        <!-- 安全文件选择区（最多3个文本文件，禁止手填路径） -->
+        <div class="safeAttachmentShell" id="safeAttachmentShell">
+          <div class="safeAttachmentHeader">
+            <span class="safeAttachmentTitle">📎 附加安全文本文件供秘书理解（最多 3 个）：</span>
+            <span class="safeAttachmentTip">安全保护：仅可从受信目录选择，禁止手填路径与访问隐私文件</span>
+          </div>
+          <div class="safeAttachmentControls">
+            <select id="safeFileRootSelect" onchange="loadSafeFilesForRoot(this.value)">
+              <option value="Desktop">Desktop (桌面)</option>
+              <option value="Documents">Documents (文档)</option>
+              <option value="Downloads">Downloads (下载)</option>
+            </select>
+            <select id="safeFilePickerSelect" onchange="handleSafeFilePicked(this.value)">
+              <option value="">-- 点击选择安全文件以附加 --</option>
+            </select>
+          </div>
+          <div id="selectedAttachmentChips" class="selectedAttachmentChips"><span class="noAttachmentText">（未选择附件）</span></div>
+        </div>
+
+        <div class="grokChatComposer">
+          <textarea id="grokChatInput" rows="2" placeholder="说想法、工作指令或分析需求——点击「🚀 开始工作」直接进入任务流，无需手动复制 Prompt"></textarea>
+          <div class="composerActions">
+            <button id="grokChatStartWork" class="startWorkBtn" onclick="startSecretaryWork()" title="直接进入调度执行或高风险审批">🚀 开始工作</button>
+            <button id="grokChatSend" class="grokChatSend" onclick="sendGrokChat()" title="仅与 Grok Bot 对话探讨">发送对话</button>
+          </div>
+        </div>
+        <div id="secretaryWorkStatus" class="secretaryWorkStatus" style="display: none;"></div>
+        <div id="grokChatStatus" class="grokChatStatus"></div>
+      </div>
+
+      <!-- Persona Editor (调教) -->
+      <div id="personaEditor" style="display: none; margin-bottom: 14px; background: rgba(12, 12, 16, 0.7); border: 1px solid var(--border-couture); border-radius: 12px; padding: 14px;">
+        <div style="font-size: 12px; font-weight: 700; color: var(--ivory-pure); margin-bottom: 4px;">调教人格 · founder_os/GROK_BOT_PERSONA.md</div>
+        <div style="font-size: 11px; color: var(--ivory-muted); margin-bottom: 8px;">改这里的身份 / 职责 / 铁律 = 调教；每次对话都会带上它。对话中把 Grok Bot 某条回复点「设为规则」会自动追加到文末调教记录。</div>
+        <textarea id="personaText" rows="10" spellcheck="false" style="width: 100%; margin-bottom: 8px; font-family: var(--font-mono); font-size: 12px; background: var(--couture-input); border: 1px solid var(--border-couture-light); border-radius: 10px; color: var(--ivory-pure); padding: 8px 10px;"></textarea>
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+          <button class="ghost" onclick="togglePersonaEditor()">收起</button>
+          <button id="savePersonaBtn" class="grokChatSend" onclick="savePersona()">保存人格</button>
+        </div>
+      </div>
+
+      <!-- New Inbox Message Form (备用导入) -->
       <div id="newInboxForm" style="display: none; margin-bottom: 16px; background: rgba(12, 12, 16, 0.7); border: 1px solid var(--border-couture); border-radius: 12px; padding: 16px;">
-        <div style="font-size: 12px; font-weight: 700; color: var(--ivory-pure); margin-bottom: 8px;">备用导入：粘贴 Grok Bot 或手机 ChatGPT 内容</div>
-        <textarea id="inboxInputText" rows="3" placeholder="仅在 Grok Bot 尚未接通时使用：粘贴你刚才说的想法、指令或偏好" style="margin-bottom: 8px;"></textarea>
+        <div style="font-size: 12px; font-weight: 700; color: var(--ivory-pure); margin-bottom: 8px;">备用导入：粘贴手机 ChatGPT / grok app 里刚说的话</div>
+        <textarea id="inboxInputText" rows="3" placeholder="正常入口是上方 Grok Bot 对话；这里仅在手机上聊完想补录时使用" style="margin-bottom: 8px;"></textarea>
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
           <button class="ghost" onclick="toggleNewInboxForm()">取消</button>
           <button id="submitInboxBtn" onclick="submitSecretaryMessage()">提交到收件箱</button>
         </div>
       </div>
 
-      <!-- Secretary Messages List -->
+      <!-- Secretary Messages List (收件箱草稿) -->
+      <div style="font-size: 11px; font-weight: 700; color: var(--ivory-muted); margin: 2px 0 8px;">收件箱草稿（你点「接受」后才进任务审批 / 记忆库）</div>
       <div id="secretaryList" class="tasks"></div>
     </section>
 
@@ -417,6 +715,9 @@
             <option value="note">💬 备注 (note)</option>
           </select>
           <textarea id="feedbackText" rows="3" placeholder="哪里做得好，哪里做得不好，要改成什么样……"></textarea>
+          <div id="feedbackCandidateNotice" class="feedbackCandidateNotice" style="display: none;">
+            💡 已形成学习候选，待确认（记录已生成，待在「创始人记忆」中确认生效）
+          </div>
           <div class="feedbackActions">
             <button class="ghost" onclick="submitFeedback(false)">仅记录反馈</button>
             <button id="submitRefineBtn" onclick="submitFeedback(true)">提交反馈并返工完善</button>
@@ -425,6 +726,29 @@
       </div>
     </div>
   </main>
+  <div class="mobileMoreSheet" id="mobileMoreSheet" hidden>
+    <div class="mobileMoreSheetHeader">
+      <span>更多</span>
+      <button id="mobileMoreClose" type="button" aria-label="关闭更多菜单">×</button>
+    </div>
+    <div class="moreNavGroup">我的系统</div>
+    <a class="navItem navSecondary" href="#secretarySection"><span>Grok Bot 秘书</span></a>
+    <a class="navItem navSecondary" href="#memorySection"><span>创始人记忆</span></a>
+    <a class="navItem navSecondary" href="#briefSection"><span>需求简报</span></a>
+    <div class="moreNavGroup">执行系统</div>
+    <a class="navItem navSecondary" href="#xhsIntelligenceSection"><span>小红书数据情报</span></a>
+    <a class="navItem navSecondary" href="#contentPackagesSection"><span>内容工作台</span></a>
+    <a class="navItem navSecondary" href="#workerBoardSection"><span>Worker 团队</span></a>
+    <a class="navItem navSecondary" href="#commandMonitor"><span>Hermes 监控</span></a>
+    <a class="navItem navSecondary" href="#approvalSection"><span>需要签字</span></a>
+    <div class="moreNavGroup">记录与设置</div>
+    <a class="navItem navSecondary" href="#taskSection" data-task-view="completed"><span>历史任务</span></a>
+    <a class="navItem navSecondary" href="#taskSection" data-task-view="trash"><span>回收站</span></a>
+  </div>
+  <nav class="mobileTabBar" aria-label="手机主导航">
+    <a class="mobileTab active" href="#commandSection"><span>＋</span>发起</a>
+    <a class="mobileTab" href="#taskSection"><span>◌</span>进度</a>
+  </nav>
 
   <script src="/app.js"></script>
 </body>
