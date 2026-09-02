@@ -109,6 +109,7 @@ export class CreatorCenterProvider extends BaseXhsProvider {
 
       const page = await context.newPage();
       await page.goto("https://creator.xiaohongshu.com/new/home", { waitUntil: "domcontentloaded", timeout: 15000 });
+      await page.waitForTimeout(2500); // 必须等待 SPA 客户端鉴权与可能的 401 重定向完成
 
       const currentUrl = page.url();
       if (this.isLoginExpired(currentUrl)) {
@@ -161,20 +162,22 @@ export class CreatorCenterProvider extends BaseXhsProvider {
       const page = await context.newPage();
       onProgress({ step: "navigate_creator", message: `[${accountKey}] 访问创作者服务中心...` });
       await page.goto("https://creator.xiaohongshu.com/new/note-manager", { waitUntil: "domcontentloaded", timeout: 15000 });
+      await page.waitForTimeout(2500); // 必须等待 SPA 客户端鉴权与可能的 401 重定向完成
 
       const url = page.url();
       if (this.isLoginExpired(url)) {
         this.status = "NEED_LOGIN";
-        updateAccountStatus(accountKey, "need_login", "需要扫码登录");
+        const msg = `账号 [${accountKey}] 尚未扫码登录（或登录已失效）。请在控制台点击【📱 扫码登录】或在桌面运行对应 .bat 脚本扫码！`;
+        updateAccountStatus(accountKey, "need_login", msg);
         await context.close();
-        return { ok: false, status: "need_login", needScan: true, message: "登录已失效，请扫码登录" };
+        throw new Error(msg);
       }
 
       if (this.isCaptchaOrRiskControl(url)) {
         this.status = "NEED_VERIFICATION";
         updateAccountStatus(accountKey, "captcha", "触发安全验证码");
         await context.close();
-        return { ok: false, status: "captcha", message: "触发小红书安全验证，已安全暂停" };
+        throw new Error("触发小红书安全验证，已安全暂停");
       }
 
       onProgress({ step: "reading_notes", message: `[${accountKey}] 正在解析创作者笔记时序数据...` });
@@ -189,12 +192,18 @@ export class CreatorCenterProvider extends BaseXhsProvider {
         await page.waitForTimeout(bioJitter(1800, 3600));
 
         const currentUrl = page.url();
-        if (this.isLoginExpired(currentUrl)) break;
+        if (this.isLoginExpired(currentUrl)) {
+          this.status = "NEED_LOGIN";
+          const msg = `账号 [${accountKey}] 尚未扫码登录（或登录已失效）。请在控制台点击【📱 扫码登录】或在桌面运行对应 .bat 脚本扫码！`;
+          updateAccountStatus(accountKey, "need_login", msg);
+          await context.close();
+          throw new Error(msg);
+        }
         if (this.isCaptchaOrRiskControl(currentUrl)) {
           this.status = "NEED_VERIFICATION";
           updateAccountStatus(accountKey, "captcha", "触发安全验证码");
           await context.close();
-          return { ok: false, status: "captcha", message: "触发小红书安全验证，已安全暂停" };
+          throw new Error("触发小红书安全验证，已安全暂停");
         }
 
         const cardsData = await page.evaluate(() => {

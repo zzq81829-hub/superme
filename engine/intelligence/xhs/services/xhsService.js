@@ -194,9 +194,22 @@ class XhsIntelligenceService {
     const accs = listAccounts();
     return accs.map((a) => {
       const notes = listMyNotes(a.account_key, 100);
+      const recentNotes = notes.slice(0, 3).map((n) => {
+        const snaps = getNoteSnapshots(n.note_id, 1);
+        const snap = snaps[snaps.length - 1] || null;
+        return {
+          note_id: n.note_id,
+          title: n.title,
+          publish_time: n.publish_time,
+          views: snap?.views,
+          likes: snap?.likes,
+          favorites: snap?.favorites
+        };
+      });
       return {
         ...a,
-        notesCount: notes.length
+        notesCount: notes.length,
+        recentNotes
       };
     });
   }

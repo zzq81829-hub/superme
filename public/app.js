@@ -3767,6 +3767,23 @@ function renderXhsAccounts(accounts) {
             <span class="statDesc">最后更新</span>
           </div>
         </div>
+        ${a.recentNotes && a.recentNotes.length > 0 ? `
+          <div class="accNotesPreview" style="margin: 10px 0; padding: 8px 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-couture); border-radius: 8px; font-size: 11px;">
+            <div style="font-weight: 700; color: var(--ivory-muted); margin-bottom: 4px;">最新收录真实笔记 (${a.notesCount} 篇)：</div>
+            ${a.recentNotes.map((n) => `
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 3px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); gap: 6px;">
+                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ivory-pure);" title="${esc(n.title)}">📖 ${esc(n.title)}</span>
+                <span style="color: #fbbf24; flex-shrink: 0; font-family: monospace;">
+                  ${n.views != null ? '👁️ ' + n.views : ''} ${n.likes != null ? '❤️ ' + n.likes : ''} ${n.favorites != null ? '⭐ ' + n.favorites : ''}
+                </span>
+              </div>
+            `).join('')}
+          </div>
+        ` : `
+          <div class="accNotesPreview" style="margin: 10px 0; padding: 8px 10px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-couture); border-radius: 8px; font-size: 11px; color: var(--ivory-muted);">
+            ${a.login_status === 'need_login' ? '⚠️ 该账号尚未扫码，请点击【📱 扫码登录】' : '暂无收录笔记，请点击【⚡ 采集数据】'}
+          </div>
+        `}
         ${a.last_error ? `<div class="accErrorTip">⚠️ ${esc(a.last_error)}</div>` : ""}
         <div class="accActions">
           <button class="ghost primaryBtn" onclick="openAccountLogin('${esc(a.account_key)}')">📱 扫码登录</button>
