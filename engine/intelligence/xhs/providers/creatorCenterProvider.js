@@ -126,7 +126,7 @@ export class CreatorCenterProvider extends BaseXhsProvider {
 
       const page = await context.newPage();
       onProgress({ step: "navigate_creator", message: `[${accountKey}] 访问创作者服务中心...` });
-      await page.goto("https://creator.xiaohongshu.com/new/note-manager", { waitUntil: "networkidle", timeout: 20000 });
+      await page.goto("https://creator.xiaohongshu.com/new/note-manager", { waitUntil: "domcontentloaded", timeout: 15000 });
 
       const url = page.url();
       if (this.isLoginExpired(url)) {
@@ -152,9 +152,13 @@ export class CreatorCenterProvider extends BaseXhsProvider {
     } catch (err) {
       if (context) await context.close();
       this.status = "ERROR";
-      this.lastError = err.message;
-      updateAccountStatus(accountKey, "error", err.message);
-      throw err;
+      let userMsg = err.message;
+      if (err.message.includes("closed") || err.message.includes("exitCode=21") || err.message.includes("Target page")) {
+        userMsg = "独立浏览器尚未关闭或仍在释放锁。请在扫码完成后先关闭该账号的浏览器窗口，再点击【⚡ 采集数据】";
+      }
+      this.lastError = userMsg;
+      updateAccountStatus(accountKey, "error", userMsg);
+      throw new Error(userMsg);
     }
   }
 }
