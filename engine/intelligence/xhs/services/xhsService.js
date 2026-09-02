@@ -23,6 +23,7 @@ import { CreatorCenterProvider } from "../providers/creatorCenterProvider.js";
 import { PublicResearchProvider } from "../providers/publicResearchProvider.js";
 import { computeSnapshotMetrics, computeVelocity, computeViralScore } from "../analysis/metrics.js";
 import { generateDailyBrief } from "../analysis/brief.js";
+import { CircadianGuard } from "./circadianGuard.js";
 
 class XhsIntelligenceService {
   constructor() {
@@ -112,6 +113,7 @@ class XhsIntelligenceService {
         hasNotes: myNotes.length > 0,
         hasPublicNotes: pubNotes.length > 0
       },
+      circadian: CircadianGuard.getHumanStatus(),
       recentLogs: this.jobLogs.slice(-10)
     };
   }
@@ -148,7 +150,13 @@ class XhsIntelligenceService {
     }
   }
 
-  async collectAllAccounts(forceMock = false) {
+  async collectAllAccounts(forceMock = false, isManual = false) {
+    const guard = CircadianGuard.checkCanCollect(isManual);
+    if (!guard.allowed) {
+      this._log(`[生理作息守卫] ${guard.reason}`);
+      return { ok: false, sleepMode: true, reason: guard.reason, results: [] };
+    }
+
     const accounts = listAccounts().filter((a) => a.enabled);
     const results = [];
     for (const acc of accounts) {

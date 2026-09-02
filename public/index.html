@@ -527,13 +527,34 @@
 
       <!-- Tab 1: 我的账号 (Account A, B, C) -->
       <div id="xhsPanelAccounts" class="xhsTabPanel">
-        <div id="xhsAccountsGrid" class="xhsAccountsGrid"></div>
-        <div id="xhsAccountNotesDrawer" class="xhsNotesDrawer" style="display: none;">
-          <div class="drawerHeader">
-            <h3 id="xhsDrawerTitle" style="font-size: 14px; margin: 0;">账号笔记与时序表现</h3>
-            <button class="ghost" onclick="closeXhsNotesDrawer()">✕ 收起笔记</button>
+        <!-- 人类生理作息与风控护盾提示条 -->
+        <div id="xhsCircadianBanner" class="appleCircadianBanner">
+          <div class="circadianLeft">
+            <span class="circadianDot"></span>
+            <strong id="circadianStatusText">☀️ 日间自然活跃期</strong>
           </div>
-          <div id="xhsNotesList" class="xhsNotesList"></div>
+          <div class="circadianRight" id="circadianDescText">
+            严格拟合人类作息 · 夜间(23:30-08:30)自动休眠防抓取特征 · 真实高斯微动作护盾
+          </div>
+        </div>
+        <div id="xhsAccountsGrid" class="xhsAccountsGrid"></div>
+      </div>
+
+      <!-- 苹果生态触感数据抽屉 (Apple Studio Sheet) -->
+      <div id="xhsAccountNotesDrawer" class="appleSheetOverlay" style="display: none;" onclick="if(event.target===this)closeXhsNotesDrawer()">
+        <div class="appleSheetContainer">
+          <div class="appleSheetHeader">
+            <div class="appleHeaderInfo">
+              <div class="appleBadgeIcon">📑</div>
+              <div>
+                <h3 id="xhsDrawerTitle" class="appleSheetTitle">账号全量笔记档案</h3>
+                <div id="xhsDrawerSubtitle" class="appleSheetSub">全量真实时序表现与转化漏斗分析</div>
+              </div>
+            </div>
+            <button class="appleSheetClose" onclick="closeXhsNotesDrawer()" title="关闭 (Esc)">✕</button>
+          </div>
+          <div id="xhsDrawerSummary" class="appleSummaryCapsules"></div>
+          <div id="xhsNotesList" class="appleNotesScroll"></div>
         </div>
       </div>
 

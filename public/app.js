@@ -3663,6 +3663,7 @@ async function loadXhsIntelligence(force = false) {
     if (statusData) {
       cachedXhsStatus = statusData;
       renderXhsStatus(statusData);
+      renderXhsCircadianBanner(statusData.circadian);
     }
     if (accsData) {
       cachedXhsAccounts = accsData.accounts || [];
@@ -3726,6 +3727,21 @@ function renderXhsStatus(status) {
   }
 }
 
+function renderXhsCircadianBanner(circadian) {
+  if (!circadian) return;
+  const banner = $("xhsCircadianBanner");
+  const dot = banner?.querySelector(".circadianDot");
+  const text = $("circadianStatusText");
+  const desc = $("circadianDescText");
+
+  if (text) text.textContent = circadian.statusLabel || "☀️ 日间自然活跃期";
+  if (desc) desc.textContent = circadian.policy || "严格拟合人类作息 · 夜间(23:30-08:30)自动休眠防抓取特征 · 真实高斯微动作护盾";
+  if (dot) {
+    dot.style.background = circadian.isQuietHours ? "#f59e0b" : "#22c55e";
+    dot.style.boxShadow = circadian.isQuietHours ? "0 0 10px #f59e0b" : "0 0 10px #22c55e";
+  }
+}
+
 function renderXhsAccounts(accounts) {
   const grid = $("xhsAccountsGrid");
   if (!grid) return;
@@ -3778,6 +3794,11 @@ function renderXhsAccounts(accounts) {
                 </span>
               </div>
             `).join('')}
+            ${a.notesCount > 3 ? `
+              <button class="ghost" style="margin-top: 8px; width: 100%; border-radius: 8px; font-size: 11px; padding: 5px; color: #fbbf24; border-color: rgba(251,191,36,0.3); font-weight: 600;" onclick="viewAccountNotes('${esc(a.account_key)}')">
+                查看全部 ${a.notesCount} 篇笔记与完整时序档案 ➔
+              </button>
+            ` : ""}
           </div>
         ` : `
           <div class="accNotesPreview" style="margin: 10px 0; padding: 8px 10px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-couture); border-radius: 8px; font-size: 11px; color: var(--ivory-muted);">
@@ -3788,7 +3809,7 @@ function renderXhsAccounts(accounts) {
         <div class="accActions">
           <button class="ghost primaryBtn" onclick="openAccountLogin('${esc(a.account_key)}')">📱 扫码登录</button>
           <button class="ghost" onclick="collectSingleAccount('${esc(a.account_key)}', this)">⚡ 采集数据</button>
-          <button class="ghost" onclick="viewAccountNotes('${esc(a.account_key)}')">📑 笔记</button>
+          <button class="ghost" onclick="viewAccountNotes('${esc(a.account_key)}')">📑 笔记 (${a.notesCount || 0})</button>
           <button class="ghost danger" onclick="resetXhsAccount('${esc(a.account_key)}')" title="清空该账号登录缓存，重新扫码" style="padding: 4px 6px;">🧹 重置</button>
         </div>
       </div>
@@ -3848,46 +3869,111 @@ window.confirmAccountLoggedIn = async () => {
 window.viewAccountNotes = async (accountKey) => {
   const drawer = $("xhsAccountNotesDrawer");
   const title = $("xhsDrawerTitle");
+  const subtitle = $("xhsDrawerSubtitle");
+  const summary = $("xhsDrawerSummary");
   const list = $("xhsNotesList");
   if (!drawer || !list) return;
 
-  drawer.style.display = "block";
-  title.textContent = `账号 [${accountKey}] 笔记表现与时序快照`;
-  list.innerHTML = '<div style="color: var(--ivory-muted); padding: 12px;">正在加载笔记...</div>';
+  const acc = cachedXhsAccounts.find((a) => a.account_key === accountKey) || { label: accountKey };
+  drawer.style.display = "flex";
+  title.textContent = `${acc.label} (${accountKey})`;
+  if (subtitle) subtitle.textContent = "全生命周期全量笔记档案 · 苹果级触感时序监控";
+  if (summary) summary.innerHTML = "";
+  list.innerHTML = '<div style="color: var(--ivory-muted); padding: 32px; text-align: center; font-size: 13px;">正在解析全量笔记档案与时序快照...</div>';
 
   try {
-    const res = await api(`/api/intelligence/xhs/notes?accountKey=${encodeURIComponent(accountKey)}`);
+    const res = await api(`/api/intelligence/xhs/notes?accountKey=${encodeURIComponent(accountKey)}&limit=100`);
     const notes = res.notes || [];
     if (!notes.length) {
-      list.innerHTML = '<div style="color: var(--ivory-muted); padding: 12px;">该账号暂无已录入的笔记数据。请先执行一次“采集数据”。</div>';
+      list.innerHTML = `
+        <div style="color: var(--ivory-muted); padding: 48px 16px; text-align: center; font-size: 13px;">
+          <div style="font-size: 32px; margin-bottom: 10px;">📭</div>
+          该账号暂无已录入的笔记数据。<br/>请点击主卡片上的【⚡ 采集数据】执行全量收录。
+        </div>
+      `;
       return;
     }
 
+    // 统计全量累计表现数据 (Summary Metrics)
+    let totalViews = 0;
+    let totalLikes = 0;
+    let totalFavorites = 0;
+    let totalComments = 0;
+    let totalShares = 0;
+
+    notes.forEach((n) => {
+      const snap = n.latestSnapshot || {};
+      totalViews += snap.views ?? snap.impressions ?? 0;
+      totalLikes += snap.likes || 0;
+      totalFavorites += snap.favorites || 0;
+      totalComments += snap.comments || 0;
+      totalShares += snap.shares || 0;
+    });
+
+    const avgFavoriteRate = totalViews > 0 ? ((totalFavorites / totalViews) * 100).toFixed(1) : "0.0";
+    const avgEngagementRate = totalViews > 0 ? (((totalLikes + totalFavorites + totalComments) / totalViews) * 100).toFixed(1) : "0.0";
+
+    if (summary) {
+      summary.innerHTML = `
+        <div class="appleCapsule">
+          <span class="appleCapsuleNum">${notes.length}</span>
+          <span class="appleCapsuleLabel">全量收录</span>
+        </div>
+        <div class="appleCapsule">
+          <span class="appleCapsuleNum">${totalViews.toLocaleString()}</span>
+          <span class="appleCapsuleLabel">总曝光量</span>
+        </div>
+        <div class="appleCapsule">
+          <span class="appleCapsuleNum">${totalLikes.toLocaleString()}</span>
+          <span class="appleCapsuleLabel">累计点赞</span>
+        </div>
+        <div class="appleCapsule">
+          <span class="appleCapsuleNum">${totalFavorites.toLocaleString()}</span>
+          <span class="appleCapsuleLabel">累计收藏</span>
+        </div>
+        <div class="appleCapsule">
+          <span class="appleCapsuleNum">${avgFavoriteRate}%</span>
+          <span class="appleCapsuleLabel">均收藏率</span>
+        </div>
+        <div class="appleCapsule">
+          <span class="appleCapsuleNum">${avgEngagementRate}%</span>
+          <span class="appleCapsuleLabel">均互动率</span>
+        </div>
+      `;
+    }
+
+    // 渲染全量笔记卡片 (Apple Note Cards)
     list.innerHTML = notes.map((n) => {
       const snap = n.latestSnapshot || {};
       const m = n.metrics || {};
       const vel = n.velocity || {};
+      const views = snap.views ?? snap.impressions ?? 0;
+      const isViral = views >= 10000 || (snap.likes || 0) >= 300;
+
       return `
-        <div class="xhsNoteItem">
-          <div class="noteItemHeader">
-            <a href="${esc(n.url || '#')}" target="_blank" class="noteTitleLink">${esc(n.title || n.note_id)}</a>
-            <span class="noteTime">${n.publish_time ? timeAgo(n.publish_time) : ""}</span>
+        <div class="appleNoteCard">
+          <div class="appleCardTop">
+            <a href="${esc(n.url || '#')}" target="_blank" class="appleCardTitleLink">
+              <span>📖</span>
+              <span>${esc(n.title || n.note_id)}</span>
+            </a>
+            <span class="appleCardDate">${n.publish_time ? timeAgo(n.publish_time) : ""}</span>
           </div>
-          <div class="noteMetricsRow">
-            <span class="pill">曝光: <strong>${snap.impressions !== null ? snap.impressions : "NULL"}</strong></span>
-            <span class="pill">观看: <strong>${snap.views !== null ? snap.views : "NULL"}</strong></span>
-            <span class="pill">点赞: <strong>${snap.likes !== null ? snap.likes : "NULL"}</strong></span>
-            <span class="pill">收藏: <strong>${snap.favorites !== null ? snap.favorites : "NULL"}</strong></span>
-            <span class="pill">评论: <strong>${snap.comments !== null ? snap.comments : "NULL"}</strong></span>
-            ${m.favoriteRate !== null ? `<span class="pill highlight">收藏率: <strong>${(m.favoriteRate * 100).toFixed(1)}%</strong></span>` : ""}
-            ${m.engagementRate !== null ? `<span class="pill highlight">互动率: <strong>${(m.engagementRate * 100).toFixed(1)}%</strong></span>` : ""}
-            ${vel.likesPerHour !== null ? `<span class="pill speed">增速: <strong>+${vel.likesPerHour} 赞/h</strong></span>` : ""}
+          <div class="appleCardMetricsRow">
+            <span class="applePill ${isViral ? 'viralHighlight' : ''}">👁️ 曝光: <strong>${views.toLocaleString()}</strong></span>
+            <span class="applePill">❤️ 点赞: <strong>${(snap.likes || 0).toLocaleString()}</strong></span>
+            <span class="applePill">⭐ 收藏: <strong>${(snap.favorites || 0).toLocaleString()}</strong></span>
+            <span class="applePill">💬 评论: <strong>${(snap.comments || 0).toLocaleString()}</strong></span>
+            <span class="applePill">🔁 分享: <strong>${(snap.shares || 0).toLocaleString()}</strong></span>
+            ${m.favoriteRate !== null ? `<span class="applePill viralHighlight">⭐ 收藏率: <strong>${(m.favoriteRate * 100).toFixed(1)}%</strong></span>` : ""}
+            ${m.engagementRate !== null ? `<span class="applePill successHighlight">⚡ 互动率: <strong>${(m.engagementRate * 100).toFixed(1)}%</strong></span>` : ""}
+            ${vel.likesPerHour !== null ? `<span class="applePill successHighlight">🚀 增速: <strong>+${vel.likesPerHour} 赞/h</strong></span>` : ""}
           </div>
         </div>
       `;
     }).join("");
   } catch (err) {
-    list.innerHTML = `<div style="color: #ef4444; padding: 12px;">加载失败: ${esc(err.message)}</div>`;
+    list.innerHTML = `<div style="color: #ef4444; padding: 24px; text-align: center;">加载失败: ${esc(err.message)}</div>`;
   }
 };
 
@@ -4085,6 +4171,13 @@ window.toggleXhsScheduler = () => {
   if (cachedXhsStatus) cachedXhsStatus.schedulerEnabled = !curr;
   renderXhsStatus(cachedXhsStatus || {});
 };
+
+// 苹果生态全局 Esc 键退出抽屉
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    closeXhsNotesDrawer();
+  }
+});
 
 // Start unified polling controller
 startPolling();

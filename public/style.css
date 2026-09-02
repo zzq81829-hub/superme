@@ -2871,90 +2871,286 @@ header p { max-width: 520px; color: var(--os-subtle); font-size: 15px; }
   flex: 1;
 }
 
-.xhsNotesDrawer {
-  background: rgba(18, 15, 14, 0.85);
-  border: 1px solid var(--border-couture);
-  border-radius: 12px;
-  padding: 14px;
-  margin-top: 12px;
-}
+/* ===== Apple Ecosystem Tactile Design: Xiaohongshu Studio Sheet & Circadian Banner ===== */
 
-.drawerHeader {
+.appleCircadianBanner {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border-couture);
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 8px 14px;
+  margin-bottom: 14px;
+  font-size: 11px;
+  backdrop-filter: blur(12px);
 }
 
-.xhsNotesList {
+.circadianLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ivory-pure);
+}
+
+.circadianDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 10px #22c55e;
+  animation: applePulse 2.5s infinite ease-in-out;
+}
+
+@keyframes applePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+.circadianRight {
+  color: var(--ivory-muted);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+}
+
+/* Apple Studio Sheet Overlay */
+.appleSheetOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  z-index: 99999;
+  display: flex;
+  justify-content: flex-end;
+  animation: appleFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes appleFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.appleSheetContainer {
+  width: min(720px, 94vw);
+  height: 100vh;
+  background: rgba(24, 24, 28, 0.92);
+  backdrop-filter: blur(40px) saturate(190%);
+  -webkit-backdrop-filter: blur(40px) saturate(190%);
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: -20px 0 60px rgba(0, 0, 0, 0.7);
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-height: 420px;
-  overflow-y: auto;
+  animation: appleSlideOver 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.xhsNoteItem {
-  background: var(--bg-card);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
+@keyframes appleSlideOver {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.appleSheetHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.appleHeaderInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.appleBadgeIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(249, 115, 22, 0.2));
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.appleSheetTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.3px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+}
+
+.appleSheetSub {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 2px;
+}
+
+.appleSheetClose {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.appleSheetClose:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  transform: scale(1.06);
+}
+
+.appleSummaryCapsules {
+  display: flex;
+  gap: 10px;
+  padding: 14px 24px;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  overflow-x: auto;
+}
+
+.appleCapsule {
+  flex: 1;
+  min-width: 100px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
+  gap: 3px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.appleCapsule:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.appleCapsuleNum {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "SF Pro Text", system-ui, sans-serif;
+  letter-spacing: -0.4px;
+}
+
+.appleCapsuleLabel {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.appleNotesScroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.appleNoteCard {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.appleNoteCard:hover {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.appleCardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.appleCardTitleLink {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  line-height: 1.4;
+  letter-spacing: -0.2px;
+  display: flex;
+  align-items: center;
   gap: 6px;
 }
 
-.noteItemHeader {
+.appleCardTitleLink:hover {
+  color: #fbbf24;
+}
+
+.appleCardDate {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+  font-family: monospace;
+}
+
+.appleCardMetricsRow {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
-.noteTitleLink {
-  font-size: 13px;
+.applePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.applePill strong {
+  color: #fff;
   font-weight: 600;
-  color: var(--ivory-pure);
-  text-decoration: none;
+  font-family: monospace;
 }
 
-.noteTitleLink:hover {
-  text-decoration: underline;
+.applePill.viralHighlight {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.35);
   color: #fbbf24;
 }
 
-.noteTime {
-  font-size: 11px;
-  color: var(--ivory-muted);
-  white-space: nowrap;
-}
-
-.noteMetricsRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.pill {
-  font-size: 11px;
-  padding: 2px 7px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--ivory-muted);
-}
-
-.pill.highlight {
-  background: rgba(217, 119, 6, 0.15);
+.applePill.viralHighlight strong {
   color: #fbbf24;
-  border: 1px solid rgba(217, 119, 6, 0.3);
 }
 
-.pill.speed {
+.applePill.successHighlight {
   background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.35);
   color: #4ade80;
-  border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
 .radarControlsCard {
