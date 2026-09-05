@@ -10,8 +10,8 @@ test("router sends review work to Claude", () => {
   assert.equal(chooseAgent({ agent: "auto", title: "code review", description: "review the design" }), "claude");
 });
 
-test("router sends architecture work to Codex", () => {
-  assert.equal(chooseAgent({ agent: "auto", title: "检查代码架构", description: "inspect the design" }), "codex");
+test("router sends architecture work to Antigravity", () => {
+  assert.equal(chooseAgent({ agent: "auto", title: "检查代码架构", description: "inspect the design" }), "antigravity");
 });
 
 test("router sends implementation work to Antigravity", () => {
@@ -29,6 +29,8 @@ test("router sends the Phase 0 demo prompt to Antigravity", () => {
 test("headless permission denial is an availability failure and can fall back safely", () => {
   assert.equal(isWorkerUnavailable({ error: "Headless Antigravity denied a required tool" }), true);
   assert.equal(isWorkerUnavailable({ stderr: "headless mode cannot prompt for read_file permission" }), true);
+  assert.equal(isWorkerUnavailable({ error: "Eligibility check failed: connection attempt failed" }), true);
+  assert.equal(isWorkerUnavailable({ error: "invalid model selection" }), true);
 });
 
 test("prompt contains task intent, project path, and safety workflow", () => {

@@ -1,11 +1,20 @@
 import { isForbiddenApiEnabled, workerPolicy } from "../billing/policy.js";
 import { getRemainingBudget, getBudgetSummary } from "../billing/deepseekBudget.js";
 import { workerHealthMap } from "./health.js";
-import { FALLBACK_CHAIN } from "./ids.js";
+import { FALLBACK_CHAIN, WORKERS } from "./ids.js";
 import { getWorkerQuota } from "./quota.js";
+import { getWorker } from "../workforce/registry.js";
+import { hasAvailableAccount, getEffectiveWorkerAccount } from "../workforce/accountPool.js";
 
 export function applyCostGuard(requested, healthMap, options = {}) {
-  const resolvedHealthMap = healthMap || workerHealthMap({ probeReadiness: true, config: options.config || null });
+  // A rehearsal must not depend on local CLI installations or login state.
+  // Keep quota, approval and spending guards below active in both modes.
+  const resolvedHealthMap = healthMap || (options.config?.dryRun === true
+    ? Object.fromEntries(WORKERS.map((id) => {
+      const key = id === "grok-build" ? "grokBuild" : id === "grok-bot" ? "grokBot" : id;
+      return [id, { id, status: "DRY_RUN", available: id !== "grok-bot" && options.config.agents?.[key]?.enabled !== false, billingMode: workerPolicy(id).billing }];
+    }))
+    : workerHealthMap({ probeReadiness: true, config: options.config || null }));
   const forbidden = isForbiddenApiEnabled();
   if (forbidden.length) {
     return {
@@ -17,17 +26,17 @@ export function applyCostGuard(requested, healthMap, options = {}) {
   }
 
   const remainingBudget = getRemainingBudget(options);
-  const usesDeepSeekBudget = (id) => {
-    if (id === "deepseek") return true;
-    if (id !== "hermes") return false;
-    return String(options.config?.agents?.hermes?.provider || "custom:gemini-proxy").toLowerCase() === "deepseek";
-  };
+  const usesPaidBudget = (id) => id === "deepseek" || id === "hermes";
 
   const tryOrder = requested === "auto"
     ? [...FALLBACK_CHAIN]
     : requested === "grok-bot"
       ? ["grok-bot", ...FALLBACK_CHAIN]
-      : [requested, ...FALLBACK_CHAIN.filter((id) => id !== requested)];
+      : requested === "codex"
+        ? ["codex", "claude", ...FALLBACK_CHAIN.filter((id) => id !== "codex" && id !== "claude")]
+        : requested === "deepseek"
+          ? ["deepseek", "codex", ...FALLBACK_CHAIN.filter((id) => id !== "deepseek" && id !== "codex")]
+          : [requested, ...FALLBACK_CHAIN.filter((id) => id !== requested)];
 
   const skip = new Set(options.skip || []);
   const attempts = [];
@@ -38,7 +47,7 @@ export function applyCostGuard(requested, healthMap, options = {}) {
     }
 
     // Check the DeepSeek monthly hard cap only for workers that actually use DeepSeek.
-    if (usesDeepSeekBudget(id) && remainingBudget <= 0) {
+    if (usesPaidBudget(id) && remainingBudget <= 0) {
       attempts.push({ id, skip: "QUOTA_LIMITED (DeepSeek monthly budget exhausted)" });
       continue;
     }
@@ -46,8 +55,53 @@ export function applyCostGuard(requested, healthMap, options = {}) {
     // Check persisted subscription-quota state: an exhausted worker is skipped
     // proactively so a fresh task does not re-dispatch to it and waste a run.
     const quotaState = getWorkerQuota(id, options);
-    if (quotaState && quotaState.status === "exhausted") {
+    if (quotaState && quotaState.status === "exhausted" && (quotaState.source === "founder" || !hasAvailableAccount(id, options))) {
       attempts.push({ id, skip: `QUOTA_EXHAUSTED (${quotaState.reason || "subscription quota exhausted"})` });
+      continue;
+    }
+
+    const accountState = getEffectiveWorkerAccount(id, options);
+    if (accountState.pool && accountState.account?.status !== "AVAILABLE") {
+      attempts.push({ id, skip: "ACCOUNT_NOT_READY (账号尚未登录或容量待检查)" });
+      continue;
+    }
+
+    // Check workforce status machine
+    try {
+      const wfWorker = getWorker(id, options);
+      if (wfWorker && ["EXHAUSTED", "COOLDOWN", "THROTTLED"].includes(wfWorker.status)) {
+        if (!hasAvailableAccount(id, options)) {
+          attempts.push({ id, skip: `${wfWorker.status} (${wfWorker.failureReason || "workforce cooldown"})` });
+          continue;
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    // Senior Reasoning Model Protection:
+    // Low-complexity tasks (tier === "LOW") MUST NOT fall back to workers reserved
+    // for high-value reasoning (Codex, Grok Build, Claude).
+    const taskTier = options.task?.modelNeed?.tier || options.task?.tier || options.modelNeed?.tier || options.tier;
+    if (taskTier === "LOW" && id !== requested) {
+      try {
+        const wfWorker = getWorker(id, options);
+        if (wfWorker?.reserveForHighValue) {
+          attempts.push({ id, skip: "SENIOR_MODEL_RESERVED (low-complexity tasks cannot burn senior reasoning workers)" });
+          continue;
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    // Hermes & Paid API protection: Never auto-fallback to metered API unless
+    // explicitly requested or task specifies allowPaidFallback = true.
+    const isPaidWorker = id === "hermes" || id === "deepseek";
+    const explicitlyRequested = requested === id;
+    const allowPaidFallback = options.allowPaidFallback === true || options.task?.allowPaidFallback === true;
+    if (isPaidWorker && !explicitlyRequested && !allowPaidFallback) {
+      attempts.push({ id, skip: "PAID_MODEL_BLOCKED (requires explicit selection or allowPaidFallback=true)" });
       continue;
     }
 
@@ -83,7 +137,7 @@ export function applyCostGuard(requested, healthMap, options = {}) {
     };
   }
 
-  if (usesDeepSeekBudget(requested) && remainingBudget <= 0) {
+  if (usesPaidBudget(requested) && remainingBudget <= 0) {
     const summary = getBudgetSummary(options);
     return {
       ok: false,

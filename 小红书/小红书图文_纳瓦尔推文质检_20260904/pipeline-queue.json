@@ -1,0 +1,25 @@
+[
+  {
+    "id": "naval-x-factcheck-20260904",
+    "packageId": "naval-x-factcheck-20260904",
+    "accountId": "default",
+    "title": "外网疯传5条，仅3条靠谱！",
+    "gateMode": "manual_buffer",
+    "status": "awaiting_manual_approval",
+    "targetWindow": "evening_prime",
+    "scheduledTime": "2026-09-04T03:45:00.000Z",
+    "jitterMinutes": -15,
+    "compliancePassed": true,
+    "hashtags": [
+      "#心理学",
+      "#书单",
+      "#读书笔记",
+      "#认知觉醒"
+    ],
+    "createdAt": "2026-09-04T04:00:00.000Z",
+    "updatedAt": "2026-09-04T04:00:00.000Z",
+    "founderApproved": false,
+    "released": false,
+    "meta": {}
+  }
+]

@@ -41,33 +41,10 @@ const HIGH_RISK_PATTERNS = [
   }
 ];
 
+import { assessTaskRisk } from "../policy/reasoningEscalation.js";
+
 export function classifyTaskRisk(task = {}) {
-  const reasons = [];
-  const text = `${task.title || ""}\n${task.description || ""}\n${(task.acceptanceCriteria || []).join(" ")}`;
-
-  if (task.riskLevel === "high") {
-    reasons.push("创建时显式指定为高风险 (Explicit High Risk)");
-  }
-
-  for (const { regex, reason } of HIGH_RISK_PATTERNS) {
-    if (regex.test(text)) {
-      reasons.push(reason);
-    }
-  }
-
-  if (reasons.length > 0) {
-    return {
-      level: "high",
-      reasons,
-      interruptLevel: 1
-    };
-  }
-
-  return {
-    level: "low",
-    reasons: [],
-    interruptLevel: 3
-  };
+  return assessTaskRisk(task);
 }
 
 export function computePayloadHash(task = {}) {

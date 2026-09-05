@@ -69,7 +69,11 @@ async function runAcceptanceCheck(criterion, projectPath, config) {
 
 export async function verifyTask({ projectPath, result, config, task = {} }) {
   if (!result?.ok) {
-    return { ok: false, reason: "worker result not ok", checks: [] };
+    const error = String(result?.error || "").trim();
+    const stderr = String(result?.stderr || "").trim();
+    const detail = (/^Process (exited|timed out)/i.test(error) && stderr ? `${error}；${stderr}` : error || stderr || result?.message || "Worker returned no usable result").trim();
+    const agent = result?.agent || "worker";
+    return { ok: false, reason: `${agent} 执行失败：${detail}`, rootError: detail, checks: [] };
   }
   if (!(result.message || result.preview || "").trim()) {
     return { ok: false, reason: "worker produced no message", checks: [] };

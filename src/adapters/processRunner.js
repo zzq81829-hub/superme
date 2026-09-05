@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { spawn } from "child_process";
+import { loadConfig } from "../config.js";
 import { pathWithCommandDir } from "./resolveCommand.js";
 
 const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000;
@@ -90,6 +91,30 @@ function baseRecord({ command, displayArgs, cwd, dryRun, timeoutMs, startedAt })
     dryRun,
     timeoutMs
   };
+}
+
+let _proxyUrl = null;
+function resolvedProxyUrl() {
+  if (_proxyUrl === null) {
+    try {
+      const cfg = loadConfig();
+      const p = cfg.proxy || {};
+      _proxyUrl = p.enabled === false ? "" : String(p.url || "http://127.0.0.1:7890").trim();
+    } catch {
+      _proxyUrl = "";
+    }
+  }
+  return _proxyUrl;
+}
+
+// CLI workers (agy/grok/codex) read HTTP_PROXY/HTTPS_PROXY env vars, not the
+// Windows system proxy. Inject the configured proxy so they can reach their
+// cloud backends from network environments where direct access is blocked.
+function withProxyEnv(baseEnv) {
+  if (baseEnv.HTTP_PROXY || baseEnv.HTTPS_PROXY) return baseEnv;
+  const url = resolvedProxyUrl();
+  if (!url) return baseEnv;
+  return { ...baseEnv, HTTP_PROXY: url, HTTPS_PROXY: url, http_proxy: url, https_proxy: url };
 }
 
 export function runProcess({
@@ -211,7 +236,7 @@ export function runProcess({
       const useShell = process.platform === "win32" && /\.(cmd|bat)$/i.test(command);
       child = spawn(command, args, {
         cwd,
-        env: pathWithCommandDir(command, env || process.env),
+        env: pathWithCommandDir(command, withProxyEnv(env || process.env)),
         shell: useShell,
         windowsHide: true,
         stdio: ["pipe", "pipe", "pipe"]

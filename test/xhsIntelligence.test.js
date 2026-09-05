@@ -254,8 +254,69 @@ test("XHS Data Intelligence: 6. Express API endpoints (/status, /accounts, /note
     const addKwJson = await addKwRes.json();
     assert.equal(addKwJson.ok, true);
     assert.equal(addKwJson.keyword.keyword, "神经科学");
+
+    // 8. POST /research/login-window
+    const loginWinRes = await fetch(`${baseUrl}/research/login-window`, { method: "POST" });
+    assert.equal(loginWinRes.status, 200);
+    const loginWinJson = await loginWinRes.json();
+    assert.equal(loginWinJson.ok, true);
+    assert.ok(loginWinJson.browser);
   } finally {
     server.close();
   }
 });
+
+test("XHS Data Intelligence: 7. CircadianGuard biological rhythm & human active windows", async () => {
+  const { CircadianGuard } = await import("../engine/intelligence/xhs/services/circadianGuard.js");
+
+  // Test Quiet Hours (e.g. 02:30 AM, 05:00 AM, 23:45 PM)
+  const d1 = new Date("2026-09-03T02:30:00");
+  assert.equal(CircadianGuard.isQuietHours(d1), true, "02:30 AM is quiet hours");
+
+  const d2 = new Date("2026-09-03T23:45:00");
+  assert.equal(CircadianGuard.isQuietHours(d2), true, "23:45 PM is quiet hours");
+
+  // Test Active Windows (e.g. 10:00 AM, 15:00 PM, 21:00 PM)
+  const d3 = new Date("2026-09-03T10:00:00");
+  assert.equal(CircadianGuard.isQuietHours(d3), false, "10:00 AM is active hours");
+  assert.equal(CircadianGuard.getActiveWindowName(d3), "早间自然活跃期");
+
+  const d4 = new Date("2026-09-03T15:00:00");
+  assert.equal(CircadianGuard.getActiveWindowName(d4), "午后自然活跃期");
+
+  const d5 = new Date("2026-09-03T21:00:00");
+  assert.equal(CircadianGuard.getActiveWindowName(d5), "晚间黄金活跃期");
+
+  // Automated background polling blocked during quiet hours
+  const quietCheck = CircadianGuard.checkCanCollect(false);
+  if (CircadianGuard.isQuietHours(new Date())) {
+    assert.equal(quietCheck.allowed, false);
+    assert.ok(quietCheck.reason.includes("夜间生理静默期"));
+  }
+
+  // Founder manual override allowed with warning notice
+  const manualCheck = CircadianGuard.checkCanCollect(true);
+  assert.equal(manualCheck.allowed, true);
+
+  // Dynamic next scheduled delay calculation is positive and non-zero
+  const delayMs = CircadianGuard.getNextScheduledDelayMs(d3);
+  assert.ok(delayMs > 0, "Delay must be positive");
+  assert.ok(delayMs <= 24 * 60 * 60 * 1000, "Delay must be within 24 hours");
+});
+
+test("XHS Data Intelligence: 8. PublicResearchProvider profile isolation & bioJitter", async () => {
+  const { PublicResearchProvider } = await import("../engine/intelligence/xhs/providers/publicResearchProvider.js");
+  const { bioJitter } = await import("../engine/intelligence/xhs/providers/creatorCenterProvider.js");
+
+  const provider = new PublicResearchProvider();
+  const profileDir = provider.getProfileDir();
+  assert.ok(profileDir.includes("xhs_public_research"), "Uses dedicated isolated research profile");
+
+  // Verify bioJitter produces values strictly within bounds
+  for (let i = 0; i < 20; i++) {
+    const j = bioJitter(3000, 6000);
+    assert.ok(j >= 3000 && j <= 6000, `Jitter ${j} is within [3000, 6000]`);
+  }
+});
+
 

@@ -78,6 +78,66 @@ test("Antigravity dangerous permission bypass is explicit and visible in dry-run
   assert.equal(result.permissionMode, "dangerous-bypass");
 });
 
+test("Antigravity Boost injects /boost and --effort high when boost is enabled", async (t) => {
+  const boostConfig = {
+    ...config,
+    agents: {
+      ...config.agents,
+      antigravity: { ...config.agents.antigravity, boost: true, effort: "high" }
+    }
+  };
+  const result = await runAntigravity({
+    task: { id: "test-antigravity-boost" },
+    prompt: "ANALYZE CODEBASE",
+    projectPath: process.cwd(),
+    config: boostConfig
+  });
+  t.after(() => removeLog(result.logPath));
+
+  assert.equal(result.ok, true);
+  assert.equal(result.boost, true);
+  assert.equal(result.effort, "high");
+  assert.equal(result.args.includes("--effort"), true);
+  assert.equal(result.args.includes("high"), true);
+  assert.equal(result.preview, "/boost\nANALYZE CODEBASE");
+});
+
+test("Antigravity Boost avoids double prefix when prompt already starts with /boost", async (t) => {
+  const boostConfig = {
+    ...config,
+    agents: {
+      ...config.agents,
+      antigravity: { ...config.agents.antigravity, boost: true }
+    }
+  };
+  const result = await runAntigravity({
+    task: { id: "test-antigravity-boost-idempotent" },
+    prompt: "/boost ALREADY PREFIXED",
+    projectPath: process.cwd(),
+    config: boostConfig
+  });
+  t.after(() => removeLog(result.logPath));
+
+  assert.equal(result.ok, true);
+  assert.equal(result.boost, true);
+  assert.equal(result.preview, "/boost ALREADY PREFIXED");
+});
+
+test("Antigravity Boost can be explicitly enabled per task", async (t) => {
+  const result = await runAntigravity({
+    task: { id: "test-antigravity-task-boost", boost: true, effort: "high" },
+    prompt: "TASK LEVEL BOOST",
+    projectPath: process.cwd(),
+    config
+  });
+  t.after(() => removeLog(result.logPath));
+
+  assert.equal(result.ok, true);
+  assert.equal(result.boost, true);
+  assert.equal(result.effort, "high");
+  assert.equal(result.preview, "/boost\nTASK LEVEL BOOST");
+});
+
 test("location errors fall back to Claude then GPT-OSS", () => {
   assert.equal(isLocationBlocked("FAILED_PRECONDITION: User location is not supported for the API use."), true);
   assert.equal(nextFallbackModel([]), "claude-sonnet-4-6");

@@ -10,6 +10,17 @@ function isFile(filePath) {
   }
 }
 
+function isNativeClaudeCandidate(filePath) {
+  if (isFile(filePath)) return true;
+  try {
+    fs.accessSync(filePath, fs.constants.F_OK);
+    return true;
+  } catch (error) {
+    // Windows application-control can hide a known installed binary with EPERM.
+    return process.platform === "win32" && error.code === "EPERM";
+  }
+}
+
 function pathCandidates(name) {
   const dirs = (process.env.PATH || "").split(path.delimiter).filter(Boolean);
   const extSource = process.platform === "win32"
@@ -79,7 +90,7 @@ export function resolveAgentCommand(agentName, configured = "") {
   // native executable so an untrusted task prompt is never parsed by cmd.exe.
   if (agentName === "claude" && configured && !path.extname(configured)) {
     for (const candidate of knownLocations(agentName)) {
-      if (/\.exe$/i.test(candidate) && isFile(candidate)) return candidate;
+      if (/\.exe$/i.test(candidate) && isNativeClaudeCandidate(candidate)) return candidate;
     }
   }
 

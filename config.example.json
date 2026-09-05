@@ -3,6 +3,10 @@
   "host": "127.0.0.1",
   "workspaceRoot": "",
   "dryRun": true,
+  "proxy": {
+    "enabled": true,
+    "url": "http://127.0.0.1:7890"
+  },
   "computerAccess": {
     "enabled": true,
     "mode": "read-only-privacy-filtered"
@@ -19,15 +23,24 @@
       "command": "codex",
       "args": [],
       "sandbox": "workspace-write",
+      "model": "gpt-5.6-luna",
+      "modelReasoningEffort": "max",
       "timeoutMs": 600000,
       "workingDirectory": ""
+    },
+    "claude": {
+      "enabled": true,
+      "command": "claude",
+      "model": "claude-sonnet-4-6"
     },
     "antigravity": {
       "enabled": true,
       "command": "agy",
       "args": [],
       "mode": "accept-edits",
-      "model": "claude-sonnet-4-6",
+      "model": "gemini-3.8-flash-high",
+      "boost": true,
+      "effort": "high",
       "permissionMode": "configured",
       "sandbox": false,
       "timeoutMs": 600000,

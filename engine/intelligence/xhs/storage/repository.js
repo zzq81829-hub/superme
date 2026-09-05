@@ -30,10 +30,47 @@ export function updateAccountStatus(accountKey, status, errorMsg = null, success
 }
 
 // ===== 2. My Notes & Snapshots =====
-export function upsertNote({ accountKey, noteId, title, publishTime, noteType, url }) {
+export function resolveAccountMapping(keyOrId) {
+  const map = {
+    xhs_account_1: { accountKey: "xhs_account_1", accountId: "shuzhai", profileDir: "xhs_account_1" },
+    shuzhai: { accountKey: "xhs_account_1", accountId: "shuzhai", profileDir: "xhs_account_1" },
+    "good try": { accountKey: "xhs_account_1", accountId: "shuzhai", profileDir: "xhs_account_1" },
+    "good_try": { accountKey: "xhs_account_1", accountId: "shuzhai", profileDir: "xhs_account_1" },
+
+    xhs_account_2: { accountKey: "xhs_account_2", accountId: "x_curation", profileDir: "xhs_account_2" },
+    x_curation: { accountKey: "xhs_account_2", accountId: "x_curation", profileDir: "xhs_account_2" },
+    "gold chance": { accountKey: "xhs_account_2", accountId: "x_curation", profileDir: "xhs_account_2" },
+    "Gold chance": { accountKey: "xhs_account_2", accountId: "x_curation", profileDir: "xhs_account_2" },
+
+    xhs_account_3: { accountKey: "xhs_account_3", accountId: "personal_ip", profileDir: "xhs_account_3" },
+    personal_ip: { accountKey: "xhs_account_3", accountId: "personal_ip", profileDir: "xhs_account_3" },
+    "枳子8": { accountKey: "xhs_account_3", accountId: "personal_ip", profileDir: "xhs_account_3" }
+  };
+  return map[keyOrId] || { accountKey: keyOrId, accountId: keyOrId, profileDir: keyOrId };
+}
+
+export function upsertNote({
+  accountKey,
+  accountId = null,
+  account_id = null,
+  profileDir = null,
+  profile_dir = null,
+  noteId,
+  title,
+  publishTime,
+  noteType,
+  url
+}) {
   const db = getDb();
   const now = new Date().toISOString();
-  const existing = db.prepare("SELECT id FROM xhs_notes WHERE account_key = ? AND note_id = ?").get(accountKey, noteId);
+  const rawId = accountId || account_id;
+  const rawProfileDir = profileDir || profile_dir;
+  const resolved = resolveAccountMapping(accountKey || rawId || rawProfileDir);
+  const finalKey = accountKey || resolved.accountKey;
+  const finalId = rawId || resolved.accountId;
+  const finalProfileDir = rawProfileDir || resolved.profileDir;
+
+  const existing = db.prepare("SELECT id FROM xhs_notes WHERE account_key = ? AND note_id = ?").get(finalKey, noteId);
   if (existing) {
     db.prepare(`
       UPDATE xhs_notes 
@@ -41,15 +78,17 @@ export function upsertNote({ accountKey, noteId, title, publishTime, noteType, u
           publish_time = COALESCE(?, publish_time),
           note_type = COALESCE(?, note_type),
           url = COALESCE(?, url),
+          account_id = COALESCE(?, account_id),
+          profile_dir = COALESCE(?, profile_dir),
           updated_at = ?
       WHERE account_key = ? AND note_id = ?
-    `).run(title, publishTime, noteType, url, now, accountKey, noteId);
+    `).run(title, publishTime, noteType, url, finalId, finalProfileDir, now, finalKey, noteId);
     return existing.id;
   } else {
     const res = db.prepare(`
-      INSERT INTO xhs_notes (account_key, note_id, title, publish_time, note_type, url, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(accountKey, noteId, title, publishTime, noteType, url, now, now);
+      INSERT INTO xhs_notes (account_key, account_id, profile_dir, note_id, title, publish_time, note_type, url, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(finalKey, finalId, finalProfileDir, noteId, title, publishTime, noteType, url, now, now);
     return Number(res.lastInsertRowid);
   }
 }
@@ -64,6 +103,10 @@ export function listMyNotes(accountKey = null, limit = 50) {
 
 export function appendNoteSnapshot({
   accountKey,
+  accountId = null,
+  account_id = null,
+  profileDir = null,
+  profile_dir = null,
   noteId,
   snapshotAt,
   dataDate,
@@ -82,15 +125,22 @@ export function appendNoteSnapshot({
 }) {
   const db = getDb();
   const time = snapshotAt || new Date().toISOString();
+  const rawId = accountId || account_id;
+  const rawProfileDir = profileDir || profile_dir;
+  const resolved = resolveAccountMapping(accountKey || rawId || rawProfileDir);
+  const finalKey = accountKey || resolved.accountKey;
+  const finalId = rawId || resolved.accountId;
+  const finalProfileDir = rawProfileDir || resolved.profileDir;
+
   const res = db.prepare(`
     INSERT INTO xhs_note_snapshots (
-      account_key, note_id, snapshot_at, data_date,
+      account_key, account_id, profile_dir, note_id, snapshot_at, data_date,
       impressions, views, likes, favorites, comments, shares,
       followers_gained, two_second_exit_rate, completion_rate, average_watch_time,
       source, raw_payload_hash
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
-    accountKey, noteId, time, dataDate || null,
+    finalKey, finalId, finalProfileDir, noteId, time, dataDate || null,
     impressions ?? null, views ?? null, likes ?? null, favorites ?? null, comments ?? null, shares ?? null,
     followersGained ?? null, twoSecondExitRate ?? null, completionRate ?? null, averageWatchTime ?? null,
     source, rawPayloadHash

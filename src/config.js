@@ -19,24 +19,32 @@ export function loadConfig() {
   const config = {
     ...defaults,
     ...saved,
+    port: process.env.AI_FOUNDER_OS_PORT ? Number(process.env.AI_FOUNDER_OS_PORT) : saved.port || defaults.port,
+    dryRun: process.env.AI_FOUNDER_OS_DRY_RUN === "true" ? true : saved.dryRun ?? defaults.dryRun,
     host: process.env.AI_FOUNDER_OS_HOST?.trim() || saved.host || defaults.host,
     execution: { ...defaults.execution, ...saved.execution },
     computerAccess: { ...defaults.computerAccess, ...saved.computerAccess },
+    proxy: { enabled: true, url: "http://127.0.0.1:7890", ...(defaults.proxy || {}), ...(saved.proxy || {}) },
     agents: {
       hermes: {
         enabled: true,
         command: "hermes",
-        provider: "custom:gemini-proxy",
-        model: "gemini-flash-3.7",
+        provider: "deepseek",
+        model: "deepseek-v4-pro",
         modelReasoningEffort: "high",
         ...(saved.agents?.hermes || {})
       },
       codex: { ...defaults.agents.codex, ...saved.agents?.codex },
       claude: { enabled: true, command: "claude", ...(saved.agents?.claude || {}) },
-      antigravity: { ...defaults.agents.antigravity, ...saved.agents?.antigravity },
+      antigravity: {
+        boost: true,
+        effort: "high",
+        ...defaults.agents.antigravity,
+        ...saved.agents?.antigravity
+      },
       grokBuild: { enabled: true, command: "grok", ...(saved.agents?.grokBuild || {}) },
       grok: { enabled: true, command: "grok", ...(saved.agents?.grok || {}) },
-      grokBot: { enabled: false, command: "", ...(saved.agents?.grokBot || {}) },
+      grokBot: { enabled: true, command: "grok", timeoutMs: 180000, ...(saved.agents?.grokBot || {}) },
       deepseek: { enabled: true, command: "hermes", ...(saved.agents?.deepseek || {}) }
     },
     bridge: {

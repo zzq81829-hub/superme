@@ -9,4 +9,4 @@ export const WORKERS = [
   "deepseek"
 ];
 
-export const FALLBACK_CHAIN = ["codex", "claude", "antigravity", "grok-build"];
+export const FALLBACK_CHAIN = ["antigravity", "claude", "grok-build", "codex"];

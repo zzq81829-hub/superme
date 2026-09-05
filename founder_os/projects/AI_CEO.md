@@ -46,3 +46,9 @@ Add browser/computer workers only where CLI/API/MCP/file handoffs are insufficie
 
 ## Design principle
 Do not solve a reliable CLI/API problem with fragile GUI clicking.
+
+## 2026-09-05 账号池与工作台验收
+- Antigravity 与 Codex 各自最多保留 A/B 两个账号槽位。只有经过登录检查且状态为 `AVAILABLE` 的槽位才能参与派工；B 未验证时不得把 A 的登录或额度冒充为 B。
+- Antigravity B 需要创始人在官方软件中手动切换后检查；Codex B 必须绑定独立 `CODEX_HOME` 后检查。凭据、令牌、环境变量不进入控制台 API 或 UI。
+- Founder OS 工作台已完成桌面/手机/平板 UI 验收和实际 Codex 文件交付验收；本地控制平面仍是唯一事实源。
+- 创始人已取消强制 ponytail 注入，派工提示不再包含该强制指令。

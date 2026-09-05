@@ -3,7 +3,8 @@
   "short_name": "Founder OS",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#09090b",
-  "theme_color": "#09090b",
+  "background_color": "#111214",
+  "theme_color": "#111214",
+  "icons": [{ "src": "/os-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }],
   "description": "创始人驾驶舱：CEO 理解方向，Hermes 推进执行。"
 }

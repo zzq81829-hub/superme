@@ -1,3 +1,12 @@
+export const CARD_LAYOUT_STANDARD = {
+  bannerBridgeGap: { min: 36, max: 52 },
+  artBannerBridge: { min: 36, max: 52 },
+  titleSpacing: { min: 88, max: 96 },
+  breathingGap: { min: 26, max: 32 },
+  microCard: { opacity: 0.70, radius: 13, indicatorWidth: 7 },
+  anchorCard: { minHeight: 118 }
+};
+
 const DEFAULT_TEMPLATE_ID = "shuzhai-editorial-v1";
 
 export const XIAOHONGSHU_LAYOUT_TEMPLATES = {
@@ -14,6 +23,40 @@ export const XIAOHONGSHU_LAYOUT_TEMPLATES = {
       kicker: { text: "SHUZHAI / READING NOTES" }
     },
     slidePolicy: { minimum: 4, maximum: 7, ending: "save_and_follow" }
+  },
+  "shuzhai-card-standard-v1": {
+    id: "shuzhai-card-standard-v1",
+    name: "书斋·卡片排版标准",
+    version: 1,
+    canvas: { width: 1080, height: 1440, ratio: "3:4" },
+    safeArea: { top: 88, right: 76, bottom: 112, left: 76 },
+    palette: { ink: "#121212", ivory: "#F4EFE6", accent: "#A30F22" },
+    typography: {
+      coverTitle: { maxLines: 3, maxCharsPerLine: 12 },
+      body: { minSize: 42, maxCharsPerPage: 64, maxLines: 6 },
+      kicker: { text: "SHUZHAI / READING NOTES" }
+    },
+    bannerBridgeGap: { min: 36, max: 52 },
+    artBannerBridge: { min: 36, max: 52 },
+    titleSpacing: { min: 88, max: 96 },
+    breathingGap: { min: 26, max: 32 },
+    microCard: { opacity: 0.70, radius: 13, indicatorWidth: 7 },
+    anchorCard: { minHeight: 118 },
+    slidePolicy: { minimum: 4, maximum: 7, ending: "save_and_follow" }
+  },
+  "x-curation-dark-v1": {
+    id: "x-curation-dark-v1",
+    name: "X推特编译·暗黑极简",
+    version: 1,
+    canvas: { width: 1080, height: 1440, ratio: "3:4" },
+    safeArea: { top: 88, right: 76, bottom: 112, left: 76 },
+    palette: { ink: "#FFFFFF", ivory: "#000000", accent: "#1D9BF0" },
+    typography: {
+      coverTitle: { maxLines: 2, maxCharsPerLine: 10 },
+      body: { minSize: 36, maxCharsPerPage: 120, maxLines: 12 },
+      kicker: { text: "X / FACT-CHECK & CURATION" }
+    },
+    slidePolicy: { minimum: 1, maximum: 4, ending: "discuss_and_follow" }
   }
 };
 

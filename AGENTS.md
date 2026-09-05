@@ -19,6 +19,7 @@ The founder's time is more expensive than tokens.
 5. Read the relevant project file under `founder_os/projects/`.
 6. Inspect the target repository and its git status.
 7. Determine the current phase before changing scope.
+8. For content-business work (Xiaohongshu / 任何内容运营), also read `founder_os/CONTENT_OPERATING_SYSTEM.md` — the company's Content OS v1.0 constitution. Its MASTER DIRECTIVE is binding on all content decisions.
 
 ## Execution rules
 - Solve routine ambiguity yourself.
@@ -29,6 +30,7 @@ The founder's time is more expensive than tokens.
 - Fix regressions you introduce.
 - Record meaningful architecture/product decisions.
 - Never publish, purchase, send external messages, delete important data, or perform irreversible actions without explicit approval.
+- Read scope: agents may read any file on the machine EXCEPT privacy-sensitive content (keys/tokens/passwords, browser history, private chats/photos, identity/medical) and money content (card numbers, bills, account balances, tax/finance files). See `founder_os/READ_SCOPE.md`; when unsure, stop and ask.
 - Never treat “code completed” as product success. Product success is defined by the current phase and its measurable acceptance criteria.
 
 ## Reporting
@@ -49,3 +51,6 @@ Every task result should state:
 - Read access is allowed only through the Control Center's read-only, privacy-filtered reader.
 - Never inspect AppData, credentials, passwords, keys, tokens, banking, billing, invoices, tax, identity documents, or similarly private paths.
 - Currency amounts and common personal identifiers must be redacted before content reaches an AI worker.
+## Visual & Content Card Design Standard
+- All content and card rendering tasks must load and follow `.agents/skills/card-layout-standard/SKILL.md`.
+- Rules: tightly bridge space under the art banner (36~52px), enforce generous vertical breathing gaps (26~32px between blocks, 88~96px below title, +2~4px tracking, 1.55~1.7 line height), encapsulate content blocks in 70% translucent frosted paper micro-cards, and firmly anchor the bottom with a dedicated two-tier takeaway card (>=118px height). Never allow text collisions or empty bottom layouts.

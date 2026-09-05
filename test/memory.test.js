@@ -11,7 +11,8 @@ import {
   listActive,
   proposeUpdate,
   getMemory,
-  assertNoSecrets
+  assertNoSecrets,
+  addEvidence
 } from "../src/memory/store.js";
 import { buildMemoryContext } from "../src/memory/inject.js";
 import { buildPrompt } from "../src/router.js";
@@ -37,17 +38,17 @@ test("Memory Ledger: 1. Candidate created -> confirm becomes active", () => {
   assert.equal(candidate.license, "understand_only");
   assert.ok(fs.existsSync(path.join(candidatesDir, `${candidate.id}.json`)));
 
-  const active = confirmCandidate(candidate.id, { reason: "Founder verified taste standard" });
-  assert.equal(active.status, "active");
-  assert.ok(active.confirmedAt);
-  assert.equal(active.history.length, 2);
-  assert.equal(active.history[1].action, "confirmed");
+  const testing = confirmCandidate(candidate.id, { reason: "Founder verified taste standard" });
+  assert.equal(testing.status, "testing");
+  assert.ok(testing.confirmedAt);
+  assert.equal(testing.evidenceCount, 1);
+  assert.ok(testing.history.some((h) => h.action === "confirmed_testing"));
 
-  assert.ok(fs.existsSync(path.join(itemsDir, `${active.id}.json`)));
-  assert.ok(!fs.existsSync(path.join(candidatesDir, `${active.id}.json`)));
+  assert.ok(fs.existsSync(path.join(itemsDir, `${testing.id}.json`)));
+  assert.ok(!fs.existsSync(path.join(candidatesDir, `${testing.id}.json`)));
 
-  const activeList = listActive();
-  assert.ok(activeList.some((m) => m.id === active.id));
+  assert.equal(listActive().some((m) => m.id === testing.id), false);
+  assert.equal(listActive({ includeTesting: true }).some((m) => m.id === testing.id), true);
 });
 
 test("Memory Ledger: 2. Propose update -> confirm causes old item to be superseded, listActive returns only new", () => {
@@ -60,6 +61,9 @@ test("Memory Ledger: 2. Propose update -> confirm causes old item to be supersed
     license: "influence_or_paraphrase"
   });
   const active1 = confirmCandidate(initial.id, { reason: "Initial goal confirmed" });
+  addEvidence(active1.id, { positive: true, source: "e2" });
+  addEvidence(active1.id, { positive: true, source: "e3" });
+  assert.equal(getMemory(active1.id).status, "active");
 
   // 2. Propose update on active1
   const updateCandidate = proposeUpdate(active1.id, {
@@ -76,20 +80,24 @@ test("Memory Ledger: 2. Propose update -> confirm causes old item to be supersed
   assert.ok(activeListBefore.some((m) => m.id === active1.id));
   assert.ok(!activeListBefore.some((m) => m.id === updateCandidate.id));
 
-  // 3. Confirm the update candidate
-  const active2 = confirmCandidate(updateCandidate.id, { reason: "Approved Q3 scope update" });
-  assert.equal(active2.status, "active");
-  assert.equal(active2.version, 2);
+  // 3. Confirm the update candidate → testing; old active stays until evidence promotes
+  const testing2 = confirmCandidate(updateCandidate.id, { reason: "Approved Q3 scope update" });
+  assert.equal(testing2.status, "testing");
+  assert.equal(testing2.version, 2);
+  assert.equal(getMemory(active1.id).status, "active");
 
-  // 4. Verify old item is now superseded
+  let promoted = testing2;
+  promoted = addEvidence(testing2.id, { positive: true, source: "evt-2", note: "second" });
+  promoted = addEvidence(testing2.id, { positive: true, source: "evt-3", note: "third" });
+  assert.equal(promoted.status, "active");
+
   const oldItem = getMemory(active1.id);
   assert.equal(oldItem.status, "superseded");
-  assert.equal(oldItem.supersededBy, active2.id);
+  assert.equal(oldItem.supersededBy, testing2.id);
   assert.ok(oldItem.validTo);
 
-  // 5. listActive only returns the new version
   const activeListAfter = listActive({ project: "shuzhai" });
-  assert.ok(activeListAfter.some((m) => m.id === active2.id));
+  assert.ok(activeListAfter.some((m) => m.id === testing2.id));
   assert.ok(!activeListAfter.some((m) => m.id === active1.id));
 });
 
@@ -118,6 +126,8 @@ test("Memory Ledger: 4. listActive filters by projectScope correctly", () => {
     projectScope: ["*"]
   });
   const gActive = confirmCandidate(gCand.id);
+  addEvidence(gActive.id, { positive: true, source: "e2" });
+  addEvidence(gActive.id, { positive: true, source: "e3" });
 
   // Specific project memory
   const pCand = createCandidate({
@@ -127,6 +137,8 @@ test("Memory Ledger: 4. listActive filters by projectScope correctly", () => {
     projectScope: ["shuzhai"]
   });
   const pActive = confirmCandidate(pCand.id);
+  addEvidence(pActive.id, { positive: true, source: "e2" });
+  addEvidence(pActive.id, { positive: true, source: "e3" });
 
   // Other project memory
   const oCand = createCandidate({
@@ -136,6 +148,8 @@ test("Memory Ledger: 4. listActive filters by projectScope correctly", () => {
     projectScope: ["xingxuan"]
   });
   const oActive = confirmCandidate(oCand.id);
+  addEvidence(oActive.id, { positive: true, source: "e2" });
+  addEvidence(oActive.id, { positive: true, source: "e3" });
 
   // Query for shuzhai: should include gActive and pActive, NOT oActive
   const shuzhaiMemories = listActive({ project: "shuzhai" });

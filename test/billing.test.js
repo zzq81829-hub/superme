@@ -39,7 +39,7 @@ test("billing policy forbids extra model APIs", () => {
   assert.equal(getDeepSeekDefaultCallCost(), 0.20);
 });
 
-test("Gemini Hermes route is not blocked by the DeepSeek budget", () => {
+test("Hermes is blocked by the paid monthly gate even if a gemini proxy is configured", () => {
   const baseDir = createIsolatedTestDir();
   const options = {
     baseDir,
@@ -49,11 +49,14 @@ test("Gemini Hermes route is not blocked by the DeepSeek budget", () => {
   recordUsage({ taskId: "task-gemini", worker: "deepseek", costCny: 30.00, source: "test" }, options);
   const health = {
     hermes: { id: "hermes", status: "READY", available: true, billingMode: "subscription_or_cheap_api" },
-    codex: { id: "codex", status: "OFFLINE", available: false }
+    codex: { id: "codex", status: "OFFLINE", available: false },
+    claude: { id: "claude", status: "OFFLINE", available: false },
+    antigravity: { id: "antigravity", status: "OFFLINE", available: false },
+    "grok-build": { id: "grok-build", status: "OFFLINE", available: false }
   };
   const result = applyCostGuard("hermes", health, options);
-  assert.equal(result.ok, true);
-  assert.equal(result.worker, "hermes");
+  assert.notEqual(result.worker, "hermes");
+  assert.ok(result.attempts?.some((a) => a.id === "hermes" && /QUOTA_LIMITED/i.test(a.skip || "")));
 });
 
 test("subscription env strips paid API keys", () => {

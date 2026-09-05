@@ -170,4 +170,61 @@ export function applyMigrations(db) {
       }
     }
   }
+
+  if (currentVersion < 2) {
+    const noteCols = db.prepare("PRAGMA table_info(xhs_notes)").all().map(c => c.name);
+    if (!noteCols.includes("account_id")) {
+      db.exec("ALTER TABLE xhs_notes ADD COLUMN account_id TEXT;");
+    }
+    if (!noteCols.includes("profile_dir")) {
+      db.exec("ALTER TABLE xhs_notes ADD COLUMN profile_dir TEXT;");
+    }
+
+    const snapCols = db.prepare("PRAGMA table_info(xhs_note_snapshots)").all().map(c => c.name);
+    if (!snapCols.includes("account_id")) {
+      db.exec("ALTER TABLE xhs_note_snapshots ADD COLUMN account_id TEXT;");
+    }
+    if (!snapCols.includes("profile_dir")) {
+      db.exec("ALTER TABLE xhs_note_snapshots ADD COLUMN profile_dir TEXT;");
+    }
+
+    const accCols = db.prepare("PRAGMA table_info(xhs_accounts)").all().map(c => c.name);
+    if (!accCols.includes("account_id")) {
+      db.exec("ALTER TABLE xhs_accounts ADD COLUMN account_id TEXT;");
+    }
+
+    db.exec(`
+      UPDATE xhs_accounts SET account_id = 'shuzhai' WHERE account_key = 'xhs_account_1' AND account_id IS NULL;
+      UPDATE xhs_accounts SET account_id = 'x_curation' WHERE account_key = 'xhs_account_2' AND account_id IS NULL;
+      UPDATE xhs_accounts SET account_id = 'personal_ip' WHERE account_key = 'xhs_account_3' AND account_id IS NULL;
+
+      UPDATE xhs_notes SET 
+        account_id = CASE 
+          WHEN account_key = 'xhs_account_1' THEN 'shuzhai'
+          WHEN account_key = 'xhs_account_2' THEN 'x_curation'
+          WHEN account_key = 'xhs_account_3' THEN 'personal_ip'
+          ELSE account_key END,
+        profile_dir = CASE 
+          WHEN account_key = 'xhs_account_1' THEN 'xhs_account_1'
+          WHEN account_key = 'xhs_account_2' THEN 'xhs_account_2'
+          WHEN account_key = 'xhs_account_3' THEN 'xhs_account_3'
+          ELSE account_key END
+      WHERE account_id IS NULL OR profile_dir IS NULL;
+
+      UPDATE xhs_note_snapshots SET 
+        account_id = CASE 
+          WHEN account_key = 'xhs_account_1' THEN 'shuzhai'
+          WHEN account_key = 'xhs_account_2' THEN 'x_curation'
+          WHEN account_key = 'xhs_account_3' THEN 'personal_ip'
+          ELSE account_key END,
+        profile_dir = CASE 
+          WHEN account_key = 'xhs_account_1' THEN 'xhs_account_1'
+          WHEN account_key = 'xhs_account_2' THEN 'xhs_account_2'
+          WHEN account_key = 'xhs_account_3' THEN 'xhs_account_3'
+          ELSE account_key END
+      WHERE account_id IS NULL OR profile_dir IS NULL;
+
+      INSERT INTO xhs_schema_migrations (version, applied_at) VALUES (2, datetime('now'));
+    `);
+  }
 }

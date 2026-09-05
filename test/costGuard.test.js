@@ -6,6 +6,14 @@ const online = (id) => ({
   id, status: "ONLINE", available: true, billingMode: "subscription", apiAllowed: false
 });
 
+test("dry-run routing works without a CLI and respects disabled workers and secretary boundary", () => {
+  const config = { dryRun: true, agents: { codex: { enabled: true, command: "missing-cli" } } };
+  assert.equal(applyCostGuard("codex", undefined, { config }).worker, "codex");
+  assert.notEqual(applyCostGuard("grok-bot", undefined, { config }).worker, "grok-bot");
+  config.agents.codex.enabled = false;
+  assert.notEqual(applyCostGuard("codex", undefined, { config }).worker, "codex");
+});
+
 test("grok-bot unavailable does not block the company", () => {
   const health = {
     "grok-bot": { id: "grok-bot", status: "UNKNOWN_CONTROL_INTERFACE", available: false, billingMode: "subscription_or_quota" },
@@ -16,7 +24,7 @@ test("grok-bot unavailable does not block the company", () => {
   };
   const r = applyCostGuard("grok-bot", health);
   assert.equal(r.ok, true);
-  assert.equal(r.worker, "codex");
+  assert.equal(r.worker, "antigravity");
 });
 
 test("codex down falls back to claude not OpenAI API", () => {

@@ -1,0 +1,31 @@
+{
+  "seed_type": "x_thread",
+  "source_url": "https://x.com/naval/status/1002103360646823936",
+  "archive_url": "https://twitter-thread.com/t/1002103360646823936",
+  "author": "Naval Ravikant",
+  "handle": "@naval",
+  "published_at": "2018-05-31",
+  "thread_title": "How to Get Rich (without getting lucky)",
+  "thread_length": 41,
+  "claims": [
+    "按小时出售劳动的收入上限明显；财富自由更依赖所有权。",
+    "Code and media are permissionless leverage.",
+    "越贴近个人判断、信誉与复杂情境的专长，越难被完全替代。",
+    "多数学习场景里，阅读比听更快，亲手做比观看更有效。",
+    "警惕承诺快速致富的人，他们往往先从你身上赚钱。"
+  ],
+  "book": {
+    "title": "纳瓦尔宝典：财富与幸福指南",
+    "compiler": "埃里克·乔根森",
+    "translator": "赵灿",
+    "publisher": "中信出版社",
+    "published": "2022-04",
+    "isbn": "9787521741124"
+  },
+  "safety": {
+    "publish": false,
+    "gate_mode": "manual_buffer",
+    "source_visual": "verified_text_reconstruction",
+    "source_visual_note": "X 页面访问被浏览器安全策略拒绝；未绕过限制。第 2 页依据公开归档重绘并明确标注，不冒充平台截图。"
+  }
+}

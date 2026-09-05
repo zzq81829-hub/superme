@@ -25,7 +25,7 @@ export function bioJitter(minMs, maxMs) {
  * 2. Physiological reading micro-scrolls
  * 3. Occasional subtle counter-scrolls (simulating human eye tracking)
  */
-async function humanMicroActions(page) {
+export async function humanMicroActions(page) {
   try {
     const x = Math.floor(250 + Math.random() * 450);
     const y = Math.floor(180 + Math.random() * 320);

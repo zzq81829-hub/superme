@@ -10,4 +10,5 @@ test("local business tools are registered and not deleted", () => {
   assert.ok(tools.some((t) => t.id === "opc-matrix"));
   assert.ok(tools.some((t) => t.id === "me"));
   assert.ok(tools.some((t) => t.id === "video-matrix"));
+  assert.ok(tools.some((t) => t.id === "agent-reach" && t.exists));
 });

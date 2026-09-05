@@ -1,0 +1,56 @@
+{
+  "theme": "生活里，没有那么多观众",
+  "topicId": "shuzhai-xhs-spotlight-20260905",
+  "generatedAt": "2026-09-05T18:09:00+08:00",
+  "checks": {
+    "cardLayoutStandard": {
+      "tightBannerTransition": {
+        "status": "PASS",
+        "distancePx": 42,
+        "spec": "36px ~ 52px"
+      },
+      "verticalBreathing": {
+        "titleToIntroGap": 92,
+        "specTitleGap": "88px ~ 96px",
+        "cardToCardGap": 28,
+        "specCardGap": "26px ~ 32px",
+        "status": "PASS"
+      },
+      "translucentMicroCards": {
+        "bgAlpha": 0.72,
+        "borderWidthPx": 1,
+        "accentWidthPx": 8,
+        "padding": "24px top/bottom, 32px left/right",
+        "status": "PASS"
+      },
+      "anchoredBottomTakeaway": {
+        "heightPx": 126,
+        "specMinHeightPx": 118,
+        "structure": "2-tier (category gold label + 33pt kai font quote)",
+        "accentBar": "8px deep gold",
+        "status": "PASS"
+      },
+      "antiPatterns": {
+        "noOverlappingText": true,
+        "noOrphanSingleWord": true,
+        "sufficientContrast": true,
+        "status": "PASS"
+      }
+    },
+    "contentOSFivePillars": {
+      "topicPainFirst": "PASS",
+      "emotionFirst": "PASS",
+      "hookThreeSeconds": "PASS",
+      "practicalActionValue": "PASS",
+      "conversionLoop": "PASS"
+    },
+    "adversarialMultiAgentReview": {
+      "researcherFactAnchored": "康奈尔大学 2000 年季洛维奇团队 T 恤实验（50%预估 vs 23%实测）；戴维·迈尔斯《社会心理学》第 11 版第 2 章",
+      "growthEditorHookPower": "生活里，没有那么多观众。最累的不是没人看你，是你以为全场都在盯你",
+      "skepticFactCheck": "无虚假标题党，严格约束在科学实验数据与人本处境",
+      "humanizerToneCheck": "已剥离模板腔与万能金句，第一人称真实细节（2024 秋季提案翻页卡顿事故），成立即收刀",
+      "chiefEditorDecision": "APPROVED_FOR_REVIEW"
+    }
+  },
+  "overallVerdict": "PASSED_ALL_GATES"
+}

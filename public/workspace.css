@@ -1,0 +1,194 @@
+/* Founder workspace: one surface, clear hierarchy, predictable navigation. */
+:root {
+  color-scheme: dark;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+  --font-display: var(--font-sans);
+  --couture-black: #111214;
+  --couture-surface: #1b1c1f;
+  --couture-surface-elevated: #242529;
+  --couture-input: #151619;
+  --couture-pre: #141518;
+  --ivory-pure: #f5f5f7;
+  --ivory-soft: #e0e1e5;
+  --ivory-muted: #a4a6ae;
+  --ivory-dim: #92949e;
+  --os-text: #f5f5f7;
+  --os-subtle: #a4a6ae;
+  --os-accent: #499dff;
+  --os-gold: var(--os-accent);
+  --os-surface: #1b1c1f;
+  --os-surface-raised: #232428;
+  --os-divider: #34363c;
+  --os-line: var(--os-divider);
+  --bg-card: #232428;
+  --border-couture: #34363c;
+  --border-couture-light: #44464f;
+  --border-focus-spotlight: #499dff;
+  --couture-red: #499dff;
+  --couture-red-hover: #71b3ff;
+  --couture-red-gradient: linear-gradient(#2684ef, #2684ef);
+  --couture-red-hover-gradient: linear-gradient(#4198fc, #4198fc);
+}
+html { scroll-padding-top: 24px; }
+body { background: #111214; font-size: 14px; line-height: 1.6; }
+[hidden] { display: none !important; }
+.skipLink { position: fixed; top: -80px; left: 20px; z-index: 999999; background: #fff; color: #111; padding: 10px 18px; border-radius: 8px; }
+.skipLink:focus { top: 12px; }
+:is(button, a, input, textarea, select, summary):focus-visible { outline: 3px solid #71b3ff; outline-offset: 4px; }
+.shell { width: min(1440px, 100%); min-height: 100vh; display: grid; grid-template-columns: 224px minmax(0, 1fr); column-gap: 48px; padding: 36px 48px 72px 0; }
+.sideRail { top: 0; height: 100vh; min-height: 0; margin-top: -36px; padding: 36px 18px 24px; background: #191a1d; overflow-y: auto; border-right: 1px solid #2c2e34; }
+.brandLockup { padding: 8px 10px 28px; gap: 11px; }
+.brandMark { width: 38px; height: 38px; border: 0; border-radius: 11px; background: #2e3036; font: 650 15px var(--font-sans); letter-spacing: -.06em; display: flex; justify-content: center; padding: 0; }
+.brandMark span { color: inherit; }
+.brandName { font: 650 19px var(--font-sans); letter-spacing: -.03em; }
+.brandCaption { margin-top: 3px; font-size: 10px; letter-spacing: 0; color: var(--os-subtle); }
+.railRule { display: none; }
+.navGroupLabel { padding: 8px 12px; color: #92949e; font-size: 11px; letter-spacing: .03em; }
+.primaryNav { gap: 6px; }
+.navItem { min-height: 44px; padding: 10px 12px; border-radius: 9px; font-size: 13px; color: #b9bbc3; }
+.navItem.active { background: #32343b; color: #fff; }
+.navItem.active::before { display: none; }
+.navGlyph { color: #a4a6ae; width: 19px; font-size: 19px; font-weight: 400; }
+.navItem.active .navGlyph { color: #71b3ff; }
+.navHint { margin-left: auto; color: #ffcf80; }
+.navMore { font-size: 13px; box-shadow: none; }
+.navMore:hover { transform: none; }
+.railFooter { margin-top: auto; padding-top: 22px; }
+.guideLink { display: inline-block; margin-top: 14px; font-size: 11px; color: #a4a6ae; text-decoration: none; }
+.guideLink:hover { color: #fff; }
+.accountIntro { margin: 12px 0 24px; font-size: 13px; }
+.accountConsole { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.accountTool { padding: 20px; border: 1px solid #393b43; border-radius: 13px; background: #202125; }
+.accountTool h3 { margin-bottom: 18px; font-size: 18px; font-weight: 600; }
+.accountSlot { padding: 18px 0; border-top: 1px solid #393b43; }
+.accountSlot strong { font-size: 13px; font-weight: 550; }
+.accountState { margin: 8px 0 4px; color: #d6c4a2; font-size: 12px; }
+.accountDetail { color: #a4a6ae; font-size: 11px; overflow-wrap: anywhere; }
+.accountActions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.accountActions button { font-size: 11px; min-height: 38px; padding: 8px 11px; }
+.accountSetup { margin-top: 24px; padding-top: 18px; border-top: 1px solid #34363c; font-size: 13px; }
+.accountSetup summary { cursor: pointer; }
+.accountSetup p { margin-top: 12px; font-size: 12px; }
+.railStatusDot { background: #92949e; box-shadow: none; }
+body[data-connection="online"] .railStatusDot { background: #62c899; }
+body[data-connection="offline"] .railStatusDot { background: #f6ac64; }
+#appHeader { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin: 12px 0 28px; }
+#appHeader > div:first-child { flex: 1; min-width: 240px; }
+#appHeader .eyebrow { font-size: 10px; color: #92949e; letter-spacing: .13em; margin-bottom: 12px; }
+header h1 { background: none; -webkit-text-fill-color: initial; font-size: clamp(26px, 3vw, 36px); font-weight: 650; letter-spacing: -.045em; line-height: 1.3; margin-bottom: 10px; }
+header p { font-size: 13px; color: var(--os-subtle); }
+.status { padding: 7px 11px; font-size: 11px; letter-spacing: 0; background: transparent; color: #b9bbc3; box-shadow: none; }
+.connectionNotice { width: 100%; margin-top: 4px; }
+.dayOverview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--os-divider); border-radius: 16px; background: #191a1d; margin-bottom: 24px; order: -4; overflow: hidden; }
+.overviewItem { display: flex; flex-direction: column; gap: 4px; padding: 20px 24px; color: var(--os-text); text-decoration: none; transition: background .15s; min-width: 0; }
+.overviewItem + .overviewItem { border-left: 1px solid var(--os-divider); }
+.overviewItem:hover { background: #232428; }
+.overviewLabel { font-size: 12px; color: #b9bbc3; }
+.overviewItem strong { font-size: 30px; line-height: 1.4; font-weight: 550; font-variant-numeric: tabular-nums; }
+.overviewHint { color: #92949e; font-size: 11px; }
+.panel { background: #1b1c1f; padding: 26px; border: 1px solid var(--os-divider); border-radius: 16px; box-shadow: none; min-width: 0; }
+.hero { padding: 30px; }
+.heroIntro .eyebrow { color: #a4a6ae; font-size: 10px; letter-spacing: .12em; margin-bottom: 8px; }
+.heroIntro h2 { font-size: 25px; font-weight: 600; margin-bottom: 4px; }
+.heroIntro p { font-size: 13px; margin-top: 0; }
+.intentLabel { font-size: 12px; color: #c4c6ce; font-weight: 450; margin: 22px 0 9px; }
+.hero > #description { min-height: 126px; margin: 0; padding: 16px; background: #141518; font-size: 15px; border: 1px solid #393b43; border-radius: 12px; resize: vertical; }
+textarea::placeholder, input::placeholder { color: #858892; }
+.intentExamples { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 18px; }
+.intentExamples button { padding: 6px 11px; min-height: 34px; border: 1px solid #393b43; border-radius: 8px; font-size: 11px; font-weight: 400; color: #c4c6ce; background: transparent; box-shadow: none; }
+.intentExamples button:hover { border-color: #71b3ff; color: #fff; transform: none; }
+.executionReadiness { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 16px; padding: 12px; border: 1px solid #554b3b; border-radius: 10px; background: #29251f; color: #d5bd98; font-size: 11px; }
+.executionReadiness span { flex: 1 1 240px; }
+.executionReadiness button { font-size: 11px; min-height: 36px; padding: 6px 10px; color: #ddd; border-color: #675b46; }
+.advancedTaskOptions { padding: 14px 0 0; margin-top: 0; border-top: 1px solid #303238; }
+.advancedTaskOptions summary { font-size: 12px; color: #c4c6ce; }
+.advancedTaskOptions summary span { color: #92949e; }
+.heroActions { border: 0; margin-top: 20px; gap: 16px; }
+.heroHint { color: #92949e; font-size: 11px; }
+#create { min-height: 44px; min-width: 136px; border: 0; border-radius: 10px; font-weight: 600; background: #2684ef; }
+#create:hover { background: #4198fc; transform: none; }
+button { font-family: inherit; letter-spacing: 0; }
+button:disabled { cursor: not-allowed; opacity: .55; }
+.task { padding: 18px 20px; background: #202125; border-radius: 12px; }
+.taskTitle { font-size: 15px; letter-spacing: 0; }
+.taskActions { flex-wrap: wrap; }
+.taskActions button { min-height: 36px; border-radius: 8px; }
+.tabBtn { min-height: 38px; font-family: inherit; }
+.tabBtn.active { background: #33363e; color: #fff; border-color: transparent; }
+.tabBadge { background: #353740; color: #c4c6ce; }
+.taskSectionIdentity h2 { font-size: 21px; }
+.taskSectionIdentity .eyebrow { color: #92949e; }
+.sectionHeader { flex-wrap: wrap; gap: 12px; }
+.sectionHeader .headerActions { flex-wrap: wrap; }
+.progressNow > .task { border-color: #444c5e; }
+.progressListLabel { letter-spacing: 0; color: #a4a6ae; font-weight: 450; }
+.progressEmpty { padding: 40px 12px; }
+.progressEmpty h3 { font-size: 18px; font-weight: 550; }
+.progressEmpty .eyebrow { color: #92949e; }
+body[data-view]:not([data-view="commandSection"]) #commandSection,
+body[data-view]:not([data-view="commandSection"]) #dayOverview,
+body[data-view]:not([data-view="taskSection"]) #taskSection { display: none !important; }
+#taskSection { margin-top: 0; }
+#approvalSection { background: #1b1c1f !important; border-color: #575044 !important; }
+#approvalSection .sectionHeader h2 { color: #edc58c !important; }
+.toast { box-shadow: 0 8px 30px #0005; border-radius: 12px; }
+.monitorPanel { border-top: 1px solid var(--os-divider); }
+.monitorIdentity { background: #242529; border-color: #393b43; }
+.modalBox, .metricsModalContent { background: #202125; border-radius: 18px; border-color: #44464f; }
+.moreNav { border-left: 0; padding-left: 0; margin-left: 0; }
+.moreNavGroup { padding-left: 12px; }
+.moreNav .navItem { font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.meta, .taskTitle, .artifactLineItem, .monitorValue { overflow-wrap: anywhere; }
+@media (max-width: 1000px) and (min-width: 601px) {
+  .shell { grid-template-columns: 190px minmax(0, 1fr); column-gap: 24px; padding-right: 24px; }
+  .sideRail { position: sticky; top: 0; height: 100vh; display: flex; grid-column: 1; grid-row: 1 / span 30; width: auto; }
+  .shell > header, .shell > section { grid-column: 2; }
+  .primaryNav { display: grid; }
+  .brandCaption { display: none; }
+  .overviewItem { padding: 16px; }
+  .heroActions { flex-wrap: wrap; }
+}
+@media (max-width: 600px) {
+  .shell { display: flex; flex-direction: column; gap: 0; padding: 24px 16px calc(100px + env(safe-area-inset-bottom)); width: 100%; }
+  .sideRail { display: none; }
+  #appHeader { margin: 0 0 22px; gap: 12px; }
+  #appHeader > div:first-child { min-width: 0; }
+  #appHeader .eyebrow { margin-bottom: 8px; font-size: 9px; }
+  header h1 { font-size: 25px; }
+  header p { font-size: 12px; }
+  .headerActionsCompact { flex-direction: column-reverse; align-items: flex-end; gap: 8px; }
+  #health { font-size: 9px; padding: 4px 7px; max-width: none; }
+  .headerMore { background: #2c2e34; color: #daddE5; }
+  .dayOverview { margin-bottom: 18px; border-radius: 13px; }
+  #dayOverview { order: -8; }
+  #commandSection, .phoneMode #commandSection { order: -7; }
+  .overviewItem { padding: 13px 12px; }
+  .overviewLabel { font-size: 11px; }
+  .overviewItem strong { font-size: 24px; }
+  .overviewHint { display: none; }
+  .panel, .hero { padding: 21px 18px; border-radius: 14px; }
+  .heroIntro h2 { font-size: 23px; }
+  .heroIntro p { font-size: 12px; }
+  .hero > #description { min-height: 140px; font-size: 16px; }
+  .intentExamples { gap: 6px; }
+  .intentExamples button { min-height: 40px; padding: 6px 9px; }
+  .heroActions { display: flex; flex-direction: column; align-items: stretch; }
+  .heroHint { display: block; line-height: 1.5; }
+  #create { width: 100%; min-height: 48px; }
+  .advancedTaskOptions summary span { display: none; }
+  .mobileTabBar { background: #26272beF; border-color: #44464f; backdrop-filter: blur(20px); grid-template-columns: 1fr 1fr; bottom: max(12px, env(safe-area-inset-bottom)); }
+  .mobileTab.active { background: #3a3e48; }
+  .mobileMoreSheet { background: #25262b; border-color: #44464f; }
+  .mobileMoreSheet .navItem { min-height: 44px; }
+  .phoneMode #mobileMoreSheet .navItem { display: flex; }
+  .xhsAccountsGrid, .xhsBriefAnswersGrid, .systemStatusGrid { grid-template-columns: minmax(0, 1fr); }
+  .accountConsole { grid-template-columns: minmax(0, 1fr); }
+  .taskTabs { max-width: 100%; flex-wrap: wrap; }
+  .task { padding: 15px; }
+  .taskTop, .monitorHeader, .safeAttachmentControls { flex-wrap: wrap; }
+  .taskActions button { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
+}

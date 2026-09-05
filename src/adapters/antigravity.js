@@ -47,9 +47,17 @@ function argsAlreadyHave(args = [], flag) {
   return args.some((arg) => arg === flag || String(arg).startsWith(`${flag}=`));
 }
 
-function buildArgs({ agent, logs, prompt, model, timeoutMs, cwd, skipPermissions }) {
+function buildArgs({ agent, logs, prompt, model, timeoutMs, cwd, skipPermissions, boost, effort }) {
   const printTimeoutSeconds = Math.max(5, Math.floor((timeoutMs - 5000) / 1000));
-  const promptArg = `--print=${prompt}`;
+  const isBoost = boost !== undefined ? Boolean(boost) : Boolean(agent?.boost);
+  const reasoningEffort = effort || agent?.effort || (isBoost ? "high" : null);
+
+  let finalPrompt = String(prompt || "");
+  if (isBoost && !finalPrompt.trim().startsWith("/boost")) {
+    finalPrompt = `/boost\n${finalPrompt}`;
+  }
+
+  const promptArg = `--print=${finalPrompt}`;
   const extra = agent.args || [];
   const workspace = path.resolve(cwd);
   const args = [
@@ -66,12 +74,16 @@ function buildArgs({ agent, logs, prompt, model, timeoutMs, cwd, skipPermissions
       ? ["--dangerously-skip-permissions"]
       : []),
     ...(model && !argsAlreadyHave(extra, "--model") ? ["--model", model] : []),
+    ...(reasoningEffort && !argsAlreadyHave(extra, "--effort") ? ["--effort", reasoningEffort] : []),
     ...extra,
     promptArg
   ];
   return {
     args,
-    displayArgs: args.map((arg) => arg === promptArg ? "--print=<task prompt>" : arg)
+    displayArgs: args.map((arg) => arg === promptArg ? "--print=<task prompt>" : arg),
+    finalPrompt,
+    isBoost,
+    effort: reasoningEffort
   };
 }
 
@@ -126,35 +138,46 @@ async function invokeOnce({
   logs,
   model,
   skipPermissions,
+  boost,
+  effort,
   taskId
 }) {
-  const { args, displayArgs } = buildArgs({
+  const { args, displayArgs, finalPrompt, isBoost, effort: reasoningEffort } = buildArgs({
     agent,
     logs,
     prompt,
     model,
     timeoutMs,
     cwd,
-    skipPermissions
+    skipPermissions,
+    boost,
+    effort
   });
   const processResult = await runProcess({
     command,
     args,
     displayArgs,
     cwd: path.resolve(cwd),
-    input: config.dryRun ? prompt : "",
+    input: config.dryRun ? finalPrompt : "",
     dryRun: config.dryRun,
     timeoutMs,
     maxOutputBytes: config.execution?.maxOutputBytes,
     logPath: logs.wrapperLogPath,
-    taskId
+    taskId,
+    env: config?.env ? { ...process.env, ...config.env } : undefined
   });
 
   if (processResult.dryRun) {
     return summarize(processResult, logs, null, null, {
       ok: true,
       message: "Antigravity dry-run completed; no CLI process was started.",
-      fields: { preview: processResult.preview, model: model || null, skipPermissions: !!skipPermissions }
+      fields: {
+        preview: processResult.preview,
+        model: model || null,
+        skipPermissions: !!skipPermissions,
+        boost: !!isBoost,
+        effort: reasoningEffort || null
+      }
     });
   }
 
@@ -163,7 +186,12 @@ async function invokeOnce({
   const error = classifyFailure({ processResult, payload, cliLog });
   return summarize(processResult, logs, payload, error, {
     ok: !error && processResult.ok && !!payload,
-    fields: { model: model || null, skipPermissions: !!skipPermissions }
+    fields: {
+      model: model || null,
+      skipPermissions: !!skipPermissions,
+      boost: !!isBoost,
+      effort: reasoningEffort || null
+    }
   });
 }
 
@@ -177,6 +205,8 @@ export async function runAntigravity({ task, prompt, projectPath, config }) {
   const logs = executionLogPaths(task?.id, "antigravity");
   const configuredModel = agent.model || null;
   const permissionMode = agent.permissionMode || "configured";
+  const boost = task?.boost !== undefined ? task.boost : agent.boost;
+  const effort = task?.effort || agent.effort;
   const tried = [];
   const attempts = [];
   let model = configuredModel;
@@ -196,11 +226,15 @@ export async function runAntigravity({ task, prompt, projectPath, config }) {
       logs,
       model,
       skipPermissions,
+      boost,
+      effort,
       taskId: task?.id
     });
     attempts.push({
       model: model || "(default)",
       skipPermissions,
+      boost: result.boost,
+      effort: result.effort,
       ok: result.ok,
       error: result.error
     });
@@ -225,6 +259,8 @@ export async function runAntigravity({ task, prompt, projectPath, config }) {
   }
 
   result.permissionMode = permissionMode;
+  result.boost = result.boost !== undefined ? result.boost : (boost !== undefined ? Boolean(boost) : Boolean(agent.boost));
+  result.effort = result.effort || effort || (result.boost ? "high" : null);
   if (attempts.length > 1) result.attempts = attempts;
   return result;
 }

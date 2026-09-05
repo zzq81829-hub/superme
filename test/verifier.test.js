@@ -40,6 +40,18 @@ test("verifier rejects a non-empty worker response when exact artifact is wrong"
   assert.match(result.reason, /acceptance check failed/);
 });
 
+test("verifier exposes the real worker error", async () => {
+  const result = await verifyTask({
+    projectPath: process.cwd(),
+    result: { ok: false, agent: "antigravity", error: "Google OAuth connection failed" },
+    config: testConfig(),
+    task: {}
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.rootError, "Google OAuth connection failed");
+  assert.match(result.reason, /antigravity.*Google OAuth connection failed/);
+});
+
 test("verifier accepts exact artifacts and commands", async (t) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "founder-os-verifier-"));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));

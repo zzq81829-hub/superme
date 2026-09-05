@@ -74,6 +74,28 @@ class XhsIntelligenceService {
     };
   }
 
+  openResearchLoginWindow() {
+    const profileDir = path.resolve(process.cwd(), "data", "profiles", "xhs_public_research");
+    if (!fs.existsSync(profileDir)) {
+      fs.mkdirSync(profileDir, { recursive: true });
+    }
+
+    let exe = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+    if (!fs.existsSync(exe)) {
+      exe = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
+    }
+
+    const psCmd = `Start-Process -FilePath "${exe}" -ArgumentList @('--user-data-dir="${profileDir}"', '--new-window', '--no-first-run', '--no-default-browser-check', '--no-proxy-server', 'https://www.xiaohongshu.com/explore')`;
+    spawn("powershell", ["-NoProfile", "-NonInteractive", "-Command", psCmd], { detached: true, stdio: "ignore" }).unref();
+
+    this._log(`已打开外部竞品研究隔离浏览器窗口 (${path.basename(exe)})`);
+    return {
+      ok: true,
+      browser: path.basename(exe),
+      message: `已开启外部研究隔离浏览器窗口 (${path.basename(exe)})，扫码登录后可完全解除搜索限制`
+    };
+  }
+
   resetAccount(accountKey) {
     const acc = getAccount(accountKey);
     if (!acc) throw new Error(`账号不存在: ${accountKey}`);
@@ -105,6 +127,7 @@ class XhsIntelligenceService {
       ok: true,
       mode: this.activeMode,
       schedulerEnabled: this.schedulerEnabled,
+      nextRunAt: this.nextRunAt || null,
       currentJob: this.currentJob,
       creatorStatus: this.activeMode === "mock" ? this.mockProvider.getStatus() : this.creatorProvider.getStatus(),
       publicStatus: this.activeMode === "mock" ? this.mockProvider.getStatus() : this.publicProvider.getStatus(),
@@ -124,7 +147,11 @@ class XhsIntelligenceService {
     if (this.jobLogs.length > 50) this.jobLogs.shift();
   }
 
-  async collectAccount(accountKey, forceMock = false) {
+  async collectAccount(accountKey, forceMock = false, isManual = false) {
+    const guard = CircadianGuard.checkCanCollect(isManual);
+    if (guard.warning) {
+      this._log(guard.warning);
+    }
     const useMock = forceMock || this.activeMode === "mock";
     const provider = useMock ? this.mockProvider : this.creatorProvider;
 
@@ -156,21 +183,33 @@ class XhsIntelligenceService {
       this._log(`[生理作息守卫] ${guard.reason}`);
       return { ok: false, sleepMode: true, reason: guard.reason, results: [] };
     }
+    if (guard.warning) {
+      this._log(guard.warning);
+    }
 
     const accounts = listAccounts().filter((a) => a.enabled);
     const results = [];
     for (const acc of accounts) {
       try {
-        const r = await this.collectAccount(acc.account_key, forceMock);
+        const r = await this.collectAccount(acc.account_key, forceMock, isManual);
         results.push(r);
       } catch (err) {
         results.push({ ok: false, accountKey: acc.account_key, error: err.message });
       }
     }
-    return { ok: true, results };
+    return { ok: true, results, warning: guard.warning };
   }
 
-  async collectPublic(keywords = [], forceMock = false) {
+  async collectPublic(keywords = [], forceMock = false, isManual = false) {
+    const guard = CircadianGuard.checkCanCollect(isManual);
+    if (!guard.allowed) {
+      this._log(`[生理作息守卫] ${guard.reason}`);
+      return { ok: false, sleepMode: true, reason: guard.reason, results: [] };
+    }
+    if (guard.warning) {
+      this._log(guard.warning);
+    }
+
     const useMock = forceMock || this.activeMode === "mock";
     const provider = useMock ? this.mockProvider : this.publicProvider;
 
@@ -190,7 +229,7 @@ class XhsIntelligenceService {
         this._log(message);
       });
       this.currentJob = null;
-      return res;
+      return { ...res, warning: guard.warning };
     } catch (err) {
       this.currentJob = null;
       this._log(`公共采集出错: ${err.message}`);

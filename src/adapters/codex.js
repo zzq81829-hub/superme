@@ -51,6 +51,8 @@ export async function runCodex({ task, prompt, projectPath, config }) {
     "--sandbox",
     agent.sandbox || "workspace-write",
     "--skip-git-repo-check",
+    ...(agent.model ? ["-m", agent.model] : []),
+    ...(agent.modelReasoningEffort ? ["-c", `model_reasoning_effort=${agent.modelReasoningEffort}`] : []),
     ...(agent.args || []),
     "-"
   ];
@@ -64,7 +66,8 @@ export async function runCodex({ task, prompt, projectPath, config }) {
     timeoutMs,
     maxOutputBytes: config.execution?.maxOutputBytes,
     logPath: logs.wrapperLogPath,
-    taskId: task?.id
+    taskId: task?.id,
+    env: config?.env ? { ...process.env, ...config.env } : undefined
   });
 
   const common = {

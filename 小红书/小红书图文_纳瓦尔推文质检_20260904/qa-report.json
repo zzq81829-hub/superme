@@ -1,0 +1,57 @@
+{
+  "status": "needs_founder_visual_confirmation",
+  "generated_at": "2026-09-04T12:00:00+08:00",
+  "pipeline": {
+    "completed": true,
+    "compliance_passed": true,
+    "risk_level": "clean",
+    "queue_status": "awaiting_manual_approval",
+    "published": false,
+    "slide_count": 6,
+    "cta_type": "book"
+  },
+  "source_integrity": {
+    "x_url_verified_by_public_archive": true,
+    "archive_thread_length": 41,
+    "exact_x_screenshot": false,
+    "visual_mode": "verified_text_reconstruction",
+    "reason": "Local browser security policy denied x.com access; no bypass was attempted."
+  },
+  "render_checks": {
+    "canvas": "1080x1440",
+    "cards": 6,
+    "contact_sheet": true,
+    "minimum_outer_margin_px": 112,
+    "footer_clearance_px": 120,
+    "fonts": ["Source Han Serif SC Heavy", "Source Han Serif SC Regular"],
+    "palette": ["ivory", "ink black", "editorial red", "muted gold"],
+    "visual_review": "passed_after_contact_sheet_and_full_size_review"
+  },
+  "nine_dimension_scores": {
+    "topic_pain_desire": 8.8,
+    "emotion": 8.6,
+    "three_second_hook": 9.0,
+    "immediate_value": 9.1,
+    "conversion": 8.7,
+    "source_accuracy": 9.2,
+    "fact_check_rigor": 9.0,
+    "visual_hierarchy": 9.2,
+    "discussion_trigger": 9.3
+  },
+  "overall_score": 9.0,
+  "adversarial_editorial_notes": {
+    "researcher": "Confirmed author, date, thread title, source URL and 41-tweet archive.",
+    "insight_miner": "Selected ownership and leverage as the portable insight, not generic book summary.",
+    "audience_psychologist": "Targets the anxiety of working harder while remaining trapped by hourly income.",
+    "growth_editor": "Uses the counterintuitive cover hook 越忙，越难自由？",
+    "skeptic": "Downgraded absolute claims and added 2018 versus 2026 boundary conditions.",
+    "xhs_editor": "Removed lecture tone, kept one action and one debate question.",
+    "chief_editor": "Approved for local founder taste review only; no publishing authorization."
+  },
+  "acceptance": {
+    "end_to_end_generation": true,
+    "render_complete": true,
+    "source_visual_exactness": "partial_due_to_x_access_denial",
+    "founder_aesthetic_confirmation": "pending"
+  }
+}

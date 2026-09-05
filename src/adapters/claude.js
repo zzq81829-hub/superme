@@ -24,7 +24,7 @@ export async function runClaude({ task, prompt, projectPath, config }) {
   const command = resolveAgentCommand("claude", agent.command || "claude");
   const cwd = agent.workingDirectory || projectPath || process.cwd();
   const logs = executionLogPaths(task?.id, "claude");
-  const model = agent.model || (proxy ? null : "sonnet");
+  const model = agent.model || "sonnet";
   const args = ["-p", prompt, "--output-format", "text", ...(model ? ["--model", model] : [])];
 
   const processResult = await runProcess({

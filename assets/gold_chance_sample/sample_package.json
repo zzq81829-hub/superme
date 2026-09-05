@@ -1,0 +1,238 @@
+{
+  "id": "gold-chance-sample-10habits",
+  "project": "x_curation",
+  "platform": "xiaohongshu",
+  "accountId": "xhs_account_2",
+  "status": "awaiting_approval",
+  "title": "变富的小技巧",
+  "body": "① 早上醒来后立刻查看智能手机（斯坦福大学） ⚠️ 因果夸大\n注意力被手机打断这件事情有研究支持，但“早上刷手机会导致贫穷”没有这么直接的证据。\n\n② 睡眠时间不规律（哈佛大学） ✅ 基本靠谱\n长期睡眠不规律确实会影响精力、认知和执行状态。\n\n③ 就餐时间每天不固定（哥伦比亚大学） ⚠️ 因果夸大\n就餐不固定可能影响身体代谢与胃部健康，但直接硬套成“贫穷习惯”完全是牵强附会。\n\n④ 房间杂乱无章（普林斯顿大学） ⚠️ 因果夸大\n环境混乱确实可能增加视觉压力，但把它包装成贫穷的根源，纯属过度联想。\n\n⑤ 没有运动习惯（斯坦福大学） ✅ 基本靠谱\n规律运动对多巴胺分泌、抗压能力和心智韧性有确切提升，缺乏运动易加剧精力透支。\n\n⑥ 倾向于拖延金钱管理（芝加哥大学） ✅ 基本靠谱\n忽视现金流、账目混乱与财务拖延，是直接导致财富耗损和财务脆弱的关键诱因。\n\n⑦ 始终保持通知开启状态（麻省理工学院） ✅ 基本靠谱\n高频推送会严重碎裂深度思考时间，大幅降低复杂任务的处理产出。\n\n⑧ “忙碌”成为口头禅（耶鲁大学） ⚠️ 包装过头\n“无效忙碌”这个现象确实存在，但把它包装成某大学证明的“贫穷习惯”，目前看更像自媒体话术。\n\n⑨ 不断与他人比较自己（哥伦比亚大学） ⚠️ 偷换结果\n社会比较可能影响幸福感、消费判断和财务感受，但“爱比较的人更穷”这个结论跨得太大。\n\n⑩ 不设定目标度过每一天（麦吉尔大学） ✅ 有依据但被包装过头\n具体目标通常有助于提高执行表现，但“不设目标 = 贫穷”依然是在把生产力研究硬套到财富结果上。\n\n#怎样变得富有 #搞钱思维 #财富思维 #变美变富变强",
+  "layout": {
+    "templateId": "x-curation-dark-v1"
+  },
+  "media": [
+    {
+      "kind": "image",
+      "path": "C:\\Users\\22145\\Desktop\\superme\\data\\content\\media\\x_curation\\gold_chance_10habits_card.png",
+      "theme": "dark",
+      "source": "x_tweet"
+    }
+  ],
+  "links": [],
+  "visualCard": {
+    "path": "C:\\Users\\22145\\Desktop\\superme\\data\\content\\media\\x_curation\\gold_chance_10habits_card.png",
+    "width": 1080,
+    "height": 1440,
+    "theme": "dark",
+    "author": "James Kim",
+    "handle": "@King_James_Kim",
+    "verified": true,
+    "translationAttribution": "翻译自韩语"
+  },
+  "feasibilityRatings": [
+    {
+      "index": 1,
+      "circledIndex": "①",
+      "claim": "起床刷手机",
+      "rawClaim": "早上醒来后立刻查看智能手机（斯坦福大学）",
+      "badge": "⚠️ 因果夸大",
+      "critique": "注意力被手机打断这件事情有研究支持，但“早上刷手机会导致贫穷”没有这么直接的证据。",
+      "rating": "questionable",
+      "priorityWeight": 40
+    },
+    {
+      "index": 2,
+      "circledIndex": "②",
+      "claim": "睡眠不规律",
+      "rawClaim": "睡眠时间不规律（哈佛大学）",
+      "badge": "✅ 基本靠谱",
+      "critique": "长期睡眠不规律确实会影响精力、认知和执行状态。",
+      "rating": "valid",
+      "priorityWeight": 90
+    },
+    {
+      "index": 3,
+      "circledIndex": "③",
+      "claim": "就餐时间不固定",
+      "rawClaim": "就餐时间每天不固定（哥伦比亚大学）",
+      "badge": "⚠️ 因果夸大",
+      "critique": "就餐不固定可能影响身体代谢与胃部健康，但直接硬套成“贫穷习惯”完全是牵强附会。",
+      "rating": "questionable",
+      "priorityWeight": 30
+    },
+    {
+      "index": 4,
+      "circledIndex": "④",
+      "claim": "房间杂乱",
+      "rawClaim": "房间杂乱无章（普林斯顿大学）",
+      "badge": "⚠️ 因果夸大",
+      "critique": "环境混乱确实可能增加视觉压力，但把它包装成贫穷的根源，纯属过度联想。",
+      "rating": "questionable",
+      "priorityWeight": 35
+    },
+    {
+      "index": 5,
+      "circledIndex": "⑤",
+      "claim": "没有运动习惯",
+      "rawClaim": "没有运动习惯（斯坦福大学）",
+      "badge": "✅ 基本靠谱",
+      "critique": "规律运动对多巴胺分泌、抗压能力和心智韧性有确切提升，缺乏运动易加剧精力透支。",
+      "rating": "valid",
+      "priorityWeight": 75
+    },
+    {
+      "index": 6,
+      "circledIndex": "⑥",
+      "claim": "拖延金钱管理",
+      "rawClaim": "倾向于拖延金钱管理（芝加哥大学）",
+      "badge": "✅ 基本靠谱",
+      "critique": "忽视现金流、账目混乱与财务拖延，是直接导致财富耗损和财务脆弱的关键诱因。",
+      "rating": "valid",
+      "priorityWeight": 95
+    },
+    {
+      "index": 7,
+      "circledIndex": "⑦",
+      "claim": "始终开启通知",
+      "rawClaim": "始终保持通知开启状态（麻省理工学院）",
+      "badge": "✅ 基本靠谱",
+      "critique": "高频推送会严重碎裂深度思考时间，大幅降低复杂任务的处理产出。",
+      "rating": "valid",
+      "priorityWeight": 85
+    },
+    {
+      "index": 8,
+      "circledIndex": "⑧",
+      "claim": "口头禅总说忙",
+      "rawClaim": "“忙碌”成为口头禅（耶鲁大学）",
+      "badge": "⚠️ 包装过头",
+      "critique": "“无效忙碌”这个现象确实存在，但把它包装成某大学证明的“贫穷习惯”，目前看更像自媒体话术。",
+      "rating": "questionable",
+      "priorityWeight": 45
+    },
+    {
+      "index": 9,
+      "circledIndex": "⑨",
+      "claim": "不断与他人比较",
+      "rawClaim": "不断与他人比较自己（哥伦比亚大学）",
+      "badge": "⚠️ 偷换结果",
+      "critique": "社会比较可能影响幸福感、消费判断和财务感受，但“爱比较的人更穷”这个结论跨得太大。",
+      "rating": "questionable",
+      "priorityWeight": 42
+    },
+    {
+      "index": 10,
+      "circledIndex": "⑩",
+      "claim": "不设明确目标",
+      "rawClaim": "不设定目标度过每一天（麦吉尔大学）",
+      "badge": "✅ 有依据但被包装过头",
+      "critique": "具体目标通常有助于提高执行表现，但“不设目标 = 贫穷”依然是在把生产力研究硬套到财富结果上。",
+      "rating": "valid",
+      "priorityWeight": 80
+    }
+  ],
+  "rawClaims": [],
+  "authorPinnedComment": "优先级：⑥ > ② > ⑦ > ⑩ > ⑤\n而 ①、③、④、⑧、⑨ 只是吓唬人 / 包装过头",
+  "tags": [
+    "#怎样变得富有",
+    "#搞钱思维",
+    "#财富思维",
+    "#变美变富变强"
+  ],
+  "scheduledAt": null,
+  "layers": {
+    "facts": [
+      {
+        "id": "claim-1",
+        "text": "早上醒来后立刻查看智能手机（斯坦福大学）",
+        "source": "X"
+      },
+      {
+        "id": "claim-2",
+        "text": "睡眠时间不规律（哈佛大学）",
+        "source": "X"
+      },
+      {
+        "id": "claim-3",
+        "text": "就餐时间每天不固定（哥伦比亚大学）",
+        "source": "X"
+      },
+      {
+        "id": "claim-4",
+        "text": "房间杂乱无章（普林斯顿大学）",
+        "source": "X"
+      },
+      {
+        "id": "claim-5",
+        "text": "没有运动习惯（斯坦福大学）",
+        "source": "X"
+      },
+      {
+        "id": "claim-6",
+        "text": "倾向于拖延金钱管理（芝加哥大学）",
+        "source": "X"
+      },
+      {
+        "id": "claim-7",
+        "text": "始终保持通知开启状态（麻省理工学院）",
+        "source": "X"
+      },
+      {
+        "id": "claim-8",
+        "text": "“忙碌”成为口头禅（耶鲁大学）",
+        "source": "X"
+      },
+      {
+        "id": "claim-9",
+        "text": "不断与他人比较自己（哥伦比亚大学）",
+        "source": "X"
+      },
+      {
+        "id": "claim-10",
+        "text": "不设定目标度过每一天（麦吉尔大学）",
+        "source": "X"
+      }
+    ],
+    "expressions": [],
+    "viewpoints": []
+  },
+  "usedViewpoints": [],
+  "experiment": {
+    "accountId": "x_curation",
+    "source": "X/Twitter",
+    "insight": "海外热点求真纠偏与认知筛选",
+    "audience": "关注个人成长与财富认知的年轻人",
+    "painOrDesire": "信息过载与虚假噱头辨析",
+    "objective": "save",
+    "topic": "变富的小技巧",
+    "title": "变富的小技巧",
+    "hookType": "fact_check",
+    "emotion": "relief",
+    "contentStructure": "pain-insight-action",
+    "cta": "理性行动，避免掉坑",
+    "predictionScores": {
+      "traffic": 8,
+      "click": 8,
+      "read": 8,
+      "save": 8,
+      "discussion": 8,
+      "share": 7,
+      "follow": 8,
+      "fit": 8,
+      "evidence": 8
+    },
+    "recommendation": "推荐发布",
+    "risks": [],
+    "strategyVersion": "m2-goldchance-v1",
+    "hypothesisIds": [
+      "H-GOLD-01"
+    ]
+  },
+  "metrics": [],
+  "payloadHash": "8baf522a7e648ba2",
+  "approvalStatus": "pending",
+  "approvedAt": null,
+  "approvedHash": null,
+  "createdAt": "2026-09-04T21:04:15.640Z",
+  "updatedAt": "2026-09-04T21:04:15.645Z",
+  "frozenAt": "2026-09-04T21:04:15.645Z"
+}

@@ -13,11 +13,15 @@ function hermesBin(config) {
 function hermesModelArgs(agent, config) {
   if (agent === "deepseek") return ["--provider", "deepseek"];
   const hermes = config?.agents?.hermes || {};
-  return [
-    "--provider", hermes.provider || "custom:gemini-proxy",
-    "--model", hermes.model || "gemini-flash-3.7",
-    "--reasoning", hermes.modelReasoningEffort || "high"
-  ];
+  let provider = hermes.provider || "deepseek";
+  // Founder 2026-09-03: stop gemini reverse proxy; Hermes is metered DeepSeek under the ¥50 gate.
+  if (/gemini|proxy/i.test(String(provider))) provider = "deepseek";
+  const model = hermes.model && !/gemini/i.test(String(hermes.model))
+    ? hermes.model
+    : "deepseek-v4-pro";
+  const args = ["--provider", provider, "--model", model];
+  if (hermes.modelReasoningEffort) args.push("--reasoning", hermes.modelReasoningEffort);
+  return args;
 }
 
 export async function healthCheck(config = {}) {

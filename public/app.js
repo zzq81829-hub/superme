@@ -9,6 +9,8 @@ let activeRunData = null; // Stored for smooth 1s local clock ticking
 let pollTimer = null;
 let clockTimer = null;
 let isRefreshing = false;
+let activePanelId = "commandSection";
+let lastToast = { message: "", at: 0 };
 
 const expandedTaskIds = new Set();
 const showAllEventsTaskIds = new Set();
@@ -18,8 +20,29 @@ function taskTitleFromIntent(intent) {
 }
 
 function setPrimaryNavigation(targetId) {
+  activePanelId = targetId;
+  document.body.dataset.view = targetId;
+  const titles = {
+    commandSection: ["把精力留给重要的事。", "交代结果，查看进展，在需要时做决定。"],
+    taskSection: ["每件事，都有着落。", "查看执行进展、交付结果和需要处理的问题。"],
+    contentPackagesSection: ["内容工作台", "审阅图文、确认发布，记录真实反馈。"],
+    xhsIntelligenceSection: ["小红书情报", "查看账号表现，从真实数据里找到下一步。"],
+    approvalSection: ["待你决定", "先审阅具体内容，再授权系统执行。"],
+    accountsSection: ["账号与容量", "管理两个工具、各两个账号，清楚知道谁可以接工作。"],
+    workerBoardSection: ["执行团队", "查看可用能力、任务分配和等待原因。"],
+    secretarySection: ["私人秘书", "整理想法与交付结果，把明确的需求转为任务。"],
+    memorySection: ["创始人记忆", "你的判断与偏好，经你确认后生效。"],
+    briefSection: ["需求简报", "保存清晰的目标，让执行保持一致。"],
+    commandMonitor: ["运行监控", "查看当前执行步骤与运行状态。"]
+  };
+  const title = titles[targetId] || ["工作空间", "查看系统详情。"];
+  if ($("workspaceTitle")) $("workspaceTitle").textContent = title[0];
+  if ($("workspaceSubtitle")) $("workspaceSubtitle").textContent = title[1];
   document.querySelectorAll(".navItem[href], .mobileTab[href]").forEach((item) => {
-    item.classList.toggle("active", item.getAttribute("href") === "#" + targetId);
+    const selected = item.getAttribute("href") === "#" + targetId;
+    item.classList.toggle("active", selected);
+    if (selected) item.setAttribute("aria-current", "page");
+    else item.removeAttribute("aria-current");
   });
 }
 
@@ -43,8 +66,11 @@ function showSecondaryPanel(id) {
   const panel = $(id);
   if (!panel) return;
   panel.classList.add("isVisible");
+  setPrimaryNavigation(id);
+  history.replaceState(null, "", "#" + id);
+  loadVisiblePanel();
   closeMoreNav();
-  requestAnimationFrame(() => panel.scrollIntoView({ behavior: "smooth", block: "start" }));
+  requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
 }
 
 function setTaskView(view) {
@@ -63,6 +89,8 @@ window.showPhonePairingHelp = () => {
 
 // Toast Notification System
 function showToast(message, type = "error") {
+  if (lastToast.message === message && Date.now() - lastToast.at < 6000) return;
+  lastToast = { message, at: Date.now() };
   const container = $("toastContainer");
   if (!container) {
     alert(message);
@@ -105,12 +133,14 @@ async function api(url, options = {}) {
   try {
     const headers = new Headers(options.headers || {});
     if (phoneAccessToken) headers.set("X-OS-Phone-Token", phoneAccessToken);
-    const r = await fetch(url, { ...options, headers });
+    const { quiet, ...requestOptions } = options;
+    const r = await fetch(url, { ...requestOptions, headers, signal: options.signal || AbortSignal.timeout(20000) });
+    if (!r.headers.get("content-type")?.includes("application/json")) throw new Error("服务返回了异常页面，请重试连接");
     const data = await r.json();
     if (!r.ok) throw new Error(data.error || `Request failed with status ${r.status}`);
     return data;
   } catch (error) {
-    showToast(error.message || "Network request failed", "error");
+    if (!options.quiet) showToast(error.message === "Failed to fetch" ? "无法连接控制中枢，请检查服务后重试" : error.message || "连接失败，请重试", "error");
     throw error;
   }
 }
@@ -158,6 +188,10 @@ function determineStep(t) {
   switch (t.status) {
     case "queued":
       return "排队中 (等待分配 Worker)";
+    case "awaiting_approval":
+      return "等待你审阅并批准，尚未执行";
+    case "waiting_for_capacity":
+      return "等待执行团队恢复可用容量";
     case "paused":
       return "队列已暂停 (可随时点击 Resume 继续)";
     case "running":
@@ -193,6 +227,10 @@ function getStatusBadge(t) {
   switch (status) {
     case "queued":
       return `<span class="badge badge-queued"><span class="pulse-dot"></span> 队列中</span>`;
+    case "awaiting_approval":
+      return `<span class="badge badge-approval">待你批准</span>`;
+    case "waiting_for_capacity":
+      return `<span class="badge badge-paused">等待可用容量</span>`;
     case "paused":
       return `<span class="badge badge-paused">⏸ 已暂停</span>`;
     case "running":
@@ -484,6 +522,8 @@ async function loadTasks() {
     cachedTasks = await api("/api/tasks");
     $("activeCount").textContent = cachedTasks.filter((t) => t.status !== "completed").length;
     $("completedCount").textContent = cachedTasks.filter((t) => t.status === "completed").length;
+    if ($("overviewRunning")) $("overviewRunning").textContent = cachedTasks.filter((t) => ["queued", "running", "verifying", "repairing", "cancelling"].includes(t.status)).length;
+    if ($("overviewCompleted")) $("overviewCompleted").textContent = cachedTasks.filter((t) => t.status === "completed").length;
     renderCurrentTaskView();
   } catch (error) {
     console.error("Failed to load tasks:", error);
@@ -504,7 +544,7 @@ async function loadTrash() {
 
 function renderTaskList() {
   const activeTasks = cachedTasks.filter((t) => t.status !== "completed");
-  const currentTask = activeTasks.find((t) => ["queued", "running", "verifying", "repairing", "cancelling", "awaiting_approval"].includes(t.status)) || activeTasks[0];
+  const currentTask = activeTasks.find((t) => ["queued", "running", "verifying", "repairing", "cancelling", "awaiting_approval", "waiting_for_capacity"].includes(t.status)) || activeTasks[0];
   const remainingTasks = activeTasks.filter((t) => t.id !== currentTask?.id);
   const latestCompleted = cachedTasks.find((t) => t.status === "completed");
   if (!currentTask) {
@@ -520,7 +560,7 @@ function renderTaskList() {
     ? '<div class="progressRecent"><div class="progressListLabel">其他任务</div>' + remainingTasks.map((t) => renderTask(t, false)).join("") + '</div>'
     : "";
   $("tasks").innerHTML =
-    '<div class="progressNow"><div class="progressListLabel">正在推进</div>' + renderTask(currentTask, false) + '</div>' +
+    '<div class="progressNow"><div class="progressListLabel">' + (["running", "queued", "verifying", "repairing"].includes(currentTask.status) ? "正在推进" : "当前事项") + '</div>' + renderTask(currentTask, false) + '</div>' +
     remaining;
 }
 
@@ -547,11 +587,25 @@ function renderTask(t, isTrash = false) {
   const isExpanded = expandedTaskIds.has(t.id);
   const showAllEvents = showAllEventsTaskIds.has(t.id);
   const isRunning = ["running", "verifying", "repairing"].includes(t.status);
-  const isHighRisk = t.riskLevel === "high";
-  const riskBadge = isHighRisk
-    ? `<span class="badge" style="background:rgba(220,38,38,0.2); color:#ff6b6b; border-color:rgba(220,38,38,0.4);" title="${esc((t.riskReasons || []).join(', '))}">HIGH RISK</span>`
-    : `<span class="badge" style="background:rgba(100,100,100,0.15); color:#888;">LOW RISK</span>`;
-  
+  const riskLevel = t.risk_level || t.riskLevel || "low";
+  let riskBadge = "";
+  if (riskLevel === "high") {
+    riskBadge = `<span class="badge" style="background:rgba(220,38,38,0.2); color:#ff6b6b; border-color:rgba(220,38,38,0.4);" title="${esc((t.riskReasons || []).join(', '))}">HIGH RISK</span>`;
+  } else if (riskLevel === "medium") {
+    riskBadge = `<span class="badge" style="background:rgba(245,158,11,0.2); color:#fbbf24; border-color:rgba(245,158,11,0.4);" title="${esc((t.riskReasons || []).join(', '))}">MEDIUM RISK</span>`;
+  } else {
+    riskBadge = `<span class="badge" style="background:rgba(100,100,100,0.15); color:#888;">LOW RISK</span>`;
+  }
+
+  let reasoningBadge = "";
+  if (t.reasoning_mode === "boost") {
+    reasoningBadge = `<span class="badge" style="background:rgba(14,165,233,0.2); color:#38bdf8; border-color:rgba(14,165,233,0.4);" title="${esc(t.boost_reason || '深度推理与多智能体验证模式')}">⚡ Boost 模式</span>`;
+  }
+  let retryBadge = "";
+  if (t.retry_count && t.retry_count > 0) {
+    retryBadge = `<span class="badge" style="background:rgba(234,179,8,0.15); color:#facc15;" title="已自动重试 ${t.retry_count} 次">重试: ${t.retry_count}</span>`;
+  }
+
   let approvalBadge = "";
   if (t.approvalStatus === "pending" || t.status === "awaiting_approval") {
     approvalBadge = `<span class="badge" style="background:rgba(234,179,8,0.2); color:#facc15; border-color:rgba(234,179,8,0.4);">待审批</span>`;
@@ -739,6 +793,43 @@ function renderTask(t, isTrash = false) {
       `;
     }
 
+    let boostVerificationHtml = "";
+    if (t.verification_result?.boost_checks?.length) {
+      const bChecks = t.verification_result.boost_checks;
+      const allOk = t.verification_result.ok;
+      boostVerificationHtml = `
+        <div class="detailsSection" style="margin-top: 12px; padding: 10px 12px; background: rgba(14,165,233,0.06); border: 1px solid rgba(14,165,233,0.2); border-radius: 6px;">
+          <div style="font-weight:600; color: #38bdf8; margin-bottom: 6px; display:flex; justify-content:space-between; align-items:center;">
+            <span>⚡ Antigravity Boost 6 维深度质检报告</span>
+            <span style="font-size:11px; padding:2px 6px; border-radius:4px; ${allOk ? 'background:rgba(34,197,94,0.2);color:#4ade80;' : 'background:rgba(239,68,68,0.2);color:#f87171;'}">${allOk ? '全项通过' : '存在风险'}</span>
+          </div>
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 6px; font-size:12px;">
+            ${bChecks.map(c => `
+              <div style="padding:4px 8px; border-radius:4px; background:rgba(0,0,0,0.2); border-left: 3px solid ${c.ok ? '#4ade80' : '#f87171'};">
+                <div style="color:${c.ok ? '#4ade80' : '#f87171'}; font-weight:500;">${c.ok ? '✔' : '✖'} ${esc(c.label || c.name)}</div>
+                <div style="color:var(--ivory-muted); font-size:11px; margin-top:2px;">${esc(c.detail)}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    let failureReportHtml = "";
+    if (t.result?.failureReport) {
+      const rep = t.result.failureReport;
+      failureReportHtml = `
+        <div class="detailsSection" style="margin-top: 12px; padding: 10px 12px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 6px;">
+          <div style="font-weight:600; color: #f87171; margin-bottom: 4px;">🚨 连续失败推理熔断报告（已请求上级/人工审核）</div>
+          <div style="color:var(--ivory-muted); font-size:12px;">原因：${esc(rep.reason)}</div>
+          <div style="color:var(--ivory-muted); font-size:12px; margin-top:4px;">最后错误：<code>${esc(rep.last_error)}</code></div>
+          <div style="margin-top:6px; font-size:11px; color:#fca5a5;">
+            ${(rep.audit_recommendations || []).map(r => `<div>${esc(r)}</div>`).join('')}
+          </div>
+        </div>
+      `;
+    }
+
     detailsBlock = `
       <div class="taskDetailsPanel">
         <div class="detailsSection" style="padding: 10px 12px; background: rgba(0,0,0,0.3); border-radius: 6px; border: 1px solid rgba(255,255,255,0.06); font-size: 12px; margin-bottom: 12px;">
@@ -746,6 +837,9 @@ function renderTask(t, isTrash = false) {
           <div style="color: var(--ivory-muted); margin-bottom: 4px;"><strong>备选 Worker：</strong> ${esc(alternativesStr)}</div>
           <div style="color: var(--ivory-muted);"><strong>工作流计划：</strong> ${esc(workflowStr)}</div>
         </div>
+
+        ${boostVerificationHtml}
+        ${failureReportHtml}
 
         <div class="timelineContainer">
           <div class="detailsLabel">WORKER HANDOFF LOG（谁做了什么、为何回退、谁接手）</div>
@@ -872,6 +966,17 @@ function renderTask(t, isTrash = false) {
           </div>
         `;
       }).join("")}
+      ${founderProduct.subtasks?.length ? `
+        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color, #444);">
+          <div style="font-size: 12px; color: var(--bronze-color, #cca462); margin-bottom: 6px;">🔱 Hermes COO 分发的专业子任务 (${founderProduct.subtasks.length}):</div>
+          ${founderProduct.subtasks.map(st => `
+            <div style="font-size: 12px; margin: 4px 0; display: flex; justify-content: space-between; gap: 8px;">
+              <span>• <strong>[${esc(st.agent || 'auto')}]</strong> ${esc(st.title)}</span>
+              <span class="badge status-${esc(st.status)}">${esc(st.status)}</span>
+            </div>
+          `).join("")}
+        </div>
+      ` : ""}
     </div>
   ` : "";
 
@@ -882,10 +987,15 @@ function renderTask(t, isTrash = false) {
           <div class="taskTitle">${esc(t.title)}</div>
           <div class="meta">
             ${esc(t.agentResolved || t.agent)} · ${esc(t.projectPath || "默认工作区")}${t.selectionReason ? " · " + esc(t.selectionReason) : ""}${durationText}${updatedText}${deletedText}${fromStatusText}
+            ${t.result?.accountUsed ? `<span class="badge">账号：${esc(({ account_a: "主力 A", account_b: "备用 B", default: "当前本机登录" })[t.result.accountUsed] || t.result.accountUsed)}</span>` : ""}
           </div>
         </div>
         <div class="taskTopRight">
           ${statusBadge}
+          ${reasoningBadge}
+          ${riskBadge}
+          ${approvalBadge}
+          ${retryBadge}
           <button class="ghost detailBtn" onclick="toggleTask('${t.id}')">${isExpanded ? "收起" : "查看详情"}</button>
         </div>
       </div>
@@ -1138,14 +1248,15 @@ $("create").onclick = async () => {
   }
 
   btn.disabled = true;
-  btn.textContent = "Creating...";
+  btn.textContent = "正在提交…";
 
   const body = {
     title: titleVal,
     description: descVal,
     agent: $("agent").value,
     projectPath: $("projectPath").value,
-    acceptanceCriteria: $("acceptance").value
+    acceptanceCriteria: $("acceptance").value,
+    delegateToHermes: $("delegateToHermes")?.checked || $("agent").value === "hermes"
   };
 
   try {
@@ -1159,6 +1270,7 @@ $("create").onclick = async () => {
     $("title").value = "";
     $("description").value = "";
     $("acceptance").value = "";
+    if ($("delegateToHermes")) $("delegateToHermes").checked = false;
     
     // Optimistic insert into cachedTasks & immediate render
     if (createdTask?.id) {
@@ -1183,7 +1295,7 @@ $("create").onclick = async () => {
     // Handled in api()
   } finally {
     btn.disabled = false;
-    btn.textContent = "提交并开始";
+    btn.textContent = "开始推进 ↗";
   }
 };
 
@@ -1438,13 +1550,15 @@ async function loadApprovals() {
     if (!section || !badge || !list) return;
 
     badge.textContent = cachedApprovals.length;
+    if ($("overviewApprovals")) $("overviewApprovals").textContent = cachedApprovals.length;
+    if ($("primaryApprovalCount")) $("primaryApprovalCount").textContent = cachedApprovals.length || "";
     const navCount = $("navApprovalCount");
     if (navCount) navCount.textContent = cachedApprovals.length ? "· " + cachedApprovals.length : "";
     if (isPhoneMode) document.body.classList.toggle("phoneHasApproval", cachedApprovals.length > 0);
     if (cachedApprovals.length > 0) {
       section.style.display = "block";
       list.innerHTML = cachedApprovals.map((t) => {
-        const reasons = (t.riskReasons || []).map(r => `• ${r}`).join("<br/>");
+        const reasons = (t.riskReasons || []).map(r => `• ${esc(r)}`).join("<br/>");
         const isPackage = t.approvalType === "publish_package";
         const approveCall = isPackage ? `approveContentPackage('${t.id}', this)` : `approveTask('${t.id}', this)`;
         const rejectCall = isPackage ? `rejectContentPackage('${t.id}', this)` : `rejectTaskApproval('${t.id}', this)`;
@@ -1470,8 +1584,7 @@ async function loadApprovals() {
       }).join("");
     } else {
       section.style.display = "none";
-      section.classList.remove("isVisible");
-      list.innerHTML = "";
+      list.innerHTML = '<div class="progressEmpty"><h3>暂时没有需要你决定的事。</h3><p>需要批准时，会在这里列出具体事项。</p></div>';
     }
   } catch (err) {
     console.error("Failed to load approvals:", err);
@@ -2334,23 +2447,54 @@ function workerStatusLabel(status) { return WORKER_STATUS_LABELS[status] || stat
 
 async function loadHealth() {
   try {
-    cachedHealth = await api("/api/health");
+    cachedHealth = await api("/api/health", { quiet: true });
     const coo = cachedHealth.coo || {};
     const cooStatus = coo.status || cachedHealth.ceo?.cooStatus || "UNKNOWN";
 
     const healthEl = $("health");
     const connectionNotice = $("connectionNotice");
     if (healthEl) {
-      healthEl.textContent = `${cachedHealth.dryRun ? "预演" : "执行"} · 控制中枢 · Hermes ${cooStatus}`;
+      healthEl.textContent = cachedHealth.dryRun ? "已连接 · 预演模式" : "已连接 · 本机";
+      healthEl.title = `Hermes：${workerStatusLabel(cooStatus)}；连接成功不代表所有执行工具均可用`;
     }
 
     if (connectionNotice) connectionNotice.hidden = true;
+    document.body.dataset.connection = "online";
+    if ($("railStatusText")) $("railStatusText").textContent = "控制中枢已连接";
+    const readiness = $("executionReadiness");
+    const workers = cachedHealth.workers || [];
+    const defaultReady = workers.some(w => w.id === "antigravity" && w.available && w.status === "READY");
+    if (readiness) {
+      readiness.hidden = defaultReady || cachedHealth.dryRun;
+      const alternatives = workers.filter(w => ["codex", "grok-build"].includes(w.id) && w.available);
+      readiness.replaceChildren();
+      if (!readiness.hidden) {
+        const message = document.createElement("span");
+        message.textContent = alternatives.length ? "默认执行工具尚未完成就绪核验。可指定已就绪的工具推进：" : "执行工具暂不可用。任务可提交保留，等待工具恢复。";
+        readiness.append(message);
+        alternatives.forEach(worker => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "ghost";
+          button.textContent = ($("agent").value === worker.id ? "已选择 " : "使用 ") + workerLabel(worker.id);
+          button.addEventListener("click", () => {
+            $("agent").value = worker.id;
+            readiness.querySelectorAll("button").forEach(b => { b.disabled = false; });
+            button.disabled = true;
+            button.textContent = "已选择 " + workerLabel(worker.id);
+            showToast("本次任务将交给 " + workerLabel(worker.id), "info");
+          });
+          readiness.append(button);
+        });
+      }
+    }
 
     const workersEl = $("workers");
     if (workersEl) {
-      workersEl.innerHTML = (cachedHealth.workers || []).map((worker) =>
-        `<span class="badge" title="${esc(worker.detail || "")}">${esc(workerLabel(worker.id))} · ${esc(workerStatusLabel(worker.status))}${worker.securityRisk ? " ⚠" : ""}</span>`
-      ).join(" ");
+      workersEl.innerHTML = (cachedHealth.workers || []).map((worker) => {
+        const boostBadge = (worker.id === "antigravity" && worker.boost) ? " ⚡Boost" : "";
+        return `<span class="badge" title="${esc(worker.detail || "")}">${esc(workerLabel(worker.id))}${boostBadge} · ${esc(workerStatusLabel(worker.status))}${worker.securityRisk ? " ⚠" : ""}</span>`;
+      }).join(" ");
     }
 
     const runtimeEl = $("monitorHermesRuntime");
@@ -2404,6 +2548,8 @@ async function loadHealth() {
   } catch (err) {
     const healthEl = $("health");
     if (healthEl) healthEl.textContent = "离线";
+    document.body.dataset.connection = "offline";
+    if ($("railStatusText")) $("railStatusText").textContent = "控制中枢未连接";
     const connectionNotice = $("connectionNotice");
     if (connectionNotice) connectionNotice.hidden = false;
     const runtimeEl = $("monitorHermesRuntime");
@@ -2439,7 +2585,8 @@ function roleBadgeHtml(w) {
     return `<span class="badge badge-scarce" title="稀缺强模型 · 专用于高价值架构与难点任务">SCARCE · 高价值保留</span>`;
   }
   if (w.id === "antigravity") {
-    return `<span class="badge badge-default" title="默认主力执行 · 承担海量执行与安全前置">DEFAULT · 批量主力</span>`;
+    const boostTag = w.boost ? ` · <span style="color: #38bdf8; font-weight: 700;">⚡ Boost (${esc(w.effort || 'high')})</span>` : '';
+    return `<span class="badge badge-default" title="默认主力执行 · 承担海量执行与安全前置">DEFAULT · 批量主力${boostTag}</span>`;
   }
   if (w.id === "grok-build") {
     return `<span class="badge" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #e9d5ff;">RESEARCH · 高级调研</span>`;
@@ -3075,13 +3222,23 @@ function renderGrokChat(scrollToBottom) {
 
     if (isUser) {
       const actionable = t.intentGuess === "task" || t.intentGuess === "memory_candidate";
-      const workBtn = `<button class="ghost startWorkTurnBtn" style="font-size: 11px; padding: 2px 8px; color: #fbbf24; border-color: rgba(251,191,36,0.35);" onclick="startWorkFromGrokTurn('${t.id}', this)" title="把这条消息直接作为工作排队/审批">🚀 开始工作</button>`;
+      let taskBadge = "";
+      if (t.taskId) {
+        if (t.taskRisk === "high" || t.taskStatus === "awaiting_approval") {
+          taskBadge = `<span class="badge badge-warning" style="cursor:pointer; font-size: 11px; padding: 2px 8px;" onclick="showTaskDetail('${esc(t.taskId)}')">⚠️ 待 Founder 审批 (#${esc(t.taskId)})</span>`;
+        } else {
+          taskBadge = `<span class="badge badge-running" style="cursor:pointer; font-size: 11px; padding: 2px 8px; background: rgba(59,130,246,0.18); color: #60a5fa; border: 1px solid rgba(96,165,250,0.3);" onclick="showTaskDetail('${esc(t.taskId)}')">🚀 Hermes 调度中 (#${esc(t.taskId)})</span>`;
+        }
+      }
+      const workBtn = !t.taskId
+        ? `<button class="ghost startWorkTurnBtn" style="font-size: 11px; padding: 2px 8px; color: #fbbf24; border-color: rgba(251,191,36,0.35);" onclick="startWorkFromGrokTurn('${t.id}', this)" title="把这条消息直接作为工作排队/审批">🚀 开始工作</button>`
+        : "";
       const inboxBtn = t.inboxMsgId
         ? '<span class="badge badge-completed">已转草稿</span>'
-        : (actionable
+        : (!t.taskId && actionable
           ? `<button class="ghost" style="font-size: 11px; padding: 2px 8px;" onclick="inboxFromGrokTurn('${t.id}', this)">📥 转为收件箱草稿（${t.intentGuess}）</button>`
           : "");
-      actions = `${workBtn} ${inboxBtn}`;
+      actions = `${taskBadge} ${workBtn} ${inboxBtn}`.trim();
     } else if (t.kind === "text") {
       actions = t.tunedAt
         ? '<span class="badge badge-completed">✓ 已设为规则</span>'
@@ -3127,6 +3284,8 @@ window.sendGrokChat = async () => {
     await loadGrokChat();
     renderGrokChat(true);
     await loadPersona();
+    await loadTasks();
+    await loadSecretaryBrief();
   } catch (err) {
     // Handled in api()
   } finally {
@@ -3517,36 +3676,39 @@ window.submitFeedback = async (refine) => {
   }
 };
 
+async function loadVisiblePanel() {
+  const loaders = {
+    accountsSection: [loadAccountConsole],
+    commandMonitor: [loadCommandMonitor, loadBilling],
+    workerBoardSection: [loadWorkerBoard],
+    memorySection: [loadMemory],
+    contentPackagesSection: [loadContentPackages],
+    secretarySection: [loadSecretaryInbox, loadGrokChat, loadPersona, loadSecretaryBrief, loadSecretaryFiles],
+    briefSection: [loadBrief],
+    xhsIntelligenceSection: [loadXhsIntelligence]
+  };
+  return Promise.allSettled((loaders[activePanelId] || []).map((load) => load()));
+}
+
 async function refreshNow() {
   if (isRefreshing) return;
   isRefreshing = true;
   stopPolling();
 
   try {
-    const [_, monitorState] = await Promise.all([
+    await Promise.allSettled([
       loadHealth(),
-      loadCommandMonitor(),
       loadTasks(),
       loadTrash(),
-      loadMemory(),
       loadApprovals(),
-      loadBilling(),
-      loadContentPackages(),
-      loadSecretaryInbox(),
-      loadGrokChat(),
-      loadPersona(),
-      loadWorkerBoard(),
-      loadBrief(),
-      loadSecretaryBrief(),
-      loadSecretaryFiles(),
-      loadXhsIntelligence()
+      loadVisiblePanel()
     ]);
 
     const hasRunningTasks = cachedTasks.some(t =>
       ["running", "queued", "verifying", "repairing", "cancelling"].includes(t.status)
     );
 
-    const shouldPollFast = monitorState?.hasActiveRun || hasRunningTasks || cachedApprovals.length > 0;
+    const shouldPollFast = hasRunningTasks || cachedApprovals.length > 0;
     scheduleAdaptivePoll(shouldPollFast);
   } catch (error) {
     console.error("Refresh failed:", error);
@@ -3610,26 +3772,37 @@ document.querySelectorAll(".navSecondary").forEach((item) => {
   });
 });
 
-const navItems = [...document.querySelectorAll(".navItem[href]:not(.navSecondary), .mobileTab[href]")];
+const navItems = [...document.querySelectorAll(".navItem[href]:not(.navSecondary), .mobileTab[href], .overviewItem[href]")];
 navItems.forEach((item) => {
-  item.addEventListener("click", () => {
+  item.addEventListener("click", (event) => {
+    event.preventDefault();
+    const targetId = item.getAttribute("href").slice(1);
+    if ($(targetId)?.classList.contains("secondaryPanel")) {
+      showSecondaryPanel(targetId);
+      history.replaceState(null, "", "#" + targetId);
+      return;
+    }
     hideSecondaryPanels();
     closeMoreNav();
-    setPrimaryNavigation(item.getAttribute("href").slice(1));
+    setPrimaryNavigation(targetId);
+    if (item.dataset.taskView) setTaskView(item.dataset.taskView);
+    history.replaceState(null, "", "#" + targetId);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   });
 });
 
-const navTargets = navItems
-  .map((item) => ({ item, target: document.querySelector(item.getAttribute("href")) }))
-  .filter(({ target }) => target);
-if (navTargets.length && "IntersectionObserver" in window) {
-  const navObserver = new IntersectionObserver((entries) => {
-    const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-    if (!visible) return;
-    navTargets.forEach(({ item, target }) => item.classList.toggle("active", target === visible.target));
-  }, { rootMargin: "-12% 0px -70% 0px", threshold: [0.1, 0.35, 0.7] });
-  navTargets.forEach(({ target }) => navObserver.observe(target));
-}
+document.querySelectorAll("[data-intent]").forEach((button) => button.addEventListener("click", () => {
+  if ($("description").value.trim()) return $("description").focus();
+  $("description").value = button.dataset.intent;
+  $("description").focus();
+}));
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeMoreNav();
+  if ((event.ctrlKey || event.metaKey) && event.key === "Enter" && document.activeElement === $("description")) {
+    event.preventDefault();
+    if (!$("create").disabled) $("create").click();
+  }
+});
 
 // ===== Xiaohongshu Data Intelligence (小红书数据情报 v0.1) =====
 let cachedXhsStatus = null;
@@ -3715,9 +3888,26 @@ function renderXhsStatus(status) {
   }
   const sched = $("schedulerStateValue");
   if (sched) {
-    sched.textContent = status.schedulerEnabled ? "已开启 (每6小时自动轮询)" : "默认关闭 (需手动开启)";
-    sched.style.color = status.schedulerEnabled ? "#4ade80" : "var(--ivory-muted)";
+    if (status.schedulerEnabled) {
+      const nextStr = status.nextRunAt ? new Date(status.nextRunAt).toLocaleTimeString() : "计算中...";
+      sched.textContent = `已开启 (下次采集: ${nextStr})`;
+      sched.style.color = "#4ade80";
+    } else {
+      sched.textContent = "默认关闭 (需手动开启)";
+      sched.style.color = "var(--ivory-muted)";
+    }
   }
+
+  const circVal = $("circadianCardValue");
+  const circMeta = $("circadianCardMeta");
+  if (circVal && status.circadian) {
+    circVal.textContent = status.circadian.statusLabel || "☀️ 日间活跃期";
+    circVal.style.color = status.circadian.isQuietHours ? "#f59e0b" : "#4ade80";
+  }
+  if (circMeta && status.circadian) {
+    circMeta.textContent = `夜间静默(${status.circadian.restHoursRange || "23:30-08:30"}) · 拟人高斯抖动`;
+  }
+
   const logsEl = $("xhsLogsWindow");
   if (logsEl) {
     const logs = status.recentLogs || [];
@@ -4111,11 +4301,17 @@ window.collectAllXhsAccounts = async () => {
     btn.disabled = true;
     btn.textContent = "全量采集推进中...";
   }
-  setXhsJobStep("launch_browser", "正在准备对 3 个自有账号进行顺序轮询采集...");
+  setXhsJobStep("launch_browser", "正在准备对自有账号进行拟人生理轮询采集...");
   try {
-    await api("/api/intelligence/xhs/collect-all", { method: "POST" });
+    const res = await api("/api/intelligence/xhs/collect-all", { method: "POST" });
     setXhsJobStep("completed", "全量账号采集完成，快照已成功更新");
-    showToast("所有账号采集已全部完成", "success");
+    if (res.result?.warning) {
+      showToast(res.result.warning, "warning");
+    } else if (res.result?.sleepMode) {
+      showToast(res.result.reason, "info");
+    } else {
+      showToast("所有账号采集已全部完成", "success");
+    }
     await loadXhsIntelligence(true);
   } catch (err) {
     showToast(`全量采集失败: ${err.message}`, "error");
@@ -4127,12 +4323,27 @@ window.collectAllXhsAccounts = async () => {
   }
 };
 
-window.runPublicRadarScan = async () => {
-  setXhsJobStep("reading_notes", "正在检索公开关键词与对标账号...");
+window.openResearchLoginWindow = async () => {
   try {
-    await api("/api/intelligence/xhs/search", { method: "POST" });
+    const res = await api("/api/intelligence/xhs/research/login-window", { method: "POST" });
+    showToast(res.message || "已开启外部研究隔离窗口，请在弹窗中扫码以解除搜索限制", "info");
+  } catch (err) {
+    showToast("打开研究窗口失败: " + err.message, "error");
+  }
+};
+
+window.runPublicRadarScan = async () => {
+  setXhsJobStep("reading_notes", "正在以真人浏览拟态检索公开关键词与爆款笔记...");
+  try {
+    const res = await api("/api/intelligence/xhs/search", { method: "POST" });
     setXhsJobStep("completed", "公开雷达扫描完成");
-    showToast("公共雷达扫描已完成", "success");
+    if (res.result?.warning) {
+      showToast(res.result.warning, "warning");
+    } else if (res.result?.sleepMode) {
+      showToast(res.result.reason, "info");
+    } else {
+      showToast("公共雷达扫描已完成", "success");
+    }
     await loadXhsIntelligence(true);
   } catch (err) {
     showToast(`扫描出错: ${err.message}`, "error");
@@ -4180,8 +4391,11 @@ document.addEventListener("keydown", (e) => {
 });
 
 // Start unified polling controller
+const initialPanel = location.hash.slice(1);
+if (initialPanel && document.querySelector(`.navItem[href="#${CSS.escape(initialPanel)}"]`)) {
+  if ($(initialPanel)?.classList.contains("secondaryPanel")) showSecondaryPanel(initialPanel);
+  else setPrimaryNavigation(initialPanel);
+} else {
+  setPrimaryNavigation("commandSection");
+}
 startPolling();
-loadSafeFilesForRoot("Desktop");
-loadSecretaryFiles();
-loadXhsIntelligence();
-

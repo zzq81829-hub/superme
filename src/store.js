@@ -7,6 +7,8 @@ import {
   computePayloadHash,
   generateSelectionPreview
 } from "./tasks/risk.js";
+import { evaluateModelNeed } from "./workforce/modelNeed.js";
+import { evaluateReasoningMode } from "./policy/reasoningEscalation.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -53,6 +55,7 @@ function normalizeTask(task) {
   if (!task.riskLevel) {
     const risk = classifyTaskRisk(task);
     task.riskLevel = risk.level;
+    task.risk_level = risk.level;
     task.riskReasons = risk.reasons;
     task.interruptLevel = risk.interruptLevel;
     task.approvalStatus = risk.level === "high" ? (task.approvedHash ? "approved" : "pending") : "not_required";
@@ -62,14 +65,47 @@ function normalizeTask(task) {
     task.selectionPreview = generateSelectionPreview(task);
     task.workflow = task.selectionPreview.workflow;
   }
+  const reasoning = evaluateReasoningMode(task);
+  if (!task.risk_level) {
+    task.risk_level = task.riskLevel || reasoning.risk_level;
+  }
+  if (!task.reasoning_mode) {
+    task.reasoning_mode = reasoning.reasoning_mode;
+  }
+  if (task.boost_reason === undefined) {
+    task.boost_reason = reasoning.boost_reason;
+  }
+  if (task.retry_count === undefined) {
+    task.retry_count = 0;
+  }
+  if (task.verification_result === undefined) {
+    task.verification_result = null;
+  }
+  if (!task.modelNeed) {
+    task.modelNeed = evaluateModelNeed(task);
+  }
+  if (task.allowPaidFallback === undefined) {
+    task.allowPaidFallback = false;
+  }
+  if (task.founderTouches === undefined) {
+    task.founderTouches = 1;
+  }
+  if (task.prework === undefined) {
+    task.prework = null;
+  }
+  if (task.result === undefined) {
+    task.result = null;
+  }
   return task;
 }
 
 export function createTask(input) {
   const now = new Date().toISOString();
   const risk = classifyTaskRisk(input);
+  const reasoning = evaluateReasoningMode(input);
   const payloadHash = computePayloadHash(input);
   const selectionPreview = generateSelectionPreview(input);
+  const modelNeed = evaluateModelNeed(input);
   const approvalStatus = risk.level === "high" ? "pending" : "not_required";
   const status = risk.level === "high" ? "awaiting_approval" : (input.status || "draft");
 
@@ -81,20 +117,37 @@ export function createTask(input) {
     projectPath: input.projectPath || "",
     acceptanceCriteria: input.acceptanceCriteria || [],
     riskLevel: risk.level,
+    risk_level: risk.level,
     riskReasons: risk.reasons,
     interruptLevel: risk.interruptLevel,
+    reasoning_mode: input.reasoning_mode || reasoning.reasoning_mode,
+    boost_reason: input.boost_reason !== undefined ? input.boost_reason : reasoning.boost_reason,
+    retry_count: input.retry_count || 0,
+    verification_result: input.verification_result || null,
     approvalStatus,
     approvedAt: null,
     approvedHash: null,
     workflow: selectionPreview.workflow,
     selectionPreview,
+    modelNeed,
+    allowPaidFallback: input.allowPaidFallback === true,
+    delegateToHermes: input.delegateToHermes === true,
+    source: input.source || null,
+    founderTouches: input.founderTouches ?? 1,
+    prework: input.prework || null,
     payloadHash,
     status,
     createdAt: now,
     updatedAt: now,
     startedAt: null,
     finishedAt: null,
-    result: null,
+    result: input.result !== undefined ? input.result : null,
+    deliverables: Array.isArray(input.deliverables) ? input.deliverables : [],
+    body: input.body || "",
+    project: input.project || "general",
+    planId: input.planId || input.plan_id || null,
+    parentTaskId: input.parentTaskId || null,
+    subtaskIds: Array.isArray(input.subtaskIds) ? input.subtaskIds : [],
     executionHistory: [],
     verificationHistory: [],
     error: null
@@ -103,22 +156,16 @@ export function createTask(input) {
   return task;
 }
 
-export function getTask(id) {
-  let p;
-  try {
-    p = taskFile(id);
-  } catch {
-    return null;
-  }
-  if (!fs.existsSync(p)) return null;
-  const raw = JSON.parse(fs.readFileSync(p, "utf8"));
-  return normalizeTask(raw);
+export function getTask(id, options = {}) {
+  const file = taskFile(id, options);
+  if (!fs.existsSync(file)) return null;
+  return normalizeTask(JSON.parse(fs.readFileSync(file, "utf8")));
 }
 
-export function updateTask(id, patch) {
-  const current = getTask(id);
-  if (!current) throw new Error(`Task ${id} not found`);
-  
+export function updateTask(id, patch, options = {}) {
+  const current = getTask(id, options);
+  if (!current) throw new Error("Task not found");
+
   const next = {
     ...current,
     ...patch,
@@ -136,13 +183,21 @@ export function updateTask(id, patch) {
     const newRisk = classifyTaskRisk(next);
     const newHash = computePayloadHash(next);
     const newPreview = generateSelectionPreview(next);
+    const newReasoning = evaluateReasoningMode(next);
 
     next.riskLevel = newRisk.level;
+    next.risk_level = newRisk.level;
     next.riskReasons = newRisk.reasons;
     next.interruptLevel = newRisk.interruptLevel;
     next.payloadHash = newHash;
     next.selectionPreview = newPreview;
     next.workflow = newPreview.workflow;
+    if (patch.reasoning_mode === undefined) {
+      next.reasoning_mode = newReasoning.reasoning_mode;
+    }
+    if (patch.boost_reason === undefined) {
+      next.boost_reason = newReasoning.boost_reason;
+    }
 
     if (next.riskLevel === "high") {
       if (next.approvedHash !== newHash) {
@@ -174,6 +229,11 @@ export function listTasks(options = {}) {
     })
     .filter(Boolean)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export function listSubtasks(parentTaskId, options = {}) {
+  if (!parentTaskId) return [];
+  return listTasks(options).filter((t) => t.parentTaskId === parentTaskId);
 }
 
 export function getTrashTask(id, options = {}) {
@@ -295,4 +355,36 @@ export function clearTrash(options = {}) {
     } catch {}
   }
   return files.length;
+}
+
+export function recoverOrphanedTasks(options = {}, now = Date.now()) {
+  const recoveredAt = new Date(now).toISOString();
+  const activeStatuses = new Set(["queued", "running", "verifying", "repairing", "cancelling"]);
+  const recovered = [];
+
+  for (const task of listTasks(options)) {
+    if (!activeStatuses.has(task.status)) continue;
+    const reason = "Control Center 已重启，原 Worker 进程已经不存在；任务已自动结束，可点击重新执行。";
+    const executionHistory = [...(task.executionHistory || []), {
+      attempt: (task.executionHistory || []).length + 1,
+      agent: "control-center",
+      phase: "recovery",
+      selectedBecause: "系统启动时检查未完成任务",
+      did: `发现任务仍标记为 ${task.status}，但本次启动没有对应 Worker 进程。`,
+      ok: false,
+      error: reason,
+      startedAt: task.startedAt || task.updatedAt || task.createdAt,
+      finishedAt: recoveredAt
+    }];
+    updateTask(task.id, {
+      status: "failed",
+      error: reason,
+      finishedAt: recoveredAt,
+      executionHistory,
+      orphanedRecoveredAt: recoveredAt
+    });
+    recovered.push(task.id);
+  }
+
+  return recovered;
 }

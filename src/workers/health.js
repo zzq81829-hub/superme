@@ -94,27 +94,45 @@ export function classifyCodexProbe(text, exitCode = 0, error = null) {
 }
 
 export function classifyGrokProbe(text, exitCode = 0, error = null) {
-  if (!error && exitCode === 0 && /logged in with grok\.com/i.test(text)) {
+  // Auth state and settings-fetch are independent: the CLI prints
+  // "You are logged in with grok.com." before attempting the (slow, often
+  // blocked) settings fetch. Trust the auth line even when the probe times
+  // out on settings; otherwise a blocked settings endpoint misreports a
+  // logged-in worker as AUTH_REQUIRED.
+  const loggedIn = /logged in with grok\.com/i.test(text);
+  if (loggedIn && !/not logged in/i.test(text)) {
     const model = text.match(/Default model:\s*([^\r\n]+)/i)?.[1]?.trim();
-    return { status: "READY", available: true, readinessVerified: true, detail: `grok.com session verified${model ? `; ${model}` : ""}` };
+    const note = error ? "settings fetch slow/unreachable" : (exitCode !== 0 ? "settings fetch slow/unreachable" : "");
+    return {
+      status: "READY",
+      available: true,
+      readinessVerified: true,
+      detail: `grok.com session verified${model ? `; ${model}` : ""}${note ? `; ${note}` : ""}`
+    };
   }
   return { status: "AUTH_REQUIRED", available: false, readinessVerified: true, detail: "grok.com session not verified" };
 }
 
 export function classifyHermesProbe(text, exitCode = 0, error = null) {
-  const providerText = text.match(/Provider:\s*([^\r\n]+)/i)?.[1] || "";
-  const provider = /deepseek|gemini[-:]?proxy/i.test(providerText);
-  const configured = /DeepSeek\s+(?:✓|configured)|gemini[-:]?proxy|gemini-flash-3\.7/i.test(text);
-  if (!error && exitCode === 0 && provider && configured) {
-    const gemini = /gemini/i.test(`${providerText} ${text}`);
+  const blob = `${text || ""}`;
+  const deepseekOk = /DeepSeek\s+(?:✓|configured)|Provider:\s*DeepSeek/i.test(blob);
+  if (!error && exitCode === 0 && deepseekOk) {
     return {
       status: "READY",
       available: true,
       readinessVerified: true,
-      detail: gemini ? "Hermes Gemini Flash 3.7 High provider verified" : "Hermes DeepSeek provider verified"
+      detail: "Hermes DeepSeek provider verified · ¥50 monthly gate"
     };
   }
-  return { status: "PROVIDER_UNVERIFIED", available: false, readinessVerified: true, detail: "Hermes provider not verified" };
+  if (/gemini[-:]?proxy|gemini-flash-3\.7/i.test(blob)) {
+    return {
+      status: "PROXY_DISABLED",
+      available: false,
+      readinessVerified: true,
+      detail: "Hermes gemini-proxy disabled by Founder; OS forces DeepSeek under ¥50 gate"
+    };
+  }
+  return { status: "PROVIDER_UNVERIFIED", available: false, readinessVerified: true, detail: "Hermes DeepSeek provider not verified" };
 }
 
 function applyReadinessProbes(map) {
@@ -167,6 +185,13 @@ export function workerHealthMap({ probeReadiness = false, config = null } = {}) 
     }
   };
   const permissionMode = config?.agents?.antigravity?.permissionMode || "configured";
+  const boost = config?.agents?.antigravity?.boost !== undefined ? Boolean(config.agents.antigravity.boost) : true;
+  const effort = config?.agents?.antigravity?.effort || (boost ? "high" : null);
+  map.antigravity = {
+    ...map.antigravity,
+    boost,
+    effort
+  };
   if (config && permissionMode !== "dangerous-bypass") {
     map.antigravity = {
       ...map.antigravity,

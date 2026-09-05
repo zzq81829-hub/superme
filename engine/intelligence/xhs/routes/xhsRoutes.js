@@ -55,7 +55,7 @@ xhsRouter.post("/accounts/:accountKey/collect", async (req, res) => {
   try {
     const { accountKey } = req.params;
     const { mock } = req.body || {};
-    const result = await xhsIntelligenceService.collectAccount(accountKey, !!mock);
+    const result = await xhsIntelligenceService.collectAccount(accountKey, !!mock, true);
     res.json({ ok: true, result });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
@@ -65,7 +65,7 @@ xhsRouter.post("/accounts/:accountKey/collect", async (req, res) => {
 xhsRouter.post("/collect-all", async (req, res) => {
   try {
     const { mock } = req.body || {};
-    const result = await xhsIntelligenceService.collectAllAccounts(!!mock);
+    const result = await xhsIntelligenceService.collectAllAccounts(!!mock, true);
     res.json({ ok: true, result });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
@@ -111,10 +111,19 @@ xhsRouter.post("/competitors", (req, res) => {
   }
 });
 
+xhsRouter.post("/research/login-window", (_req, res) => {
+  try {
+    const result = xhsIntelligenceService.openResearchLoginWindow();
+    res.json({ ok: true, ...result });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 xhsRouter.post("/search", async (req, res) => {
   try {
     const { keywords, mock } = req.body || {};
-    const result = await xhsIntelligenceService.collectPublic(keywords || [], !!mock);
+    const result = await xhsIntelligenceService.collectPublic(keywords || [], !!mock, true);
     res.json({ ok: true, result });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });

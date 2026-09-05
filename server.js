@@ -16,7 +16,8 @@ import {
   deleteTaskPermanently,
   clearTrash,
   applyTaskRetention,
-  recoverOrphanedTasks
+  recoverOrphanedTasks,
+  listSubtasks
 } from "./src/store.js";
 import {
   createCandidate,
@@ -39,7 +40,16 @@ import { getWorkersRegistry, getWorker } from "./src/workforce/registry.js";
 import { listRoutingLogs } from "./src/workforce/routingLogger.js";
 import { evaluateModelNeed } from "./src/workforce/modelNeed.js";
 import { scanAllRebounds } from "./src/workforce/rebound.js";
+import {
+  loadAllAccountPools,
+  getWorkerAccountPool,
+  configureWorkerAccounts,
+  recordAccountQuotaHit,
+  manualResetAccount
+} from "./src/workforce/accountPool.js";
+import { listAccountConsole, publicAccountPool, saveAccountSlot, checkAccountSlot } from "./src/workforce/accountConsole.js";
 import { generateSecretaryBrief } from "./src/secretary/brief.js";
+import { getSecretaryOsSnapshot } from "./src/secretary/osSnapshot.js";
 import { listFiles, toPublicFile } from "./src/files/registry.js";
 import { handleFileDownload } from "./src/files/download.js";
 import { emitLearningEvent } from "./src/learning/router.js";
@@ -84,6 +94,57 @@ import { extractBriefHighlights } from "./src/briefs/extract.js";
 import { listReviews, addReview } from "./src/reviews/store.js";
 import { defaultComputerRoots, listSafeComputerFiles, readSafeComputerText } from "./src/access/computerRead.js";
 import { xhsRouter } from "./engine/intelligence/xhs/routes/xhsRoutes.js";
+import { xhsOpsRouter } from "./src/xhs/routes.js";
+import { diagnoseFunnel } from "./src/autonomous_content/learningLedger.js";
+import { getRunStatus, pauseRun, resumeRun, cancelRun } from "./src/tasks/runs.js";
+import { publishEvent, queryEvents } from "./src/events/bus.js";
+import { verifyTaskExecution } from "./src/verify/taskVerifier.js";
+import { dispatchTaskUnified } from "./src/workforce/unifiedDispatcher.js";
+import { listPolicies, getPolicy, updatePolicy } from "./src/policy/policyManager.js";
+import { runReflection } from "./src/learning/reflector.js";
+import { saveLesson, listLessons } from "./src/memory/lessons.js";
+import { createGoal, listGoals, generatePlan } from "./src/planner/goalPlanner.js";
+import { runAutonomousCycle } from "./src/autonomous/loop.js";
+
+function evaluatePackageMetricsPerformance(metrics = {}) {
+  const normalized = {
+    impressions: Number(metrics?.impressions ?? 0),
+    views: Number(metrics?.views ?? metrics?.reads ?? metrics?.clicks ?? 0),
+    clicks: Number(metrics?.clicks ?? metrics?.views ?? metrics?.reads ?? 0),
+    dwell_time: Number(metrics?.dwell_time ?? metrics?.avgStaySeconds ?? 0),
+    avgStaySeconds: Number(metrics?.avgStaySeconds ?? metrics?.dwell_time ?? 0),
+    likes: Number(metrics?.likes ?? 0),
+    collects: Number(metrics?.collects ?? metrics?.saves ?? 0),
+    saves: Number(metrics?.saves ?? metrics?.collects ?? 0),
+    comments: Number(metrics?.comments ?? 0),
+    follows: Number(metrics?.follows ?? metrics?.followersGained ?? 0),
+    followersGained: Number(metrics?.followersGained ?? metrics?.follows ?? 0),
+    dms: Number(metrics?.dms ?? 0),
+    conversions_gmv: Number(metrics?.conversions_gmv ?? metrics?.conversions ?? metrics?.gmv ?? 0),
+    conversions: Number(metrics?.conversions ?? metrics?.conversions_gmv ?? metrics?.gmv ?? 0)
+  };
+
+  try {
+    const diagnosis = diagnoseFunnel(normalized);
+    let isOutperformed = false;
+    if (diagnosis.verdict === "outperformed") {
+      isOutperformed = true;
+    } else if (diagnosis.verdict === "underperformed") {
+      isOutperformed = false;
+    } else {
+      isOutperformed = (diagnosis.engagementRate ?? 0) >= 0.05 || (diagnosis.rates?.engagementRate ?? 0) >= 0.05;
+    }
+    return { isOutperformed, diagnosis };
+  } catch {
+    const views = normalized.views;
+    const interactions = normalized.likes + normalized.collects + normalized.comments;
+    const engagementRate = views > 0 ? interactions / views : 0;
+    return {
+      isOutperformed: engagementRate >= 0.05,
+      diagnosis: { stage: engagementRate >= 0.05 ? "healthy" : "low_engagement", engagementRate }
+    };
+  }
+}
 
 function sanitizeFounderFeedback(value, limit = 2000) {
   return String(value || "")
@@ -248,6 +309,62 @@ app.get("/api/workforce/events", (_req, res) => {
   res.json({ ok: true, events: listRoutingLogs() });
 });
 
+app.get("/api/workforce/accounts", (_req, res) => {
+  try {
+    res.json({ ok: true, pools: listAccountConsole() });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/workforce/accounts/:workerId", (req, res) => {
+  try {
+    if (!["antigravity", "codex"].includes(req.params.workerId)) return res.status(400).json({ error: "仅支持 Antigravity 和 Codex 双账号" });
+    res.json({ ok: true, pool: publicAccountPool(getWorkerAccountPool(req.params.workerId)) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/workforce/accounts/:workerId/configure", (req, res) => {
+  try {
+    const pool = saveAccountSlot(req.params.workerId, req.body || {});
+    res.json({ ok: true, pool });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post("/api/workforce/accounts/:workerId/rotate", (req, res) => {
+  try {
+    const { accountId, reason } = req.body || {};
+    const current = getWorkerAccountPool(req.params.workerId);
+    const targetId = accountId || current.activeAccountId;
+    const result = recordAccountQuotaHit(req.params.workerId, targetId, { message: reason || "Manual rotation" });
+    res.json({ ok: true, ...result });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post("/api/workforce/accounts/:workerId/check", (req, res) => {
+  try {
+    res.json({ ok: true, ...checkAccountSlot(req.params.workerId, req.body?.accountId || "account_a", req.body || {}) });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post("/api/workforce/accounts/:workerId/reset", (req, res) => {
+  try {
+    const { accountId } = req.body || {};
+    const pool = manualResetAccount(req.params.workerId, accountId || "account_a");
+    res.json({ ok: true, pool: pool ? publicAccountPool(pool) : null });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 app.post("/api/workers/:id/quota", (req, res) => {
   const { status, reason } = req.body || {};
   const allowed = ["unknown", "normal", "exhausted"];
@@ -337,6 +454,43 @@ app.get("/api/runs/status", (_req, res) => {
   });
 });
 
+app.get("/api/runs/:id/status", (req, res) => {
+  try {
+    const run = getRunStatus(req.params.id);
+    if (!run) return res.status(404).json({ error: `Run ${req.params.id} not found` });
+    res.json({ ok: true, run });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/runs/:id/pause", (req, res) => {
+  try {
+    const result = pauseRun(req.params.id);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post("/api/runs/:id/resume", (req, res) => {
+  try {
+    const result = resumeRun(req.params.id, { config });
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post("/api/runs/:id/cancel", (req, res) => {
+  try {
+    const result = cancelRun(req.params.id, req.body?.reason);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 app.get("/api/tasks", (_req, res) => res.json(listTasks()));
 
 app.get("/api/approvals", (_req, res) => {
@@ -369,7 +523,27 @@ app.get("/api/approvals", (_req, res) => {
 app.get("/api/tasks/:id", (req, res) => {
   const task = getTask(req.params.id);
   if (!task) return res.status(404).json({ error: "Task not found" });
-  res.json(task);
+  const subtasks = listSubtasks(task.id);
+  res.json({ ...task, subtasks });
+});
+
+app.post("/api/hermes/dispatch", async (req, res) => {
+  try {
+    const { requirement, title, projectPath } = req.body || {};
+    if (!requirement || !requirement.trim()) {
+      return res.status(400).json({ error: "requirement is required" });
+    }
+    const { decomposeAndDispatchRequirement } = await import("./src/workforce/hermesDispatcher.js");
+    const result = await decomposeAndDispatchRequirement(requirement.trim(), {
+      title,
+      projectPath,
+      config,
+      autoRun: true
+    });
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 function openLocalPath(targetPath) {
@@ -393,7 +567,7 @@ app.post("/api/tasks/:id/artifacts/:index/open", (req, res) => {
 
 app.post("/api/tasks", async (req, res) => {
   try {
-    const { title, description, agent = "auto", projectPath = "", acceptanceCriteria, execute = true, riskLevel } = req.body ?? {};
+    const { title, description, agent = "auto", projectPath = "", acceptanceCriteria, execute = true, riskLevel, delegateToHermes } = req.body ?? {};
     if (!title?.trim() || !description?.trim()) {
       return res.status(400).json({ error: "title and description are required" });
     }
@@ -416,7 +590,8 @@ app.post("/api/tasks", async (req, res) => {
       agent,
       projectPath,
       acceptanceCriteria: normalizedCriteria,
-      riskLevel
+      riskLevel,
+      delegateToHermes: delegateToHermes === true || agent === "hermes"
     });
 
     if (execute !== false) {
@@ -529,6 +704,7 @@ app.post("/api/tasks/:id/run", async (req, res) => {
     return res.status(403).json({ error: "High-risk task requires founder approval before execution", task: getTask(task.id) });
   }
 
+  const prevStatus = task.status;
   updateTask(task.id, { status: "queued" });
 
   dispatchTask(task.id, config).catch((error) => {
@@ -538,6 +714,16 @@ app.post("/api/tasks/:id/run", async (req, res) => {
       finishedAt: new Date().toISOString()
     });
   });
+
+  try {
+    emitLearningEvent({
+      type: "FOUNDER_REGENERATED",
+      domain: task.domain || "engineering",
+      actor: "founder",
+      subject: { kind: "task", id: task.id },
+      payload: { previousStatus: prevStatus }
+    });
+  } catch {}
 
   res.json({ ok: true, taskId: task.id, status: "queued" });
 });
@@ -593,6 +779,24 @@ app.post("/api/tasks/:id/stop", (req, res) => {
     error: "Task stopped by user"
   });
   res.json({ ok: true, task: updated });
+});
+
+app.post("/api/tasks/:id/verify", async (req, res) => {
+  try {
+    const verification = await verifyTaskExecution(req.params.id, { config, ...req.body });
+    res.json({ ok: true, verification });
+  } catch (err) {
+    res.status(err.message.includes("not found") ? 404 : 400).json({ error: err.message });
+  }
+});
+
+app.post("/api/tasks/:id/dispatch", async (req, res) => {
+  try {
+    const dispatchResult = await dispatchTaskUnified(req.params.id, { config, ...req.body });
+    res.json(dispatchResult);
+  } catch (err) {
+    res.status(err.message.includes("not found") ? 404 : 400).json({ error: err.message });
+  }
 });
 
 app.delete("/api/tasks/:id", (req, res) => {
@@ -926,6 +1130,27 @@ app.post("/api/content/packages/:id/metrics", (req, res) => {
       ? body.metrics
       : body;
     const pkg = appendPackageMetrics(req.params.id, metrics);
+
+    try {
+      const latestMetric = Array.isArray(metrics) ? metrics[metrics.length - 1] : metrics;
+      const { isOutperformed, diagnosis } = evaluatePackageMetricsPerformance(latestMetric);
+      emitLearningEvent({
+        type: isOutperformed ? "CONTENT_OUTPERFORMED" : "CONTENT_UNDERPERFORMED",
+        domain: "content_performance",
+        actor: "system",
+        subject: { kind: "package", id: pkg.id },
+        payload: {
+          metrics: latestMetric,
+          stage: diagnosis?.stage || null,
+          bottleneck: diagnosis?.bottleneck || null,
+          engagementRate: diagnosis?.engagementRate ?? null,
+          rates: pkg.metrics?.[pkg.metrics.length - 1]?.rates || null
+        }
+      });
+    } catch {
+      // Event emission failure must not block the metrics response
+    }
+
     res.status(201).json({ ok: true, package: pkg, metrics: pkg.metrics });
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -1053,10 +1278,11 @@ app.post("/api/xhs/login/window", (_req, res) => {
 });
 
 // Agents still cannot hit /send. Founder publish path is /approve and /publish.
-const rejectAutoSend = (_req, res) => {
+export const rejectAutoSend = (_req, res) => {
   res.status(403).json({
     ok: false,
-    error: "Agents cannot publish. Founder approval publishes via /approve; retry via /publish after login."
+    code: "AUTONOMOUS_SEND_FORBIDDEN",
+    error: "AUTONOMOUS_SEND_FORBIDDEN: Agents cannot publish. Founder approval publishes via /approve; retry via /publish after login."
   });
 };
 
@@ -1166,6 +1392,113 @@ app.post("/api/learning/events", (req, res) => {
   }
 });
 
+app.get("/api/events", (req, res) => {
+  try {
+    const events = queryEvents(req.query || {});
+    res.json({ ok: true, events });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/events", (req, res) => {
+  try {
+    const event = publishEvent(req.body || {});
+    res.status(201).json({ ok: true, event });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.get("/api/policies", (_req, res) => {
+  try {
+    res.json({ ok: true, policies: listPolicies() });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/policies/:name", (req, res) => {
+  try {
+    const policy = getPolicy(req.params.name);
+    if (!policy) return res.status(404).json({ error: `Policy '${req.params.name}' not found` });
+    res.json({ ok: true, policy });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch("/api/policies/:name", (req, res) => {
+  try {
+    const updated = updatePolicy(req.params.name, req.body || {});
+    res.json({ ok: true, policy: updated });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post("/api/reflections/run", async (req, res) => {
+  try {
+    const reflection = await runReflection(req.body || {});
+    res.json({ ok: true, reflection });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/memory/lessons", (req, res) => {
+  try {
+    const lessons = listLessons(req.query || {});
+    res.json({ ok: true, lessons });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/memory/lessons", (req, res) => {
+  try {
+    const lesson = saveLesson(req.body || {});
+    res.status(201).json({ ok: true, lesson });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.get("/api/goals", (_req, res) => {
+  try {
+    res.json({ ok: true, goals: listGoals() });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/goals", (req, res) => {
+  try {
+    const goal = createGoal(req.body || {});
+    res.status(201).json({ ok: true, goal });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post("/api/plans/generate", async (req, res) => {
+  try {
+    const plan = await generatePlan(req.body || {});
+    res.json({ ok: true, plan });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post("/api/autonomous/cycle", async (req, res) => {
+  try {
+    const cycle = await runAutonomousCycle(req.body || {});
+    res.json(cycle);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get("/api/delivery/outbox", (_req, res) => {
   try {
     res.json({ ok: true, items: listOutbox() });
@@ -1194,8 +1527,8 @@ app.get("/api/secretary/brief", (_req, res) => {
 
 app.get("/api/secretary/os-snapshot", (_req, res) => {
   try {
-    const brief = generateSecretaryBrief(config);
-    res.json({ ok: true, snapshot: brief });
+    const snapshot = getSecretaryOsSnapshot(config);
+    res.json({ ok: true, snapshot });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1310,7 +1643,8 @@ app.get("/api/secretary/chat", (_req, res) => {
 
 app.post("/api/secretary/chat", async (req, res) => {
   try {
-    const result = await sendMessage(req.body || {}, config);
+    const payload = { autoDispatch: false, ...(req.body || {}) };
+    const result = await sendMessage(payload, config);
     res.json({ ok: true, ...result });
   } catch (err) {
     const busy = String(err.message || "").includes("正在回复");
@@ -1362,12 +1696,18 @@ app.post("/api/secretary/chat/:id/to-inbox", (req, res) => {
 });
 
 app.use("/api/intelligence/xhs", xhsRouter);
+app.use("/api/xhs", xhsOpsRouter);
+
+app.use("/api", (_req, res) => {
+  res.status(404).json({ error: "接口不存在，请刷新页面后重试" });
+});
 
 app.use((_req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 function runTaskRetention() {
+  if (process.env.AI_FOUNDER_OS_RETENTION_ENABLED === "false") return;
   try {
     const result = applyTaskRetention();
     if (result.movedToTrash || result.purgedFromTrash) {
@@ -1386,7 +1726,12 @@ runTaskRetention();
 const retentionTimer = setInterval(runTaskRetention, 60 * 1000);
 retentionTimer.unref?.();
 
-app.listen(config.port, config.host, () => {
+app.listen(config.port, config.host, (error) => {
+  if (error) {
+    console.error(`Founder OS 启动失败：${error.message}`);
+    process.exitCode = 1;
+    return;
+  }
   console.log(`AI Founder OS ${version} running at http://${config.host}:${config.port}`);
   console.log(`dryRun=${config.dryRun}`);
 });

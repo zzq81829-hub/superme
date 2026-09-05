@@ -3,31 +3,37 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#09090b" />
+  <meta name="theme-color" content="#111214" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>OS · Founder Control</title>
+  <title>Founder OS · 工作台</title>
+  <link rel="icon" href="/os-icon.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/workspace.css" />
 </head>
 <body>
-  <div id="toastContainer" class="toastContainer"></div>
+  <a class="skipLink" href="#description">跳到任务输入</a>
+  <div id="toastContainer" class="toastContainer" role="status" aria-live="polite"></div>
   <main class="shell">
     <aside class="sideRail" aria-label="OS 主导航">
       <div class="brandLockup">
         <div class="brandMark" aria-hidden="true">O<span>S</span></div>
         <div>
           <div class="brandName">OS</div>
-          <div class="brandCaption">FOUNDER CONTROL</div>
+          <div class="brandCaption">你的公司，井然有序</div>
         </div>
       </div>
       <div class="railRule"></div>
       <nav class="primaryNav">
-        <div class="navGroupLabel">YOUR DAY</div>
+        <div class="navGroupLabel">工作空间</div>
         <a class="navItem active" href="#commandSection"><span class="navGlyph">＋</span><span>发起任务</span></a>
         <a class="navItem" href="#taskSection"><span class="navGlyph">◌</span><span>看进度</span></a>
-        <a class="navItem" href="#xhsIntelligenceSection"><span class="navGlyph">📊</span><span>小红书情报</span></a>
+        <a class="navItem" href="#contentPackagesSection"><span class="navGlyph">▤</span><span>内容工作台</span></a>
+        <a class="navItem" href="#xhsIntelligenceSection"><span class="navGlyph">▥</span><span>小红书情报</span></a>
+        <a class="navItem" href="#approvalSection"><span class="navGlyph">✓</span><span>待你决定</span><span id="primaryApprovalCount" class="navHint">—</span></a>
+        <a class="navItem" href="#accountsSection"><span class="navGlyph">◎</span><span>账号与容量</span></a>
         <button class="navItem navMore" id="moreNavToggle" type="button" aria-expanded="false"><span class="navGlyph">•••</span><span>更多</span></button>
         <div class="moreNav" id="moreNav" hidden>
           <div class="moreNavGroup">我的系统</div>
@@ -46,27 +52,44 @@
         </div>
       </nav>
       <div class="railFooter">
-        <div class="railStatus"><span class="railStatusDot"></span><span>控制中枢在线</span></div>
-        <div class="railMeta">CEO · 本机控制系统<br />Hermes · COO</div>
+        <div class="railStatus"><span class="railStatusDot" id="railStatusDot"></span><span id="railStatusText">正在连接</span></div>
+        <div class="railMeta">本机工作空间 · Founder OS</div>
+        <a class="guideLink" href="/guide.html" target="_blank" rel="noopener">使用指南 ↗</a>
       </div>
     </aside>
     <header id="appHeader">
       <div>
         <div class="eyebrow">AI FOUNDER OS</div>
-        <h1>把事情交给系统。</h1>
-        <p>你给方向，CEO 推进执行；需要你决定时，才来找你。</p>
+        <h1 id="workspaceTitle">把精力留给重要的事。</h1>
+        <p id="workspaceSubtitle">交代结果，查看进展，在需要时做决定。</p>
       </div>
       <div class="headerActionsCompact">
-        <div id="health" class="status">连接中…</div>
-        <button id="mobileMoreToggle" class="headerMore" type="button" aria-expanded="false">•••</button>
+        <div id="health" class="status" role="status">连接中…</div>
+        <button id="mobileMoreToggle" class="headerMore" type="button" aria-label="打开更多功能" aria-expanded="false">•••</button>
       </div>
       <div class="connectionNotice" id="connectionNotice" hidden>
-        <span>未连接电脑</span>
-        <button type="button" onclick="showPhonePairingHelp()">重新配对</button>
+        <span>连接已中断，显示的是上次结果</span>
+        <button type="button" onclick="refreshNow()">重试连接</button>
       </div>
     </header>
 
+    <section id="dayOverview" class="dayOverview" aria-label="工作概览">
+      <a href="#taskSection" class="overviewItem"><span class="overviewLabel">正在推进</span><strong id="overviewRunning">—</strong><span class="overviewHint">查看任务进度 ↗</span></a>
+      <a href="#approvalSection" class="overviewItem"><span class="overviewLabel">待你决定</span><strong id="overviewApprovals">—</strong><span class="overviewHint">审阅后再批准 ↗</span></a>
+      <a href="#taskSection" data-task-view="completed" class="overviewItem"><span class="overviewLabel">已完成</span><strong id="overviewCompleted">—</strong><span class="overviewHint">打开交付结果 ↗</span></a>
+    </section>
+
     <!-- Hermes Command Monitor Panel -->
+    <section class="panel secondaryPanel" id="accountsSection">
+      <div class="sectionHeader"><h2>账号与容量</h2><button class="ghost" type="button" onclick="loadAccountConsole()">刷新状态</button></div>
+      <p class="accountIntro">Antigravity、Codex 各最多两个账号。新账号先登录，再参与派工；剩余额度以实际执行反馈为准。</p>
+      <div id="accountConsole" class="accountConsole">正在读取账号状态…</div>
+      <details class="accountSetup"><summary>如何接入备用账号</summary>
+        <p><strong>Antigravity：</strong>先在原软件登录对应账号，再点该账号的“检查当前登录”。当前工具只有一个已验证的本机登录入口，切换后另一个账号会暂停参与派工。</p>
+        <p><strong>Codex：</strong>未来加入备用账号时，绑定其已独立登录的配置目录。不要把同一配置目录重复当作两个账号。此界面不接收密码或登录令牌。</p>
+        <p>“检查登录”不代表额度已经恢复，也不会充值。冷却中的账号仍需等待；没有可用账号时，任务保留在队列。</p>
+      </details>
+    </section>
     <section class="panel monitorPanel secondaryPanel" id="commandMonitor">
       <div class="monitorHeader">
         <div class="monitorTitle">
@@ -153,33 +176,42 @@
 
     <section class="panel hero" id="commandSection">
       <div class="heroIntro">
-        <div class="eyebrow">NEW TASK</div>
+        <div class="eyebrow">从一个想法开始</div>
         <h2>你想做什么？</h2>
-        <p>说出你想要的结果，不需要先写 PRD。</p>
+        <p>一句话交代，系统负责分配和跟进。</p>
       </div>
       <input id="title" class="intentTitle" aria-hidden="true" tabindex="-1" />
       <label class="intentLabel" for="description">告诉 CEO 你想要的结果</label>
-      <textarea id="description" rows="4" placeholder="例如：帮我做一组有质感的小红书书摘封面，并告诉我什么时候可以审阅。"></textarea>
+      <textarea id="description" rows="4" placeholder="例如：把这本书整理成 3 个有价值的选题，做好初稿后交给我审阅。"></textarea>
+      <div class="intentExamples" aria-label="任务示例">
+        <button type="button" class="ghost" data-intent="整理当前项目的进度、阻塞点和下一步，给我一份简短日报。">整理今日进展</button>
+        <button type="button" class="ghost" data-intent="检查当前项目的可用性，先定位影响使用的问题，再提出最小修复方案。">检查项目运行</button>
+        <button type="button" class="ghost" data-intent="根据我提供的书籍材料，整理 3 个选题方向和对应论据，交给我审阅。">准备内容选题</button>
+      </div>
+      <div id="executionReadiness" class="executionReadiness" hidden role="status"></div>
       <details class="advancedTaskOptions">
         <summary>添加约束 <span>只有你希望指定时才填写</span></summary>
-        <div class="advancedTaskGrid">
           <select id="agent">
-            <option value="auto">自动分配</option>
-            <option value="hermes">Hermes</option>
-            <option value="codex">Codex</option>
-            <option value="claude">Claude Code</option>
-            <option value="antigravity">Antigravity</option>
-            <option value="grok-build">Grok Build</option>
-            <option value="grok">Grok</option>
-            <option value="deepseek">DeepSeek</option>
+            <option value="auto">自动分配 (按能力智能路由)</option>
+            <option value="hermes">Hermes (COO 需求拆解与分发)</option>
+            <option value="codex">Codex (架构与后端实现)</option>
+            <option value="claude">Claude Code (审查与质检)</option>
+            <option value="antigravity">Antigravity (前端与卡片排版)</option>
+            <option value="grok-build">Grok Build (工程构建)</option>
+            <option value="grok">Grok (调研与外部情报)</option>
+            <option value="deepseek">DeepSeek (批量改写与摘要)</option>
           </select>
           <input id="projectPath" placeholder="项目路径（可选）例如 D:\Projects\shuzhai" />
           <textarea id="acceptance" rows="2" placeholder="验收标准（可选），每行一条，例如：存在: output/report.md 或 运行: npm test"></textarea>
+          <label style="grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted-fg, #888); cursor: pointer; margin-top: 4px;">
+            <input type="checkbox" id="delegateToHermes" />
+            <span>由 Hermes (COO) 智能拆解并分发给各专业 Worker</span>
+          </label>
         </div>
       </details>
       <div class="heroActions">
-        <span class="heroHint"><span class="heroHintDot"></span> CEO 会先理解，再决定是否需要你介入</span>
-        <button id="create">提交并开始 <span class="buttonArrow">↗</span></button>
+        <span class="heroHint">发布、付费等重要操作仍需你批准。</span>
+        <button id="create">开始推进 <span class="buttonArrow">↗</span></button>
       </div>
     </section>
 
@@ -482,7 +514,7 @@
     </section>
 
     <!-- Xiaohongshu Data Intelligence Section (小红书数据情报 v0.1) -->
-    <section class="panel" id="xhsIntelligenceSection">
+    <section class="panel secondaryPanel" id="xhsIntelligenceSection">
       <div class="sectionHeader">
         <div class="sectionTitleBlock">
           <div class="eyebrow">XHS DATA INTELLIGENCE</div>
@@ -565,6 +597,7 @@
             <span><strong>监控关键词：</strong></span>
             <div id="xhsKeywordsChips" class="xhsKeywordsChips"></div>
             <button class="ghost" onclick="promptAddKeyword()">+ 添加词</button>
+            <button class="ghost" onclick="openResearchLoginWindow()" title="打开独立隔离浏览器登录研究账号，解决未登录搜索遮罩">📱 登录研究环境</button>
             <button class="ghost primaryBtn" onclick="runPublicRadarScan()">🔍 扫描外部雷达</button>
           </div>
         </div>
@@ -593,8 +626,13 @@
           </div>
           <div class="statusCard">
             <div class="statusCardTitle">Browser Profile 隔离</div>
-            <div class="statusCardValue">3 组独立 Playwright 目录</div>
-            <div class="statusCardMeta">data/profiles/xhs_account_{1,2,3}</div>
+            <div class="statusCardValue">4 组独立 Playwright 目录</div>
+            <div class="statusCardMeta">xhs_account_{1,2,3} + xhs_public_research</div>
+          </div>
+          <div class="statusCard">
+            <div class="statusCardTitle">生理作息与风控守卫</div>
+            <div class="statusCardValue" id="circadianCardValue" style="color: #4ade80;">☀️ 日间活跃期</div>
+            <div class="statusCardMeta" id="circadianCardMeta">夜间静默(23:30-08:30) · 高斯随机打卡</div>
           </div>
           <div class="statusCard">
             <div class="statusCardTitle">风控保护机制</div>
@@ -602,7 +640,7 @@
             <div class="statusCardMeta">检测到滑块/验证码自动暂停，严防封号</div>
           </div>
           <div class="statusCard">
-            <div class="statusCardTitle">自动定时计划</div>
+            <div class="statusCardTitle">拟人生理调度计划</div>
             <div class="statusCardValue" id="schedulerStateValue">默认关闭 (需手动开启)</div>
             <button class="ghost" id="toggleSchedulerBtn" onclick="toggleXhsScheduler()">切换开启/关闭</button>
           </div>
@@ -791,6 +829,7 @@
     <a class="navItem navSecondary" href="#memorySection"><span>创始人记忆</span></a>
     <a class="navItem navSecondary" href="#briefSection"><span>需求简报</span></a>
     <div class="moreNavGroup">执行系统</div>
+    <a class="navItem navSecondary" href="#accountsSection"><span>账号与容量</span></a>
     <a class="navItem navSecondary" href="#xhsIntelligenceSection"><span>小红书数据情报</span></a>
     <a class="navItem navSecondary" href="#contentPackagesSection"><span>内容工作台</span></a>
     <a class="navItem navSecondary" href="#workerBoardSection"><span>Worker 团队</span></a>
@@ -805,6 +844,7 @@
     <a class="mobileTab" href="#taskSection"><span>◌</span>进度</a>
   </nav>
 
+  <script src="/accounts.js"></script>
   <script src="/app.js"></script>
 </body>
 </html>

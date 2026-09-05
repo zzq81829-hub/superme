@@ -28,12 +28,12 @@ export function getProcessedDir(options = {}) {
   return dir;
 }
 
-function guessIntent(text) {
+export function guessIntent(text) {
   const t = String(text || "").trim().toLowerCase();
   if (/审美|风格|以后都|必须|禁忌|原则|核心判断|目标是|优先级/.test(t)) {
     return "memory_candidate";
   }
-  if (/发布|创建|修复|改写|写代码|运行|测试|分析|实现|优化|重构|生成|排版/.test(t)) {
+  if (/发布|创建|修复|改写|写代码|运行|测试|分析|实现|优化|重构|生成|排版|调度|安排|编排|让hermes|做一组|做个|弄一个|帮我|查一下|整理一下|研究一下/.test(t)) {
     return "task";
   }
   return "unknown";

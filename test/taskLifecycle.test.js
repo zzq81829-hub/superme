@@ -13,7 +13,8 @@ import {
   getTrashTask,
   restoreTaskFromTrash,
   deleteTaskPermanently,
-  clearTrash
+  clearTrash,
+  recoverOrphanedTasks
 } from "../src/store.js";
 import { abortTaskProcess, isTaskProcessRunning } from "../src/adapters/processRunner.js";
 
@@ -111,4 +112,21 @@ test("Task Lifecycle & Trash Management", async (t) => {
     const trashAfter = listTrashTasks();
     assert.equal(trashAfter.length, 0);
   });
+});
+
+test("startup recovery ends orphaned active tasks and records what happened", () => {
+  const task = createTask({ title: "Orphan", description: "stale worker" });
+  updateTask(task.id, { status: "running", agentResolved: "codex", startedAt: "2026-01-01T00:00:00.000Z" });
+
+  const recovered = recoverOrphanedTasks({}, Date.parse("2026-01-02T00:00:00.000Z"));
+  const next = getTask(task.id);
+
+  assert.deepEqual(recovered, [task.id]);
+  assert.equal(next.status, "failed");
+  assert.match(next.error, /原 Worker 进程已经不存在/);
+  assert.equal(next.executionHistory.at(-1).agent, "control-center");
+  assert.equal(next.executionHistory.at(-1).phase, "recovery");
+
+  moveTaskToTrash(task.id);
+  deleteTaskPermanently(task.id);
 });

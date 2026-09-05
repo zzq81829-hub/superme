@@ -14,9 +14,23 @@ export function getCurrentPeriod(d = new Date()) {
   return `${year}-${month}`;
 }
 
+function emptyLedger(period, defaultLimit) {
+  return {
+    period,
+    currency: "CNY",
+    limitCny: defaultLimit,
+    founderTopupCny: 0,
+    spentCny: 0,
+    reservedCny: 0,
+    hardStop: true,
+    entries: [],
+    alerts: []
+  };
+}
+
 export function getBillingDir(options = {}) {
-  const dir = options.baseDir || defaultBillingDir;
-  fs.mkdirSync(dir, { recursive: true });
+  const dir = options.baseDir || process.env.BILLING_BASE_DIR || defaultBillingDir;
+  if (!options.readOnly) fs.mkdirSync(dir, { recursive: true });
   return dir;
 }
 
@@ -30,17 +44,8 @@ export function loadLedger(period = getCurrentPeriod(), options = {}) {
   const defaultLimit = options.limitCny !== undefined ? Number(options.limitCny) : getDeepSeekMonthlyLimit();
 
   if (!fs.existsSync(filePath)) {
-    const initial = {
-      period,
-      currency: "CNY",
-      limitCny: defaultLimit,
-      founderTopupCny: 0,
-      spentCny: 0,
-      reservedCny: 0,
-      hardStop: true,
-      entries: [],
-      alerts: []
-    };
+    const initial = emptyLedger(period, defaultLimit);
+    if (options.readOnly) return initial;
     fs.writeFileSync(filePath, JSON.stringify(initial, null, 2), "utf8");
     return initial;
   }
@@ -59,17 +64,8 @@ export function loadLedger(period = getCurrentPeriod(), options = {}) {
       alerts: Array.isArray(raw.alerts) ? raw.alerts : []
     };
   } catch {
-    const fallback = {
-      period,
-      currency: "CNY",
-      limitCny: defaultLimit,
-      founderTopupCny: 0,
-      spentCny: 0,
-      reservedCny: 0,
-      hardStop: true,
-      entries: [],
-      alerts: []
-    };
+    const fallback = emptyLedger(period, defaultLimit);
+    if (options.readOnly) return fallback;
     fs.writeFileSync(filePath, JSON.stringify(fallback, null, 2), "utf8");
     return fallback;
   }
